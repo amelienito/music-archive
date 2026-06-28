@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>music archive</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>music archive</h1>
+      <span id="count"></span>
+    </div>
+    <input type="text" id="search" placeholder="rechercher…" autocomplete="off">
+  </header>
+
+  <nav id="filters"></nav>
+
+  <main id="grid"></main>
+  <div id="empty">aucun résultat</div>
+
+  <!-- Modal -->
+  <div id="overlay" class="hidden">
+    <div id="modal">
+      <button id="close" aria-label="Fermer">✕</button>
+      <div class="modal-cover-area">
+        <img id="mCover" alt="">
+        <div id="mCoverPlaceholder" class="modal-placeholder"></div>
+      </div>
+      <div id="mBody">
+        <div id="mTitle"></div>
+        <div id="mArtist"></div>
+        <div id="mAlbum"></div>
+        <div id="mNote" class="note"></div>
+        <div class="modal-actions">
+          <a id="mLink" href="#" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+            écouter
+          </a>
+          <span id="mGroup"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
