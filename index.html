@@ -13,7 +13,13 @@
       <h1>music archive</h1>
       <span id="count"></span>
     </div>
-    <input type="text" id="search" placeholder="rechercher…" autocomplete="off">
+    <div class="header-right">
+      <input type="text" id="search" placeholder="rechercher…" autocomplete="off">
+      <button id="radioBtn" class="radio-btn" title="Lancer la radio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+        radio
+      </button>
+    </div>
   </header>
 
   <nav id="filters"></nav>
@@ -21,24 +27,55 @@
   <main id="grid"></main>
   <div id="empty">aucun résultat</div>
 
+  <!-- Radio bar -->
+  <div id="radioBar" class="hidden">
+    <div class="radio-info">
+      <div class="radio-dot"></div>
+      <div>
+        <div id="radioTitle" class="radio-title"></div>
+        <div id="radioArtist" class="radio-artist"></div>
+      </div>
+    </div>
+    <div class="radio-controls">
+      <button id="radioPrev" title="Précédent">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+      <button id="radioNext" title="Suivant">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+      <button id="radioOpen" title="Ouvrir le lien">↗</button>
+      <button id="radioClose" title="Arrêter la radio">✕</button>
+    </div>
+  </div>
+
   <!-- Modal -->
   <div id="overlay" class="hidden">
     <div id="modal">
       <button id="close" aria-label="Fermer">✕</button>
+
       <div class="modal-cover-area">
         <img id="mCover" alt="">
         <div id="mCoverPlaceholder" class="modal-placeholder"></div>
+        <!-- Player YouTube embarqué -->
+        <div id="mPlayerWrap" class="player-wrap hidden">
+          <iframe id="mPlayer" allow="autoplay; encrypted-media" allowfullscreen frameborder="0"></iframe>
+        </div>
+        <button id="mPlayBtn" class="play-overlay-btn" title="Écouter">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+        </button>
       </div>
+
       <div id="mBody">
         <div id="mTitle"></div>
         <div id="mArtist"></div>
         <div id="mAlbum"></div>
-        <div id="mNote" class="note"></div>
+        <div id="mNote"></div>
         <div class="modal-actions">
           <a id="mLink" href="#" target="_blank" rel="noopener">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
-            écouter
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            ouvrir
           </a>
+          <button id="mRadioAdd" class="btn-ghost" title="Ajouter à la radio">+ radio</button>
           <span id="mGroup"></span>
         </div>
       </div>
