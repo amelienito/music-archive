@@ -3,86 +3,321 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>music archive</title>
+
+  <title>Music Discovery</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <header>
-    <div class="header-left">
-      <h1>music archive</h1>
-      <span id="count"></span>
-    </div>
-    <div class="header-right">
-      <input type="text" id="search" placeholder="rechercher…" autocomplete="off">
-      <button id="radioBtn" class="radio-btn" title="Lancer la radio">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-        radio
-      </button>
-    </div>
-  </header>
+  <!-- =========================================================
+       INTRO
+       ========================================================= -->
 
-  <nav id="filters"></nav>
+  <div id="intro" class="intro-screen">
 
-  <main id="grid"></main>
-  <div id="empty">aucun résultat</div>
+    <div class="intro-content">
 
-  <!-- Radio bar -->
-  <div id="radioBar" class="hidden">
-    <div class="radio-info">
-      <div class="radio-dot"></div>
-      <div>
-        <div id="radioTitle" class="radio-title"></div>
-        <div id="radioArtist" class="radio-artist"></div>
+      <div class="intro-eyebrow">
+        MUSIC DISCOVERY
       </div>
-    </div>
-    <div class="radio-controls">
-      <button id="radioPrev" title="Précédent">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/></svg>
+
+      <h1>
+        Mets tes écouteurs.
+      </h1>
+
+      <p>
+        J'ai quelque chose à te faire écouter.
+      </p>
+
+      <div class="intro-warning">
+        <span>♬</span>
+        <span>
+          Pour profiter pleinement de l'expérience,
+          baisse ton volume si nécessaire.
+        </span>
+      </div>
+
+      <button id="enterBtn" class="primary-button">
+        Entrer
       </button>
-      <button id="radioNext" title="Suivant">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/></svg>
-      </button>
-      <button id="radioOpen" title="Ouvrir le lien">↗</button>
-      <button id="radioClose" title="Arrêter la radio">✕</button>
+
     </div>
+
   </div>
 
-  <!-- Modal -->
-  <div id="overlay" class="hidden">
-    <div id="modal">
-      <button id="close" aria-label="Fermer">✕</button>
 
-      <div class="modal-cover-area">
-        <img id="mCover" alt="">
-        <div id="mCoverPlaceholder" class="modal-placeholder"></div>
-        <!-- Player YouTube embarqué -->
-        <div id="mPlayerWrap" class="player-wrap hidden">
-          <iframe id="mPlayer" allow="autoplay; encrypted-media" allowfullscreen frameborder="0"></iframe>
-        </div>
-        <button id="mPlayBtn" class="play-overlay-btn" title="Écouter">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+  <!-- =========================================================
+       APPLICATION
+       ========================================================= -->
+
+  <main id="app" class="app hidden">
+
+    <!-- HEADER -->
+
+    <header class="topbar">
+
+      <div class="brand">
+        <span class="brand-mark">●</span>
+        <span>Music Discovery</span>
+      </div>
+
+      <div class="topbar-actions">
+
+        <button id="radioBtn" class="text-button">
+          Radio
         </button>
+
       </div>
 
-      <div id="mBody">
-        <div id="mTitle"></div>
-        <div id="mArtist"></div>
-        <div id="mAlbum"></div>
-        <div id="mNote"></div>
-        <div class="modal-actions">
-          <a id="mLink" href="#" target="_blank" rel="noopener">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            ouvrir
-          </a>
-          <button id="mRadioAdd" class="btn-ghost" title="Ajouter à la radio">+ radio</button>
-          <span id="mGroup"></span>
+    </header>
+
+
+    <!-- =======================================================
+         DISCOVERY
+         ======================================================= -->
+
+    <section class="discovery">
+
+      <div class="discovery-meta">
+
+        <span class="meta-label">
+          DISCOVERY 01
+        </span>
+
+        <span class="meta-line"></span>
+
+        <span class="meta-label">
+          PLAY IT LOUD
+        </span>
+
+      </div>
+
+
+      <!-- CARTE PRINCIPALE -->
+
+      <article id="discoveryCard" class="discovery-card">
+
+        <div class="album-art">
+
+          <div class="album-glow"></div>
+
+          <div class="album-placeholder">
+            <span id="albumInitials"></span>
+          </div>
+
+          <button
+            id="playBtn"
+            class="play-button"
+            aria-label="Écouter"
+          >
+            ▶
+          </button>
+
         </div>
-      </div>
-    </div>
-  </div>
 
-  <script src="data.js"></script>
+
+        <div class="track-info">
+
+          <div class="track-number">
+            01
+          </div>
+
+          <h1 id="trackTitle">
+            Exhibit C
+          </h1>
+
+          <h2 id="trackArtist">
+            Jay Electronica
+          </h2>
+
+          <p id="trackAlbum">
+            Exhibit C
+          </p>
+
+        </div>
+
+
+        <div class="curator-note">
+
+          <div class="note-label">
+            POUR TOI
+          </div>
+
+          <p id="trackNote">
+            Il y a des morceaux qu'on écoute.
+            Et puis il y a ceux qui donnent immédiatement
+            envie de savoir ce que la personne qui les a choisis
+            écoute d'autre.
+          </p>
+
+        </div>
+
+
+        <div class="discovery-actions">
+
+          <button
+            id="anotherBtn"
+            class="secondary-button"
+          >
+            Une autre pépite
+            <span>→</span>
+          </button>
+
+          <button
+            id="keepBtn"
+            class="small-button"
+          >
+            Garder celle-ci
+          </button>
+
+        </div>
+
+      </article>
+
+
+      <!-- =====================================================
+           CHOIX
+           ===================================================== -->
+
+      <section id="choiceSection" class="choice-section hidden">
+
+        <div class="choice-header">
+
+          <span>
+            Tu hésites ?
+          </span>
+
+          <p>
+            Deux chemins. Un seul clic.
+          </p>
+
+        </div>
+
+
+        <div class="choice-grid">
+
+          <button class="choice-card" data-choice="left">
+
+            <span class="choice-index">
+              01
+            </span>
+
+            <strong>
+              Je veux quelque chose
+              de plus étrange.
+            </strong>
+
+            <span class="choice-arrow">
+              →
+            </span>
+
+          </button>
+
+
+          <button class="choice-card" data-choice="right">
+
+            <span class="choice-index">
+              02
+            </span>
+
+            <strong>
+              Je veux quelque chose
+              qui me donne envie
+              de bouger.
+            </strong>
+
+            <span class="choice-arrow">
+              →
+            </span>
+
+          </button>
+
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- =======================================================
+         FOOTER
+         ======================================================= -->
+
+    <footer class="footer">
+
+      <span>
+        une sélection personnelle
+      </span>
+
+      <span>
+        pas un algorithme
+      </span>
+
+    </footer>
+
+
+    <!-- =======================================================
+         RADIO
+         ======================================================= -->
+
+    <div id="radioPanel" class="radio-panel hidden">
+
+      <button id="closeRadio" class="close-radio">
+        ×
+      </button>
+
+      <div class="turntable">
+
+        <div class="turntable-top">
+
+          <div class="record">
+
+            <div class="record-label">
+              MD
+            </div>
+
+          </div>
+
+          <div class="tonearm"></div>
+
+        </div>
+
+      </div>
+
+      <div class="radio-text">
+
+        <span class="radio-eyebrow">
+          MUSIC DISCOVERY RADIO
+        </span>
+
+        <h2>
+          Pose-toi.
+        </h2>
+
+        <p>
+          Pas de choix à faire.
+          Pas de liste à parcourir.
+          Juste de la musique.
+        </p>
+
+        <button id="radioStart" class="primary-button">
+          Lancer la radio
+        </button>
+
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- =========================================================
+       SCRIPT
+       ========================================================= -->
+
   <script src="script.js"></script>
+
 </body>
 </html>
