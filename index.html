@@ -1,323 +1,89 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Music Discovery</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-
-  <!-- =========================================================
-       INTRO
-       ========================================================= -->
-
-  <div id="intro" class="intro-screen">
-
-    <div class="intro-content">
-
-      <div class="intro-eyebrow">
-        MUSIC DISCOVERY
-      </div>
-
-      <h1>
-        Mets tes écouteurs.
-      </h1>
-
-      <p>
-        J'ai quelque chose à te faire écouter.
-      </p>
-
-      <div class="intro-warning">
-        <span>♬</span>
-        <span>
-          Pour profiter pleinement de l'expérience,
-          baisse ton volume si nécessaire.
-        </span>
-      </div>
-
-      <button id="enterBtn" class="primary-button">
-        Entrer
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================================================
-       APPLICATION
-       ========================================================= -->
-
-  <main id="app" class="app hidden">
-
-    <!-- HEADER -->
+  <div class="app-shell">
 
     <header class="topbar">
-
       <div class="brand">
-        <span class="brand-mark">●</span>
+        <span class="brand-mark">✦</span>
         <span>Music Discovery</span>
       </div>
 
-      <div class="topbar-actions">
-
-        <button id="radioBtn" class="text-button">
-          Radio
-        </button>
-
-      </div>
-
+      <button id="theme-toggle" class="icon-button" type="button">
+        ◐
+      </button>
     </header>
 
+    <main class="main-content">
 
-    <!-- =======================================================
-         DISCOVERY
-         ======================================================= -->
+      <section class="intro">
+        <p class="eyebrow">DISCOVERY</p>
+        <h1>Trouve quelque chose<br />qui mérite ton attention.</h1>
+        <p class="intro-text">
+          Une sélection musicale pensée comme un objet à parcourir,
+          pas comme une playlist automatique.
+        </p>
+      </section>
 
-    <section class="discovery">
+      <section class="discovery-panel">
 
-      <div class="discovery-meta">
-
-        <span class="meta-label">
-          DISCOVERY 01
-        </span>
-
-        <span class="meta-line"></span>
-
-        <span class="meta-label">
-          PLAY IT LOUD
-        </span>
-
-      </div>
-
-
-      <!-- CARTE PRINCIPALE -->
-
-      <article id="discoveryCard" class="discovery-card">
-
-        <div class="album-art">
-
-          <div class="album-glow"></div>
-
-          <div class="album-placeholder">
-            <span id="albumInitials"></span>
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">SÉLECTION DU MOMENT</p>
+            <h2 id="selection-title">À découvrir</h2>
           </div>
 
-          <button
-            id="playBtn"
-            class="play-button"
-            aria-label="Écouter"
-          >
-            ▶
+          <button id="refresh-button" class="secondary-button" type="button">
+            Nouvelle sélection
           </button>
-
         </div>
 
-
-        <div class="track-info">
-
-          <div class="track-number">
-            01
-          </div>
-
-          <h1 id="trackTitle">
-            Exhibit C
-          </h1>
-
-          <h2 id="trackArtist">
-            Jay Electronica
-          </h2>
-
-          <p id="trackAlbum">
-            Exhibit C
-          </p>
-
-        </div>
-
-
-        <div class="curator-note">
-
-          <div class="note-label">
-            POUR TOI
-          </div>
-
-          <p id="trackNote">
-            Il y a des morceaux qu'on écoute.
-            Et puis il y a ceux qui donnent immédiatement
-            envie de savoir ce que la personne qui les a choisis
-            écoute d'autre.
-          </p>
-
-        </div>
-
-
-        <div class="discovery-actions">
-
-          <button
-            id="anotherBtn"
-            class="secondary-button"
-          >
-            Une autre pépite
-            <span>→</span>
-          </button>
-
-          <button
-            id="keepBtn"
-            class="small-button"
-          >
-            Garder celle-ci
-          </button>
-
-        </div>
-
-      </article>
-
-
-      <!-- =====================================================
-           CHOIX
-           ===================================================== -->
-
-      <section id="choiceSection" class="choice-section hidden">
-
-        <div class="choice-header">
-
-          <span>
-            Tu hésites ?
-          </span>
-
-          <p>
-            Deux chemins. Un seul clic.
-          </p>
-
-        </div>
-
-
-        <div class="choice-grid">
-
-          <button class="choice-card" data-choice="left">
-
-            <span class="choice-index">
-              01
-            </span>
-
-            <strong>
-              Je veux quelque chose
-              de plus étrange.
-            </strong>
-
-            <span class="choice-arrow">
-              →
-            </span>
-
-          </button>
-
-
-          <button class="choice-card" data-choice="right">
-
-            <span class="choice-index">
-              02
-            </span>
-
-            <strong>
-              Je veux quelque chose
-              qui me donne envie
-              de bouger.
-            </strong>
-
-            <span class="choice-arrow">
-              →
-            </span>
-
-          </button>
-
+        <div id="track-grid" class="track-grid">
+          <!-- Les morceaux seront ajoutés par app.js -->
         </div>
 
       </section>
 
-    </section>
-
-
-    <!-- =======================================================
-         FOOTER
-         ======================================================= -->
-
-    <footer class="footer">
-
-      <span>
-        une sélection personnelle
-      </span>
-
-      <span>
-        pas un algorithme
-      </span>
-
-    </footer>
-
-
-    <!-- =======================================================
-         RADIO
-         ======================================================= -->
-
-    <div id="radioPanel" class="radio-panel hidden">
-
-      <button id="closeRadio" class="close-radio">
-        ×
-      </button>
-
-      <div class="turntable">
-
-        <div class="turntable-top">
-
-          <div class="record">
-
-            <div class="record-label">
-              MD
-            </div>
-
-          </div>
-
-          <div class="tonearm"></div>
-
-        </div>
-
-      </div>
-
-      <div class="radio-text">
-
-        <span class="radio-eyebrow">
-          MUSIC DISCOVERY RADIO
-        </span>
-
-        <h2>
-          Pose-toi.
-        </h2>
-
-        <p>
-          Pas de choix à faire.
-          Pas de liste à parcourir.
-          Juste de la musique.
-        </p>
-
-        <button id="radioStart" class="primary-button">
-          Lancer la radio
+      <section id="track-detail" class="track-detail hidden">
+        <button id="close-detail" class="close-button" type="button">
+          Fermer
         </button>
 
-      </div>
+        <div class="detail-content">
+          <div id="detail-cover" class="detail-cover"></div>
 
-    </div>
+          <div class="detail-info">
+            <p id="detail-category" class="eyebrow"></p>
+            <h2 id="detail-title"></h2>
+            <p id="detail-artist"></p>
+            <p id="detail-description"></p>
 
-  </main>
+            <button id="play-button" class="primary-button" type="button">
+              Écouter un extrait
+            </button>
+          </div>
+        </div>
+      </section>
 
+    </main>
 
-  <!-- =========================================================
-       SCRIPT
-       ========================================================= -->
+    <footer class="footer">
+      <span>Music Discovery</span>
+      <span>Explorer autrement.</span>
+    </footer>
 
-  <script src="script.js"></script>
+  </div>
 
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
