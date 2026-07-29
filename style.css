@@ -1,1075 +1,376 @@
-/* =========================================================
-   RESET
-   ========================================================= */
+/* â”€â”€â”€ MUSIC DISCOVERY â”€ STYLES.CSS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Mobile-first | EsthÃ©tique : archive personnelle + lieu d'Ã©coute + objet numÃ©rique
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* â”€â”€ RESET & BASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-
-  --bg: #11110f;
-
-  --paper: #e8e4da;
-
-  --muted: #8f8b82;
-
-  --line: rgba(232, 228, 218, 0.14);
-
-  --card: #191916;
-
-  --accent: #d8c8a5;
-
+  --bg:         #111111;
+  --surface:    #1a1a1a;
+  --surface2:   #242424;
+  --border:     #2e2e2e;
+  --text:       #e8e2d8;
+  --muted:      #7a7570;
+  --accent:     #c9a96e;
+  --accent-dim: #9a7a48;
+  --danger:     #c06a5a;
+  --keep:       #6a9e7a;
+  --font-main:  'Georgia', serif;
+  --font-ui:    'Courier New', Courier, monospace;
+  --radius:     6px;
+  --transition: 0.25s ease;
 }
 
-html {
-  font-size: 16px;
-}
-
+html { font-size: 16px; }
 body {
-
   background: var(--bg);
-
-  color: var(--paper);
-
-  font-family:
-    Helvetica Neue,
-    Helvetica,
-    Arial,
-    sans-serif;
-
-  min-height: 100vh;
-
-  -webkit-font-smoothing: antialiased;
-
-}
-
-
-/* =========================================================
-   UTILITY
-   ========================================================= */
-
-.hidden {
-  display: none !important;
-}
-
-
-/* =========================================================
-   INTRO
-   ========================================================= */
-
-.intro-screen {
-
-  position: fixed;
-
-  inset: 0;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  background: var(--bg);
-
-  z-index: 100;
-
-}
-
-.intro-content {
-
-  width: min(520px, 90%);
-
-  text-align: center;
-
-}
-
-.intro-eyebrow {
-
-  font-size: 11px;
-
-  letter-spacing: 0.25em;
-
-  color: var(--muted);
-
-  margin-bottom: 40px;
-
-}
-
-.intro-content h1 {
-
-  font-size: clamp(42px, 7vw, 76px);
-
-  font-weight: 400;
-
-  letter-spacing: -0.06em;
-
-  line-height: 0.95;
-
-  margin-bottom: 20px;
-
-}
-
-.intro-content p {
-
-  color: var(--muted);
-
-  font-size: 17px;
-
-  margin-bottom: 42px;
-
-}
-
-.intro-warning {
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  gap: 10px;
-
-  max-width: 360px;
-
-  margin: 0 auto 32px;
-
-  color: var(--muted);
-
-  font-size: 11px;
-
+  color: var(--text);
+  font-family: var(--font-main);
+  min-height: 100dvh;
   line-height: 1.5;
-
 }
 
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
-button {
-
-  font-family: inherit;
-
-}
-
-.primary-button {
-
-  border: none;
-
-  background: var(--paper);
-
-  color: var(--bg);
-
-  padding: 13px 28px;
-
-  border-radius: 100px;
-
-  font-size: 12px;
-
-  cursor: pointer;
-
-  transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
-
-}
-
-.primary-button:hover {
-
-  transform: translateY(-2px);
-
-  opacity: 0.85;
-
-}
-
-.secondary-button {
-
-  border: 1px solid var(--line);
-
-  background: transparent;
-
-  color: var(--paper);
-
-  padding: 13px 18px;
-
-  border-radius: 100px;
-
-  font-size: 12px;
-
-  cursor: pointer;
-
-  transition:
-    background 0.25s ease,
-    border 0.25s ease;
-
-}
-
-.secondary-button:hover {
-
-  background: rgba(255,255,255,0.06);
-
-  border-color: rgba(255,255,255,0.3);
-
-}
-
-.small-button {
-
-  border: none;
-
-  background: none;
-
-  color: var(--muted);
-
-  font-size: 11px;
-
-  cursor: pointer;
-
-}
-
-.small-button:hover {
-
-  color: var(--paper);
-
-}
-
-.text-button {
-
-  background: none;
-
-  border: none;
-
-  color: var(--muted);
-
-  cursor: pointer;
-
-  font-size: 12px;
-
-}
-
-.text-button:hover {
-
-  color: var(--paper);
-
-}
-
-
-/* =========================================================
-   HEADER
-   ========================================================= */
-
-.topbar {
-
-  position: fixed;
-
-  top: 0;
-
-  left: 0;
-
-  right: 0;
-
-  height: 70px;
-
+/* â”€â”€ LAYOUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px 100px;
   display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  padding: 0 32px;
-
-  border-bottom: 1px solid var(--line);
-
-  z-index: 20;
-
-  background: rgba(17,17,15,0.82);
-
-  backdrop-filter: blur(16px);
-
-}
-
-.brand {
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 9px;
-
-  font-size: 12px;
-
-  letter-spacing: 0.04em;
-
-}
-
-.brand-mark {
-
-  font-size: 8px;
-
-}
-
-
-/* =========================================================
-   DISCOVERY
-   ========================================================= */
-
-.discovery {
-
-  min-height: 100vh;
-
-  padding:
-
-    120px
-
-    32px
-
-    100px;
-
-  display: flex;
-
   flex-direction: column;
-
-  align-items: center;
-
-}
-
-.discovery-meta {
-
-  width: min(980px, 100%);
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 16px;
-
-  margin-bottom: 28px;
-
-}
-
-.meta-label {
-
-  font-size: 9px;
-
-  letter-spacing: 0.18em;
-
-  color: var(--muted);
-
-}
-
-.meta-line {
-
-  height: 1px;
-
-  background: var(--line);
-
-  flex: 1;
-
-}
-
-
-/* =========================================================
-   DISCOVERY CARD
-   ========================================================= */
-
-.discovery-card {
-
-  width: min(980px, 100%);
-
-  display: grid;
-
-  grid-template-columns:
-
-    minmax(280px, 1.2fr)
-
-    minmax(250px, 0.8fr);
-
-  grid-template-rows:
-
-    auto
-
-    auto
-
-    auto;
-
-  gap: 42px;
-
-  padding: 36px;
-
-  border: 1px solid var(--line);
-
-  background:
-
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(216,200,165,0.08),
-      transparent 35%
-    ),
-
-    var(--card);
-
-}
-
-
-/* =========================================================
-   ART
-   ========================================================= */
-
-.album-art {
-
-  grid-row: span 3;
-
-  position: relative;
-
-  aspect-ratio: 1;
-
-  overflow: hidden;
-
-  background: #25241f;
-
-}
-
-.album-glow {
-
-  position: absolute;
-
-  inset: -20%;
-
-  background:
-
-    radial-gradient(
-      circle at 30% 30%,
-      rgba(216,200,165,0.35),
-      transparent 35%
-    ),
-
-    radial-gradient(
-      circle at 80% 70%,
-      rgba(100,120,140,0.25),
-      transparent 40%
-    );
-
-  filter: blur(30px);
-
-}
-
-.album-placeholder {
-
-  position: absolute;
-
-  inset: 0;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  font-size: clamp(70px, 12vw, 150px);
-
-  font-weight: 300;
-
-  letter-spacing: -0.1em;
-
-  color: rgba(255,255,255,0.85);
-
-}
-
-.play-button {
-
-  position: absolute;
-
-  bottom: 22px;
-
-  right: 22px;
-
-  width: 58px;
-
-  height: 58px;
-
-  border-radius: 50%;
-
-  border: 1px solid rgba(255,255,255,0.35);
-
-  background: rgba(17,17,15,0.55);
-
-  backdrop-filter: blur(10px);
-
-  color: white;
-
-  cursor: pointer;
-
-  transition: transform 0.25s ease;
-
-}
-
-.play-button:hover {
-
-  transform: scale(1.08);
-
-}
-
-
-/* =========================================================
-   TRACK INFO
-   ========================================================= */
-
-.track-number {
-
-  color: var(--muted);
-
-  font-size: 10px;
-
-  letter-spacing: 0.15em;
-
-  margin-bottom: 30px;
-
-}
-
-.track-info h1 {
-
-  font-size: clamp(40px, 6vw, 72px);
-
-  line-height: 0.95;
-
-  font-weight: 400;
-
-  letter-spacing: -0.065em;
-
-  margin-bottom: 14px;
-
-}
-
-.track-info h2 {
-
-  font-size: 18px;
-
-  font-weight: 400;
-
-  color: var(--muted);
-
-  margin-bottom: 8px;
-
-}
-
-.track-album {
-
-  font-size: 11px;
-
-  color: var(--muted);
-
-}
-
-
-/* =========================================================
-   CURATOR NOTE
-   ========================================================= */
-
-.curator-note {
-
-  max-width: 390px;
-
-  align-self: center;
-
-}
-
-.note-label {
-
-  font-size: 9px;
-
-  letter-spacing: 0.2em;
-
-  color: var(--muted);
-
-  margin-bottom: 15px;
-
-}
-
-.curator-note p {
-
-  font-family:
-
-    Georgia,
-
-    serif;
-
-  font-size: 17px;
-
-  line-height: 1.55;
-
-  color: rgba(232,228,218,0.8);
-
-}
-
-
-/* =========================================================
-   ACTIONS
-   ========================================================= */
-
-.discovery-actions {
-
-  display: flex;
-
-  align-items: center;
-
   gap: 20px;
-
-  align-self: end;
-
 }
 
-
-/* =========================================================
-   CHOICE
-   ========================================================= */
-
-.choice-section {
-
-  width: min(980px, 100%);
-
-  margin-top: 50px;
-
-}
-
-.choice-header {
-
-  margin-bottom: 18px;
-
-}
-
-.choice-header span {
-
-  font-size: 10px;
-
-  letter-spacing: 0.2em;
-
-  color: var(--muted);
-
-}
-
-.choice-header p {
-
-  font-family: Georgia, serif;
-
-  font-size: 20px;
-
-  margin-top: 8px;
-
-}
-
-.choice-grid {
-
-  display: grid;
-
-  grid-template-columns: 1fr 1fr;
-
-  gap: 12px;
-
-}
-
-.choice-card {
-
-  position: relative;
-
-  min-height: 180px;
-
-  padding: 24px;
-
-  text-align: left;
-
-  border: 1px solid var(--line);
-
-  background: var(--card);
-
-  color: var(--paper);
-
-  cursor: pointer;
-
-  transition:
-
-    transform 0.3s ease,
-
-    background 0.3s ease;
-
-}
-
-.choice-card:hover {
-
-  transform: translateY(-5px);
-
-  background: #20201c;
-
-}
-
-.choice-index {
-
-  display: block;
-
-  color: var(--muted);
-
-  font-size: 10px;
-
-  margin-bottom: 40px;
-
-}
-
-.choice-card strong {
-
-  display: block;
-
-  max-width: 260px;
-
-  font-size: 18px;
-
-  font-weight: 400;
-
-  line-height: 1.2;
-
-}
-
-.choice-arrow {
-
-  position: absolute;
-
-  bottom: 22px;
-
-  right: 22px;
-
-  color: var(--muted);
-
-}
-
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-.footer {
-
-  position: fixed;
-
-  bottom: 20px;
-
-  left: 32px;
-
-  right: 32px;
-
+/* â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+header {
   display: flex;
-
+  align-items: center;
   justify-content: space-between;
-
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.logo {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.counter {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
   color: var(--muted);
+  background: var(--surface);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.counter span { color: var(--accent); font-weight: 700; }
 
-  font-size: 9px;
-
+/* â”€â”€ NAV TABS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.nav-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  padding: 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.nav-tab {
+  flex: 1;
+  padding: 8px 4px;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
-
-}
-
-
-/* =========================================================
-   RADIO
-   ========================================================= */
-
-.radio-panel {
-
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 50;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  gap: 70px;
-
-  padding: 50px;
-
-  background:
-
-    radial-gradient(
-      circle at center,
-      #27261f,
-      #11110f 65%
-    );
-
-}
-
-.close-radio {
-
-  position: absolute;
-
-  top: 28px;
-
-  right: 32px;
-
-  background: none;
-
+  text-transform: uppercase;
+  background: transparent;
   border: none;
-
+  border-radius: 4px;
   color: var(--muted);
-
-  font-size: 28px;
-
   cursor: pointer;
+  transition: var(--transition);
+}
+.nav-tab.active {
+  background: var(--surface2);
+  color: var(--accent);
+}
+.nav-tab:hover { color: var(--text); }
 
+/* â”€â”€ SECTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.section { display: none; }
+.section.active { display: flex; flex-direction: column; gap: 16px; }
+
+/* â”€â”€ DISCOVERY SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.discovery-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-
-/* =========================================================
-   TURNTABLE
-   ========================================================= */
-
-.turntable {
-
-  width: min(420px, 80vw);
-
-  aspect-ratio: 1;
-
-  background: #24231f;
-
-  border: 1px solid rgba(255,255,255,0.08);
-
-  padding: 30px;
-
-  box-shadow:
-
-    0 40px 100px rgba(0,0,0,0.5);
-
+.track-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: var(--transition);
 }
+.track-card:hover { border-color: var(--accent-dim); }
+.track-card.primary { border-color: var(--accent-dim); }
 
-.turntable-top {
+.track-info { display: flex; flex-direction: column; gap: 4px; }
+.track-title {
+  font-family: var(--font-main);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.track-artist {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+.track-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+.track-meta .dot { color: var(--border); }
 
-  position: relative;
-
+/* â”€â”€ AUDIO PLAYER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.audio-player {
+  background: var(--surface2);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.audio-player audio {
   width: 100%;
-
-  height: 100%;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
+  height: 36px;
+  border-radius: 4px;
+  background: var(--surface);
 }
-
-.record {
-
-  width: 78%;
-
-  aspect-ratio: 1;
-
-  border-radius: 50%;
-
-  background:
-
-    repeating-radial-gradient(
-      circle,
-      #111 0px,
-      #111 2px,
-      #1c1c1c 3px,
-      #111 4px
-    );
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  animation:
-
-    spin 8s linear infinite;
-
-}
-
-@keyframes spin {
-
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-
-}
-
-.record-label {
-
-  width: 24%;
-
-  aspect-ratio: 1;
-
-  border-radius: 50%;
-
-  background: var(--accent);
-
-  color: #222;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-  font-size: 10px;
-
-  font-weight: bold;
-
-}
-
-.tonearm {
-
-  position: absolute;
-
-  width: 42%;
-
-  height: 4px;
-
-  background: #aaa;
-
-  right: 3%;
-
-  top: 18%;
-
-  transform: rotate(35deg);
-
-  transform-origin: right center;
-
-}
-
-
-/* =========================================================
-   RADIO TEXT
-   ========================================================= */
-
-.radio-text {
-
-  max-width: 320px;
-
-}
-
-.radio-eyebrow {
-
-  font-size: 9px;
-
-  letter-spacing: 0.2em;
-
+.player-status {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
   color: var(--muted);
-
+  text-align: center;
+  letter-spacing: 0.05em;
 }
 
-.radio-text h2 {
-
-  font-family: Georgia, serif;
-
-  font-size: 60px;
-
-  font-weight: 400;
-
-  margin:
-
-    20px
-
-    0;
-
+/* â”€â”€ FALLBACK NOTICE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fallback-notice {
+  background: var(--surface2);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
 }
-
-.radio-text p {
-
+.fallback-notice p {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
   color: var(--muted);
-
   line-height: 1.6;
+}
+.fallback-notice .simulate-btn {
+  margin-top: 8px;
+  padding: 6px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.fallback-notice .simulate-btn:hover { background: var(--border); }
 
-  margin-bottom: 28px;
+/* â”€â”€ TRACK ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.track-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.action-btn {
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--surface);
+  color: var(--muted);
+}
+.action-btn:hover { background: var(--surface2); color: var(--text); }
+.action-btn.pass:hover { border-color: var(--muted); }
+.action-btn.keep {
+  background: var(--surface2);
+  color: var(--keep);
+  border-color: var(--keep);
+}
+.action-btn.keep:hover { background: #2a4a32; }
+.action-btn.choose {
+  background: var(--accent-dim);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.action-btn.choose:hover { background: var(--accent); }
 
+/* â”€â”€ EMPTY STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.empty-state {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.empty-state .empty-icon {
+  font-size: 2rem;
+  opacity: 0.3;
+}
+.empty-state p {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--muted);
+  max-width: 240px;
+  line-height: 1.6;
 }
 
+/* â”€â”€ LIST SECTIONS (RencontrÃ©s / GardÃ©s / Radio) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.list-section { display: flex; flex-direction: column; gap: 12px; }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
+.list-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: var(--transition);
+}
+.list-item:hover { background: var(--surface2); }
+.list-item .item-num {
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  color: var(--muted);
+  min-width: 24px;
+}
+.list-item .item-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.list-item .item-title {
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+}
+.list-item .item-artist {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.list-item .item-actions { display: flex; gap: 6px; }
+.list-item .item-btn {
+  padding: 4px 10px;
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.list-item .item-btn:hover { color: var(--text); }
+.list-item .item-btn.remove:hover { color: var(--danger); border-color: var(--danger); }
 
-@media (max-width: 760px) {
+/* â”€â”€ RADIO SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.radio-display {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.radio-emoji {
+  font-size: 3rem;
+  line-height: 1;
+}
+.radio-station {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.radio-now {
+  font-family: var(--font-main);
+  font-size: 1rem;
+}
+.radio-controls { display: flex; gap: 8px; }
+.radio-btn {
+  padding: 8px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--surface);
+  color: var(--muted);
+}
+.radio-btn:hover { background: var(--surface2); color: var(--text); }
+.radio-btn.active { background: var(--accent-dim); color: var(--bg); border-color: var(--accent); }
 
-  .topbar {
+/* â”€â”€ MESSAGE BANNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.message-banner {
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+}
+.message-banner .msg-icon { font-size: 1.4rem; margin-bottom: 4px; }
+.message-banner .msg-text {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
 
-    padding: 0 18px;
+/* â”€â”€ FOOTER HINT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.footer-hint {
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  color: var(--border);
+  letter-spacing: 0.06em;
+  padding-top: 4px;
+}
 
-  }
-
-  .discovery {
-
-    padding:
-
-      100px
-
-      18px
-
-      80px;
-
-  }
-
-  .discovery-card {
-
-    grid-template-columns: 1fr;
-
-    padding: 20px;
-
-    gap: 30px;
-
-  }
-
-  .album-art {
-
-    grid-row: auto;
-
-  }
-
-  .track-info h1 {
-
-    font-size: 48px;
-
-  }
-
-  .choice-grid {
-
-    grid-template-columns: 1fr;
-
-  }
-
-  .footer {
-
-    left: 18px;
-
-    right: 18px;
-
-  }
-
-  .radio-panel {
-
-    flex-direction: column;
-
-    gap: 30px;
-
-    text-align: center;
-
-    overflow-y: auto;
-
-  }
-
-  .radio-text h2 {
-
-    font-size: 48px;
-
-  }
-
+/* â”€â”€ RESPONSIVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+@media (min-width: 520px) {
+  .app { padding: 24px 24px 120px; }
+  .track-card { padding: 20px; }
+  .track-title { font-size: 1.25rem; }
 }
