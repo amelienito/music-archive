@@ -3,426 +3,212 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Music Discovery — Explorez de nouveaux univers musicaux en 5 minutes">
-  <title>Music Discovery — Discover by Minutes</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <title>Music Discovery</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- ===================== HEADER ===================== -->
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="/" class="logo">
-        <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/>
-          <circle cx="16" cy="16" r="6" fill="currentColor"/>
-          <path d="M16 4 L16 10 M16 22 L16 28 M4 16 L10 16 M22 16 L28 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <span class="logo-text">Music Discovery</span>
-      </a>
-      <nav class="main-nav">
-        <a href="#decouvrir" class="nav-link active">Découvrir</a>
-        <a href="#moments" class="nav-link">Moments</a>
-        <a href="#radio" class="nav-link">Radio</a>
-      </nav>
-      <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+  <!-- ═══════════════════════════════════════════
+       INTRO — disclaimer & entry
+       ═══════════════════════════════════════════ -->
+  <section id="screen-intro" class="screen">
+    <div class="screen-inner screen-intro-inner">
+      <p class="intro-eyebrow">MUSIC DISCOVERY</p>
+      <h1>Mets tes écouteurs.</h1>
+      <p class="intro-sub">J'ai quelque chose à te faire écouter.</p>
+      <div class="intro-warning">
+        <span>♪</span>
+        <span>Baisse le volume si nécessaire avant de lancer.</span>
+      </div>
+      <button class="btn-primary" data-action="enter">Entrer</button>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       CHOIX — Découvrir / Écouter / Jouer
+       ═══════════════════════════════════════════ -->
+  <section id="screen-choix" class="screen hidden">
+    <div class="screen-inner">
+      <p class="screen-label">MUSIC DISCOVERY</p>
+      <h2 class="screen-title">Qu'est-ce que tu veux faire ?</h2>
+      <div class="choix-grid">
+        <button class="choix-card" data-action="choix-découvrir">
+          <span class="choix-icon">◎</span>
+          <span class="choix-name">Découvrir</span>
+          <span class="choix-desc">Trouver des morceaux que je ne connais pas encore.</span>
+        </button>
+        <button class="choix-card" data-action="choix-écouter">
+          <span class="choix-icon">▶</span>
+          <span class="choix-name">Écouter</span>
+          <span class="choix-desc">Lancer la radio et laisser la sélection défiler.</span>
+        </button>
+        <button class="choix-card" data-action="choix-jouer" disabled>
+          <span class="choix-icon">◈</span>
+          <span class="choix-name">Jouer</span>
+          <span class="choix-desc">Mini-jeux — plus tard.</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       DISCOVER TYPE — Confiance ou Personnaliser
+       ═══════════════════════════════════════════ -->
+  <section id="screen-discover-type" class="screen hidden">
+    <div class="screen-inner">
+      <p class="screen-label">DÉCOUVRIR</p>
+      <h2 class="screen-title">Comment veux-tu procéder ?</h2>
+      <div class="choix-grid">
+        <button class="choix-card" data-action="discover-trust">
+          <span class="choix-icon">✜</span>
+          <span class="choix-name">Je te fais confiance</span>
+          <span class="choix-desc">Pas de questions. On commence directement.</span>
+        </button>
+        <button class="choix-card" data-action="discover-personalize">
+          <span class="choix-icon">◎</span>
+          <span class="choix-name">Personnaliser</span>
+          <span class="choix-desc">Quelques questions rapides pour orienter la sélection.</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       QUESTIONNAIRE — sliders de sensations
+       ═══════════════════════════════════════════ -->
+  <section id="screen-questionnaire" class="screen hidden">
+    <div class="screen-inner">
+      <p class="screen-label">QUELQUES QUESTIONS</p>
+      <h2 class="screen-title">Règle ton expérience.</h2>
+      <div class="sliders">
+        <div class="slider-row">
+          <label>Je veux quelque chose de…</label>
+          <div class="slider-wrap">
+            <span>Calme</span>
+            <input type="range" id="s-energy" min="0" max="100" value="50">
+            <span>Agressif</span>
+          </div>
+        </div>
+        <div class="slider-row">
+          <label>Je veux que ça…</label>
+          <div class="slider-wrap">
+            <span>Danse</span>
+            <input type="range" id="s-surprise" min="0" max="100" value="50">
+            <span>Surprenne</span>
+          </div>
+        </div>
+        <div class="slider-row">
+          <label>Aujourd'hui, je cherche plutôt…</label>
+          <div class="slider-wrap">
+            <span>Me poser</span>
+            <input type="range" id="s-energy2" min="0" max="100" value="50">
+            <span>Prendre une claque</span>
+          </div>
+        </div>
+        <div class="slider-row">
+          <label>Je veux quelque chose de…</label>
+          <div class="slider-wrap">
+            <span>Familier</span>
+            <input type="range" id="s-fam" min="0" max="100" value="50">
+            <span>Étrange</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" data-action="start-selection">Valider</button>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       SELECTION — 3 morceaux
+       ═══════════════════════════════════════════ -->
+  <section id="screen-selection" class="screen hidden">
+    <div class="screen-inner">
+      <p class="screen-label">3 MORCEAUX</p>
+      <div id="cards-container" class="cards-container"></div>
+      <div class="selection-actions">
+        <button class="btn-ghost" data-action="more-cards">Trois autres</button>
+        <button class="btn-ghost" data-action="back-to-choix">← Retour</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       LISTEN — un morceau au centre
+       ═══════════════════════════════════════════ -->
+  <section id="screen-listen" class="screen hidden">
+    <div class="screen-inner">
+      <div id="listen-cover" class="listen-cover"></div>
+      <div id="listen-info" class="listen-info">
+        <h2 id="listen-title"></h2>
+        <p id="listen-artist"></p>
+        <p id="listen-note" class="listen-note"></p>
+      </div>
+      <div class="listen-actions">
+        <a id="listen-link" href="#" target="_blank" class="btn-primary">Écouter</a>
+        <button class="btn-ghost" data-action="keep-track">Garder</button>
+        <button class="btn-ghost" data-action="back-to-selection">← Retour</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════
+       HISTORY PANEL — encountered + kept
+       ═══════════════════════════════════════════ -->
+  <aside id="panel-history" class="history-panel hidden">
+    <div class="panel-header">
+      <h3>Ta session</h3>
+      <button data-action="close-history">×</button>
+    </div>
+    <div class="panel-section">
+      <h4>Rencontrés</h4>
+      <ul id="list-encountered" class="track-list"></ul>
+    </div>
+    <div class="panel-section">
+      <h4>Gardés</h4>
+      <ul id="list-kept" class="track-list"></ul>
+    </div>
+  </aside>
+
+
+  <!-- ═══════════════════════════════════════════
+       RADIO MODE
+       ═══════════════════════════════════════════ -->
+  <section id="screen-radio" class="screen hidden">
+    <div class="screen-inner screen-radio-inner">
+      <p class="screen-label">RADIO</p>
+      <div id="radio-now" class="radio-now">
+        <div id="radio-cover" class="radio-cover"></div>
+        <h2 id="radio-title"></h2>
+        <p id="radio-artist"></p>
+      </div>
+      <div class="radio-controls">
+        <button class="btn-ghost" data-action="radio-prev">◀</button>
+        <a id="radio-link" href="#" target="_blank" class="btn-primary">Écouter</a>
+        <button class="btn-ghost" data-action="radio-next">▶</button>
+      </div>
+      <button class="btn-ghost" data-action="back-to-choix">← Retour</button>
+    </div>
+  </section>
+
+
+  <!-- GLOBAL TOPBAR -->
+  <header class="topbar hidden" id="topbar">
+    <div class="topbar-brand">● Music Discovery</div>
+    <div class="topbar-actions">
+      <button class="text-btn" data-action="open-history">Rencontrés</button>
+      <button class="text-btn" data-action="open-radio">Radio</button>
     </div>
   </header>
 
-  <main>
 
-    <!-- ===================== HERO — 5 PREMIÈRES MINUTES ===================== -->
-    <section class="hero" id="decouvrir">
-      <div class="hero-bg"></div>
-      <div class="hero-content">
-        <p class="hero-eyebrow">L'expérience</p>
-        <h1 class="hero-title">Vos 5 premières minutes<br><em>définissent tout</em></h1>
-        <p class="hero-subtitle">
-          Chaque morceau a une fenêtre d'entrée. On vous propose de la trouver,
-          de la vivre, puis de choisir : continuer ou bifurquer.
-        </p>
-        <div class="hero-actions">
-          <a href="#propositions" class="btn btn-primary">Commencer la découverte</a>
-          <a href="#comment-ca-marche" class="btn btn-ghost">Comment ça marche ?</a>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="waveform-preview" aria-hidden="true">
-          <div class="waveform-bar"></div><div class="waveform-bar"></div><div class="waveform-bar"></div>
-          <div class="waveform-bar"></div><div class="waveform-bar"></div><div class="waveform-bar"></div>
-          <div class="waveform-bar highlight"></div><div class="waveform-bar highlight"></div><div class="waveform-bar highlight"></div>
-          <div class="waveform-bar"></div><div class="waveform-bar"></div><div class="waveform-bar"></div>
-          <div class="waveform-bar"></div><div class="waveform-bar"></div>
-        </div>
-        <p class="hero-visual-caption">La minute d'or — là où tout se joue</p>
-      </div>
-    </section>
-
-    <!-- ===================== DOUBLE PROPOSITION ===================== -->
-    <section class="propositions" id="propositions">
-      <header class="section-header">
-        <p class="section-eyebrow">Étape 1 — Double proposition</p>
-        <h2 class="section-title">Deux directions,<br><em>une seule vous ressemble</em></h2>
-        <p class="section-desc">
-          Deux extraits vous sont présentés. L'un monte, l'autre apaise.
-          Cliquez sur celui qui vous parle. C'est votre première décision.
-        </p>
-      </header>
-
-      <div class="dual-cards">
-        <!-- Direction A -->
-        <article class="direction-card direction-card--ascending" data-direction="ascending">
-          <div class="direction-badge">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>Monter</span>
-          </div>
-          <div class="direction-visual" aria-hidden="true">
-            <div class="direction-graph direction-graph--up"></div>
-          </div>
-          <div class="direction-info">
-            <h3 class="direction-title">Énergie ascendante</h3>
-            <p class="direction-desc">Tensions qui se libèrent, montée sonore, crescendo émotionnel</p>
-          </div>
-          <ul class="direction-tags" aria-label="Tags">
-            <li class="tag">Crescendo</li>
-            <li class="tag">Tension</li>
-            <li class="tag">Montée</li>
-          </ul>
-          <button class="btn btn-direction" aria-label="Choisir la direction montante">
-            <svg viewBox="0 0 24 24" fill="none"><polygon points="5,3 19,12 5,21" fill="currentColor"/></svg>
-            Choisir cette voie
-          </button>
-        </article>
-
-        <!-- Direction B -->
-        <article class="direction-card direction-card--descending" data-direction="descending">
-          <div class="direction-badge">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>Descendre</span>
-          </div>
-          <div class="direction-visual" aria-hidden="true">
-            <div class="direction-graph direction-graph--down"></div>
-          </div>
-          <div class="direction-info">
-            <h3 class="direction-title">Apaisement descendante</h3>
-            <p class="direction-desc">Lâcher-prise, descente mélancolique, respiration musicale</p>
-          </div>
-          <ul class="direction-tags" aria-label="Tags">
-            <li class="tag">Calme</li>
-            <li class="tag">Mélancolie</li>
-            <li class="tag">Respiration</li>
-          </ul>
-          <button class="btn btn-direction" aria-label="Choisir la direction descendante">
-            <svg viewBox="0 0 24 24" fill="none"><polygon points="5,3 19,12 5,21" fill="currentColor"/></svg>
-            Choisir cette voie
-          </button>
-        </article>
-      </div>
-    </section>
-
-    <!-- ===================== COMMENT ÇA MARCHE ===================== -->
-    <section class="how-it-works" id="comment-ca-marche">
-      <header class="section-header">
-        <p class="section-eyebrow">Fonctionnement</p>
-        <h2 class="section-title">3 étapes vers<br><em>votre prochaine découverte</em></h2>
-      </header>
-      <ol class="steps-list">
-        <li class="step-item">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3 class="step-title">Double proposition</h3>
-            <p class="step-desc">Deux extraits, deux ambiances. Cliquez sur celui qui vous attire. Votre instinct guide la découverte.</p>
-          </div>
-        </li>
-        <li class="step-item">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3 class="step-title">Fenêtre d'entrée</h3>
-            <p class="step-desc">On vous place à la minute clé du morceau — là où l'expérience commence vraiment. Écoutez, ressentez.</p>
-          </div>
-        </li>
-        <li class="step-item">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3 class="step-title">Continuer ou bifurquer</h3>
-            <p class="step-desc">Poursuivre le morceau ou emprunter un chemin adjacent ? Vous decidez à chaque embranchement.</p>
-          </div>
-        </li>
-      </ol>
-    </section>
-
-    <!-- ===================== EXPLORATION PAR MOMENTS ===================== -->
-    <section class="moments-section" id="moments">
-      <header class="section-header">
-        <p class="section-eyebrow">Étape 2 — Exploration libre</p>
-        <h2 class="section-title">Par moments,<br><em>par humeurs</em></h2>
-        <p class="section-desc">
-          Chaque moment de vie appelle une musique différente.
-          Choisissez le vôtre et laissez-vous guider.
-        </p>
-      </header>
-
-      <div class="moments-grid">
-        <button class="moment-card" data-moment="matin" aria-pressed="false">
-          <div class="moment-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="10" stroke="currentColor" stroke-width="2.5"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.5 9.5l4.2 4.2M34.3 34.3l4.2 4.2M9.5 38.5l4.2-4.2M34.3 13.7l4.2-4.2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-          </div>
-          <h3 class="moment-title">Réveil</h3>
-          <p class="moment-count">12 morceaux</p>
-        </button>
-
-        <button class="moment-card" data-moment="travail" aria-pressed="false">
-          <div class="moment-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="14" width="32" height="24" rx="3" stroke="currentColor" stroke-width="2.5"/><path d="M16 14V10a2 2 0 012-2h12a2 2 0 012 2v4" stroke="currentColor" stroke-width="2.5"/><path d="M24 26v6M20 32h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-          </div>
-          <h3 class="moment-title">Concentration</h3>
-          <p class="moment-count">24 morceaux</p>
-        </button>
-
-        <button class="moment-card" data-moment="deplacement" aria-pressed="false">
-          <div class="moment-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2.5"/><path d="M24 14v10l7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-          </div>
-          <h3 class="moment-title">En transit</h3>
-          <p class="moment-count">18 morceaux</p>
-        </button>
-
-        <button class="moment-card" data-moment="sport" aria-pressed="false">
-          <div class="moment-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2.5"/><path d="M16 32l6-10 4 4 6-10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <h3 class="moment-title">Énergie</h3>
-          <p class="moment-count">31 morceaux</p>
-        </button>
-
-        <button class="moment-card" data-moment="soir" aria-pressed="false">
-          <div class="moment-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none"><path d="M28 8a16 16 0 100 32 16 16 0 000-32z" stroke="currentColor" stroke-width="2.5"/><path d="M28 8V4M28 44v-4M4 28h4M40 28h4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-          </div>
-          <h3 class="moment-title">Crépuscule</h3>
-          <p class="moment-count">21 morceaux</p>
-        </button>
-
-        <button class="moment-card" data-moment="nuit" aria-pressed="false">
-          <div class="moment-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none"><path d="M36 26a12 12 0 11-12-12 10 10 0 0112 12z" stroke="currentColor" stroke-width="2.5"/><path d="M36 26a12 12 0 01-12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-          </div>
-          <h3 class="moment-title">Nuit profonde</h3>
-          <p class="moment-count">15 morceaux</p>
-        </button>
-      </div>
-    </section>
-
-    <!-- ===================== RADIO & FLUX ===================== -->
-    <section class="radio-section" id="radio">
-      <header class="section-header">
-        <p class="section-eyebrow">Radio</p>
-        <h2 class="section-title">Votre radio,<br><em>en continu</em></h2>
-        <p class="section-desc">
-          Une sélection qui s'adapte à vos choix. Cliquez sur Play et laissez
-          la découvertefiler — sans decision, sans interruption.
-        </p>
-      </header>
-
-      <div class="radio-player-preview" role="region" aria-label="Radio en continu">
-        <div class="radio-status">
-          <div class="radio-dot" aria-hidden="true"></div>
-          <span class="radio-live">En direct</span>
-        </div>
-        <div class="radio-now">
-          <div class="radio-cover" aria-hidden="true">
-            <div class="cover-placeholder">
-              <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="32" r="10" fill="currentColor"/></svg>
-            </div>
-          </div>
-          <div class="radio-info">
-            <p class="radio-artist">Arctic Monkeys</p>
-            <p class="radio-track">Do I Wanna Know?</p>
-          </div>
-        </div>
-        <div class="radio-controls-preview" aria-label="Contrôles radio">
-          <button class="radio-btn" aria-label="Précédent">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></svg>
-          </button>
-          <button class="radio-btn radio-btn--play" aria-label="Lecture">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          </button>
-          <button class="radio-btn" aria-label="Suivant">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg>
-          </button>
-        </div>
-        <div class="radio-queue" aria-label="Prochaines pistes">
-          <p class="queue-label">À suivre</p>
-          <ul class="queue-list">
-            <li class="queue-item">
-              <span class="queue-num">1</span>
-              <span class="queue-artist">Tame Impala</span>
-              <span class="queue-track">Let It Happen</span>
-            </li>
-            <li class="queue-item">
-              <span class="queue-num">2</span>
-              <span class="queue-artist">Massive Attack</span>
-              <span class="queue-track">Teardrop</span>
-            </li>
-            <li class="queue-item">
-              <span class="queue-num">3</span>
-              <span class="queue-artist">Radiohead</span>
-              <span class="queue-track">Pyramid Song</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="radio-actions">
-        <button class="btn btn-primary btn-radio">
-          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
-          Lancer la radio
-        </button>
-        <button class="btn btn-ghost">Personnaliser</button>
-      </div>
-    </section>
-
-    <!-- ===================== SUGGESTIONS / RENVOIS ===================== -->
-    <section class="suggestions" id="suggestions">
-      <header class="section-header">
-        <p class="section-eyebrow">Embranchements</p>
-        <h2 class="section-title">Vous avez aimé<br><em>ce morceau ?</em></h2>
-        <p class="section-desc">
-          Chaque fin de morceau ouvre des passerelles. Explorez les connexions
-          et prolongez votre voyage musical.
-        </p>
-      </header>
-
-      <div class="suggestions-list">
-        <!-- Piste related 1 -->
-        <article class="suggestion-card">
-          <div class="suggestion-cover" aria-hidden="true">
-            <div class="cover-placeholder cover-placeholder--small">
-              <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="1.5"/><circle cx="24" cy="24" r="7" fill="currentColor"/></svg>
-            </div>
-          </div>
-          <div class="suggestion-body">
-            <h3 class="suggestion-title">Même énergie, autre vibe</h3>
-            <p class="suggestion-desc">Des morceaux qui partagent la meme montée mais par un autre chemin.</p>
-            <div class="suggestion-tracks">
-              <span class="track-pill">The Strokes — Reptilia</span>
-              <span class="track-pill">Fontaines D.C. — Starburster</span>
-              <span class="track-pill">IDLES —Danny Nedelko</span>
-            </div>
-          </div>
-          <button class="btn btn-suggestion" aria-label="Explorer ces morceaux">Explorer</button>
-        </article>
-
-        <!-- Piste related 2 -->
-        <article class="suggestion-card">
-          <div class="suggestion-cover" aria-hidden="true">
-            <div class="cover-placeholder cover-placeholder--small">
-              <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="1.5"/><circle cx="24" cy="24" r="7" fill="currentColor"/></svg>
-            </div>
-          </div>
-          <div class="suggestion-body">
-            <h3 class="suggestion-title">Même artiste, autre époque</h3>
-            <p class="suggestion-desc">Quand l'artiste explorait d'autres directions.</p>
-            <div class="suggestion-tracks">
-              <span class="track-pill">Radiohead — Lucky</span>
-              <span class="track-pill">Radiohead —Separator</span>
-              <span class="track-pill">Radiohead — Desert Island Disk</span>
-            </div>
-          </div>
-          <button class="btn btn-suggestion" aria-label="Explorer ces morceaux">Explorer</button>
-        </article>
-
-        <!-- Piste related 3 -->
-        <article class="suggestion-card">
-          <div class="suggestion-cover" aria-hidden="true">
-            <div class="cover-placeholder cover-placeholder--small">
-              <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="1.5"/><circle cx="24" cy="24" r="7" fill="currentColor"/></svg>
-            </div>
-          </div>
-          <div class="suggestion-body">
-            <h3 class="suggestion-title">Même émotion, autre genre</h3>
-            <p class="suggestion-desc">La meme tension melodique dans un autre univers sonore.</p>
-            <div class="suggestion-tracks">
-              <span class="track-pill">Beirut — Santa Fe</span>
-              <span class="track-pill">Bon Iver — Skinny Love</span>
-              <span class="track-pill">Nick Drake — Pink Moon</span>
-            </div>
-          </div>
-          <button class="btn btn-suggestion" aria-label="Explorer ces morceaux">Explorer</button>
-        </article>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ===================== LECTEUR FIXE (BAS DE PAGE) ===================== -->
-  <div class="player-fixed" role="region" aria-label="Lecteur musical">
-    <div class="player-progress-bar" role="progressbar" aria-valuenow="35" aria-valuemin="0" aria-valuemax="100" aria-label="Progression">
-      <div class="player-progress-fill" style="width: 35%"></div>
-    </div>
-    <div class="player-inner">
-      <div class="player-cover" aria-hidden="true">
-        <div class="cover-placeholder cover-placeholder--xs">
-          <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="5" fill="currentColor"/></svg>
-        </div>
-      </div>
-      <div class="player-info">
-        <p class="player-artist">Arctic Monkeys</p>
-        <p class="player-track">Do I Wanna Know? — 2:17 / 4:32</p>
-      </div>
-      <div class="player-controls">
-        <button class="player-btn" aria-label="Précédent">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-        </button>
-        <button class="player-btn player-btn--play" aria-label="Lecture">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l15 8-15 8z"/></svg>
-        </button>
-        <button class="player-btn" aria-label="Suivant">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6z"/></svg>
-        </button>
-      </div>
-      <div class="player-volume" aria-label="Volume">
-        <button class="player-btn" aria-label="Muet">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="volume-slider-wrap">
-          <input type="range" class="volume-slider" min="0" max="100" value="75" aria-label="Niveau de volume">
-        </div>
-      </div>
-      <button class="player-btn player-btn--expand" aria-label="Agrandir le lecteur">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- ===================== FOOTER ===================== -->
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <a href="/" class="logo logo--footer">
-          <svg class="logo-icon" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="currentColor"/></svg>
-          <span class="logo-text">Music Discovery</span>
-        </a>
-        <p class="footer-tagline">Découvrez de nouveaux univers musicaux en 5 minutes.</p>
-      </div>
-      <nav class="footer-nav" aria-label="Navigation pied de page">
-        <a href="#decouvrir">Découvrir</a>
-        <a href="#moments">Moments</a>
-        <a href="#radio">Radio</a>
-        <a href="#suggestions">Embranchements</a>
-      </nav>
-      <p class="footer-copy">&copy; 2026 Music Discovery. Projet de recherche.</p>
-    </div>
-  </footer>
-
-  <!-- Script chargé plus tard -->
-  <script src="script.js"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5"}' crossorigin="anonymous"></script>
+  <script src="data.js"></script>
+  <script src="controller.js"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5"}' crossorigin="anonymous"></script>
 </body>
 </html>
