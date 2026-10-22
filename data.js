@@ -26,6 +26,8 @@
               (Les morceaux très énergiques sont déjà baissés tout seuls.)
      jour     une date "2026-12-25" pour en faire le morceau du jour ce jour-là.
               Sans ça, le morceau du jour est tiré au sort, le même pour tous.
+     long     true pour un long moment (un morceau de 20 minutes et plus) :
+              il a son bouton à lui sur la radio, « Longs moments ».
      bandcamp le lien Bandcamp du morceau, s'il y est. Il apparaît dans
               « Écouter en entier sur » (sans pub, et l'artiste touche plus).
               Ex : bandcamp: "https://artiste.bandcamp.com/track/morceau"
@@ -54,10 +56,6 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=ITSVEXkuadk", note: "",
     energie: 6, etrange: 2, danse: 4 },
 
-  { titre: "The Watcher 2", artiste: "JAY-Z feat. Dr. Dre, Rakim & Truth Hurts", album: "The Blueprint 2: The Gift & The Curse",
-    lien: "https://music.youtube.com/watch?v=HXsRd2BI1Dc", note: "",
-    energie: 5, etrange: 3, danse: 3 },
-
   { titre: "Exhibit C", artiste: "Jay Electronica", album: "Exhibit C",
     lien: "https://music.youtube.com/watch?v=b0c9A74BmcU", note: "",
     energie: 8, etrange: 4, danse: 3 },
@@ -74,33 +72,9 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=J-7XkIQcPUQ", note: "",
     energie: 3, etrange: 5, danse: 2 },
 
-  { titre: "Banded Up", artiste: "Chief Keef feat. Tierra Whack", album: "Almighty So 2",
-    lien: "https://music.youtube.com/watch?v=PtDaNAL1gOg", note: "",
-    energie: 7, etrange: 6, danse: 5 },
-
   { titre: "I'm the Devil", artiste: "Lil B", album: "6 Kiss",
     lien: "https://music.youtube.com/watch?v=jMbTbVF0u2A", note: "",
-    energie: 6, etrange: 8, danse: 3 },
-
-  { titre: "BIBERON", artiste: "Skefre", album: "CAPITALISTE 2",
-    lien: "https://music.youtube.com/watch?v=ucIYVFy6S-c", note: "",
-    energie: 7, etrange: 6, danse: 5 },
-
-  { titre: "ATL", artiste: "La Mano 1.9, Gazo & La Rvfleuze", album: "ATL",
-    lien: "https://music.youtube.com/watch?v=VtgP0eGO4DI", note: "",
-    energie: 8, etrange: 4, danse: 7 },
-
-  { titre: "MERCI AU REVOIR", artiste: "Le Rat Luciano & GRÜNT", album: "GRÜNT #74",
-    lien: "https://music.youtube.com/watch?v=2b5hcyJPFAQ", note: "",
-    energie: 6, etrange: 5, danse: 4 },
-
-  { titre: "Faune marine", artiste: "JeanJass", album: "Les champs de sacs plastique",
-    lien: "https://music.youtube.com/watch?v=LSM1EwVm_7c", note: "",
-    energie: 4, etrange: 5, danse: 3 },
-
-  { titre: "OCARINA THEME", artiste: "LEDOUBLE & GAL", album: "FCK LABEL MACHINE",
-    lien: "https://music.youtube.com/watch?v=Nrz1YGx5-_Q", note: "",
-    energie: 6, etrange: 6, danse: 5 },
+    energie: 6, etrange: 9, danse: 3 },
 
   { titre: "Got to Be Real", artiste: "Cheryl Lynn", album: "Cheryl Lynn",
     lien: "https://music.youtube.com/watch?v=SxW1I0diFqI", note: "",
@@ -109,14 +83,6 @@ const MORCEAUX = [
   { titre: "Judy", artiste: "Al Green", album: "Let's Stay Together",
     lien: "https://music.youtube.com/watch?v=lcwGFZQLD9Q", note: "",
     energie: 3, etrange: 3, danse: 5 },
-
-  { titre: "The Pride, Pts. 1 & 2", artiste: "The Isley Brothers", album: "Go for Your Guns",
-    lien: "https://music.youtube.com/watch?v=7GZ-6HAdv7w", note: "",
-    energie: 7, etrange: 2, danse: 9 },
-
-  { titre: "Pearls", artiste: "Sade", album: "Love Deluxe",
-    lien: "https://music.youtube.com/watch?v=JcljzvUgoAQ", note: "",
-    energie: 2, etrange: 4, danse: 1 },
 
   { titre: "Quiet Storm", artiste: "Smokey Robinson", album: "A Quiet Storm",
     lien: "https://music.youtube.com/watch?v=c52DagmSTdI", note: "",
@@ -134,25 +100,13 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=0_KGch347UI", note: "",
     energie: 6, etrange: 7, danse: 7 },
 
-  { titre: "Cassius 1999", artiste: "Cassius", album: "1999",
+  { titre: "Cassius 1999 (Radio Edit)", artiste: "Cassius", album: "1999",
     lien: "https://music.youtube.com/watch?v=J8fMAXnDocs", note: "",
     energie: 8, etrange: 3, danse: 10 },
-
-  { titre: "MUSIC", artiste: "LinLin", album: "DISCO INFERNO",
-    lien: "https://music.youtube.com/watch?v=QAla_ISKiyo", note: "",
-    energie: 8, etrange: 6, danse: 9 },
 
   { titre: "SWING", artiste: "Angie", album: "SWING",
     lien: "https://music.youtube.com/watch?v=guDSFndnX_M", note: "",
     energie: 7, etrange: 5, danse: 8 },
-
-  { titre: "Sexy Nana", artiste: "Aya Nakamura & La Rvfleuze", album: "Sexy Nana",
-    lien: "https://music.youtube.com/watch?v=ygyno6J_AyQ", note: "",
-    energie: 7, etrange: 4, danse: 9 },
-
-  { titre: "Sing Good", artiste: "Ninajirachi", album: "I Love My Computer",
-    lien: "https://music.youtube.com/watch?v=tCj86Ij-tA0", note: "",
-    energie: 8, etrange: 6, danse: 8 },
 
   { titre: "CSIRAC", artiste: "Ninajirachi", album: "I Love My Computer",
     lien: "https://music.youtube.com/watch?v=L_rc7qJyFOQ", note: "",
@@ -174,37 +128,17 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=Brt_wrBrSqQ", note: "",
     energie: 3, etrange: 6, danse: 2 },
 
-  { titre: "Sin", artiste: "070 Shake", album: "Petrichor",
-    lien: "https://music.youtube.com/watch?v=R9Y6Hb7UjsQ", note: "",
-    energie: 6, etrange: 6, danse: 4 },
-
-  { titre: "how long will it take to walk a mile?", artiste: "Lola Young", album: "I'm Only F**king Myself",
-    lien: "https://music.youtube.com/watch?v=lM133qamEhM", note: "",
-    energie: 4, etrange: 3, danse: 2 },
-
-  { titre: "Dark", artiste: "Maddie Ashman", album: "Dark",
-    lien: "https://music.youtube.com/watch?v=9PJYdRVq9Ik", note: "",
-    energie: 4, etrange: 6, danse: 3 },
-
   { titre: "Six Songs for Invisible Gardens", artiste: "Green-House", album: "Six Songs for Invisible Gardens",
-    lien: "https://music.youtube.com/watch?v=nqCTPxdW9tQ", note: "",
+    lien: "https://music.youtube.com/watch?v=nqCTPxdW9tQ", note: "", long: true,
     energie: 1, etrange: 7, danse: 0 },
 
   { titre: "Plume Valley", artiste: "Windows96", album: "Plume Valley",
-    lien: "https://music.youtube.com/watch?v=MFBOtWq7dsE", note: "",
+    lien: "https://music.youtube.com/watch?v=MFBOtWq7dsE", note: "", long: true,
     energie: 1, etrange: 8, danse: 0 },
-
-  { titre: "ㅤㅤㅤ", artiste: "Emma Vansen", album: "ㅤ",
-    lien: "https://music.youtube.com/watch?v=3MsW-OuXiIo", note: "",
-    energie: 1, etrange: 9, danse: 0 },
 
   { titre: "Fly-day Chinatown", artiste: "Yasuha", album: "Transit",
     lien: "https://music.youtube.com/watch?v=hci81q8Q49Q", note: "",
     energie: 6, etrange: 4, danse: 8 },
-
-  { titre: "さよなら砂山", artiste: "Takeo Yamashita", album: "さよなら砂山",
-    lien: "https://music.youtube.com/watch?v=t0XXkZaC25o", note: "",
-    energie: 3, etrange: 6, danse: 1 },
 
   { titre: "私のすべて", artiste: "Pizzicato Five", album: "The Band of 20th Century",
     lien: "https://music.youtube.com/watch?v=SD_Hk_O5YFA", note: "",
@@ -226,15 +160,6 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=09hEFrUZrXA", note: "",
     energie: 4, etrange: 7, danse: 3 },
 
-  { titre: "je fais pleurer les hommes", artiste: "arøne", album: "je fais pleurer les hommes",
-    lien: "https://music.youtube.com/watch?v=inHes0rZVtM", note: "",
-    energie: 5, etrange: 7, danse: 5 },
-
-  { titre: "50cl", artiste: "ABSOLEM", album: "Champagne en canette",
-    lien: "https://music.youtube.com/watch?v=OOQ4wWMoYjw", note: "",
-    energie: 6, etrange: 6, danse: 4 },
-
-
   { titre: "Scheherazade, Op. 35: III. The Young Prince and The Young Princess", artiste: "New York Philharmonic", album: "",
     lien: "https://music.youtube.com/watch?v=07pZtrFkfWo", note: "",
     energie: 2, etrange: 3, danse: 1 },
@@ -243,17 +168,9 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=caR7C2SHdFI", note: "",
     energie: 5, etrange: 2, danse: 1 },
 
-  { titre: "Piano Concerto in G: II. Adagio assai", artiste: "Ravel, Krystian Zimerman", album: "",
-    lien: "https://music.youtube.com/watch?v=W1hyEjZros8", note: "",
-    energie: 1, etrange: 3, danse: 0 },
-
   { titre: "Serenata D.957", artiste: "Schubert, The Royal Schubert Orchestra", album: "",
     lien: "https://music.youtube.com/watch?v=Huy791G17Ak", note: "",
     energie: 2, etrange: 2, danse: 1 },
-
-  { titre: "Le Sable", artiste: "Alpha Wann", album: "",
-    lien: "https://music.youtube.com/watch?v=U-GdqWtYspU", note: "",
-    energie: 6, etrange: 4, danse: 4 },
 
   { titre: "Ma Tfel", artiste: "Ziad Rahbani", album: "",
     lien: "https://music.youtube.com/watch?v=NLurnvYk0aI", note: "",
@@ -283,10 +200,6 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=DCcAlLqOM8E", note: "",
     energie: 4, etrange: 8, danse: 3 },
 
-  { titre: "I Thought I Saw Your Face Today", artiste: "She & Him", album: "",
-    lien: "https://music.youtube.com/watch?v=HJstyRBLqBQ", note: "",
-    energie: 3, etrange: 2, danse: 4 },
-
   { titre: "Till", artiste: "Conjunto Capri", album: "",
     lien: "https://music.youtube.com/watch?v=5Ov-yEqFYvk", note: "",
     energie: 2, etrange: 5, danse: 3 },
@@ -310,10 +223,6 @@ const MORCEAUX = [
   { titre: "夜に駆ける", artiste: "YOASOBI", album: "",
     lien: "https://music.youtube.com/watch?v=by4SYYWlhEs", note: "",
     energie: 7, etrange: 3, danse: 7 },
-
-  { titre: "Cocard", artiste: "Andrew Magenta", album: "",
-    lien: "https://music.youtube.com/watch?v=9ubW18FTnDA", note: "",
-    energie: 5, etrange: 7, danse: 5 },
 
   { titre: "Be Ever Wonderful", artiste: "Earth, Wind & Fire", album: "",
     lien: "https://music.youtube.com/watch?v=HLyU8BWfGKA", note: "",

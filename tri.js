@@ -386,6 +386,8 @@ fiche.addEventListener('touchend', e => {
   if (Math.abs(dx) > 90) decider(dx > 0 ? 'oui' : 'non');
 });
 
+// sur iPhone, Safari bloque les cookies YouTube dans les vidéos intégrées : Premium n'y est pas reconnu
+if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) $('#avis-ios').hidden = false;
 // reprise : ce qui est déjà en mémoire
 rendreListes();
 const nTries = Object.keys(dejaTries()).length;

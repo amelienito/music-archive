@@ -326,6 +326,7 @@ body.video-fouille .platine-pochette { display: none; }
 .option.ecoute .pochette, .option.compte .pochette { box-shadow: var(--ombre-pochette-forte), 0 0 0 3px var(--aiguille); }
 .option-titre { font-weight: 600; font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 1.2; overflow-wrap: anywhere; }
 .option-artiste { color: var(--encre-2); font-size: 15px; overflow-wrap: anywhere; }
+.option-long { font-size: 13px; color: var(--aiguille); font-weight: 600; margin-top: 2px; }
 .option-extrait { display: grid; justify-items: start; gap: 0; margin-top: 4px; }
 
 /* l'étiquette du disquaire, collée sur la pochette : elle dit dans quelle direction ce disque t'emmène */
@@ -812,7 +813,7 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .unite-touches .cd-transport { flex: 1 1 100%; }
   .unite-touches .cd-transport:first-child { justify-content: space-between; }
   .selecteurs { justify-content: center; gap: 18px 24px; }
-  .source-radio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; border-radius: 14px; }
+  .source-radio { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; border-radius: 14px; }
   .source-pos { padding: 0 6px; font-size: 13px; border-radius: 11px; line-height: 1.15; }
   .sel-etiquette { font-size: 12px; }
   .touche { width: 56px; height: 56px; }

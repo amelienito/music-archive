@@ -42,11 +42,16 @@ const num = (v, d) => (typeof v === 'number' && isFinite(v) ? v : d);
 // certains titres ne sont faits que de caractères invisibles (ㅤㅤㅤ) : on affiche alors « Sans titre »
 const titreVisible = t => String(t || '').replace(/[\s\u3164\u115F\u1160\uFFA0\u2800\u200B-\u200F\u2060\uFEFF]/g, '') ? String(t).trim() : 'Sans titre';
 
+// l'identifiant d'un morceau ne dépend que de son artiste et de son titre :
+// retirer un morceau de data.js ne décale plus les trouvailles des autres
+const vusIds = {};
 const BANQUE = (typeof MORCEAUX !== 'undefined' ? MORCEAUX : []).map((m, i) => {
   const energie = num(m.energie, 5);
+  const base = slug(m.artiste + '-' + m.titre);
+  vusIds[base] = (vusIds[base] || 0) + 1;
   return {
     ...m,
-    id: slug(m.artiste + '-' + m.titre) + '-' + i,
+    id: vusIds[base] > 1 ? `${base}-${vusIds[base]}` : base,
     affiche: titreVisible(m.titre),
     yt: idYouTube(m.lien),
     energie, etrange: num(m.etrange, 5), danse: num(m.danse, 5),
@@ -109,8 +114,10 @@ const S = {
   onglet: 'gardes',
   posteReduit: false,     // poste replié : la vidéo YouTube est alors en pause (jamais de lecture cachée)
 };
-S.croises = S.croises.filter(id => parId[id]);
-S.gardes  = S.gardes.filter(id => parId[id]);
+// les anciens identifiants finissaient par « -numéro » : on les retrouve
+const retrouver = ids => [...new Set(ids.map(id => parId[id] ? id : parId[String(id).replace(/-\d+$/, '')] ? String(id).replace(/-\d+$/, '') : null).filter(Boolean))];
+S.croises = retrouver(S.croises); memoire.ecrire('md-croises', S.croises);
+S.gardes  = retrouver(S.gardes);  memoire.ecrire('md-gardes', S.gardes);
 if (!S.gardes.length && S.sourceRadio === 'trouvailles') S.sourceRadio = 'tout';
 const ton = () => ({ energie: REGLAGES.energie.valeurs[S.tonPos.energie], etrange: REGLAGES.etrange.valeurs[S.tonPos.etrange] });
 
@@ -599,6 +606,7 @@ function carteOption(o, i) {
     </button>
     <p class="option-titre">${E(m.affiche)}</p>
     <p class="option-artiste">${E(m.artiste)}</p>
+    ${m.long ? '<p class="option-long">Un long moment : garde-le pour quand tu as le temps.</p>' : ''}
     ${boutonExtrait(m)}
   </article>`;
 }
@@ -1151,14 +1159,16 @@ $$('.selecteur-rotatif').forEach(el => el.addEventListener('keydown', e => {
 // la file : les morceaux les plus proches du réglage, enchaînés avec un fil
 function construireFil(exclure = []) {
   // au hasard : toute la sélection mélangée, sélecteurs ignorés
+  // les longs moments (20 minutes et plus) ont leur bouton à eux
+  if (S.sourceRadio === 'longs') return melanger(BANQUE.filter(m => m.long && !exclure.includes(m.id))).map(m => m.id);
   if (S.sourceRadio === 'hasard') {
-    let p = BANQUE.filter(m => !exclure.includes(m.id) && ecoutable(m));
-    if (p.length < 3) p = BANQUE.filter(m => !exclure.includes(m.id));
+    let p = BANQUE.filter(m => !m.long && !exclure.includes(m.id) && ecoutable(m));
+    if (p.length < 3) p = BANQUE.filter(m => !m.long && !exclure.includes(m.id));
     return melanger(p).map(m => m.id);
   }
   const cible = ton();
   const base = (S.sourceRadio === 'trouvailles' && S.gardes.length ? S.gardes.map(id => parId[id]) : BANQUE)
-    .filter(m => m && !exclure.includes(m.id));
+    .filter(m => m && !exclure.includes(m.id) && (S.sourceRadio === 'trouvailles' || !m.long));
   let pool = base.filter(ecoutable);
   if (pool.length < 3) pool = base;
   pool.sort((a, b) => distanceRadio(a, cible) - distanceRadio(b, cible));
@@ -1182,7 +1192,7 @@ function reconstruireSuite() {
   S.pos = 0;
 }
 function tonChange() {
-  if (S.sourceRadio === 'hasard') {
+  if (S.sourceRadio === 'hasard' || S.sourceRadio === 'longs') {
     S.sourceRadio = 'tout'; memoire.ecrire('md-source-radio', 'tout');
     $$('.source-pos').forEach(b => b.setAttribute('aria-checked', b.dataset.source === 'tout'));
   }
@@ -1223,7 +1233,7 @@ function majAfficheur() {
   const texte = m ? `${m.affiche}, ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'Rien à jouer.';
   const t = $('#vfd-texte');
   if (t.textContent !== texte) { t.textContent = texte; t.style.animationDuration = `${Math.max(8, texte.length * 0.28)}s`; }
-  $('#vfd-reglage').textContent = S.sourceRadio === 'trouvailles' ? 'Mes trouvailles' : S.sourceRadio === 'hasard' ? 'Au hasard' : descriptionTon();
+  $('#vfd-reglage').textContent = S.sourceRadio === 'trouvailles' ? 'Mes trouvailles' : S.sourceRadio === 'hasard' ? 'Au hasard' : S.sourceRadio === 'longs' ? 'Longs moments' : descriptionTon();
   $('#vfd-etat').textContent = !active ? 'Stop' : S.bloque ? 'Bloqué' : S.enLecture ? 'Lecture' : S.aJoue ? 'Pause' : 'Chargement';
   const ensuite = parId[S.file[S.pos + 1]];
   $('#vfd-ensuite').textContent = ensuite ? `Ensuite : ${ensuite.affiche}` : '';
