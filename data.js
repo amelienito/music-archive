@@ -230,19 +230,3 @@ const MORCEAUX = [
     energie: 6, etrange: 6, danse: 4 },
 
 ];
-
-
-/* ════════════════════════════════════════════════════════════════════
-   LES DISQUES DU LECTEUR CD (page Écouter)
-   Chaque morceau va automatiquement sur le disque qui lui ressemble
-   le plus, d'après ses réglages energie / etrange / danse.
-   Tu peux renommer les disques, en ajouter, en enlever.
-   ════════════════════════════════════════════════════════════════════ */
-
-const STATIONS = [
-  { nom: "Brume",        energie: 1, etrange: 8, danse: 1 },
-  { nom: "Velours",      energie: 3, etrange: 3, danse: 4 },
-  { nom: "Bitume",       energie: 6, etrange: 4, danse: 3 },
-  { nom: "Groove",       energie: 6, etrange: 3, danse: 9 },
-  { nom: "Déflagration", energie: 9, etrange: 7, danse: 8 },
-];

@@ -10,7 +10,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const Pochettes = (() => {
-  const CLE = 'md-pochettes-v3';
+  const CLE = 'md-pochettes-v4';
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { cache = {}; }
 
@@ -92,6 +92,10 @@ const Pochettes = (() => {
     return {
       art: best.artworkUrl100 ? best.artworkUrl100.replace(/\/\d+x\d+bb/, '/600x600bb') : null,
       preview: best.previewUrl || null,
+      album: best.collectionName || null,
+      annee: best.releaseDate ? best.releaseDate.slice(0, 4) : null,
+      genre: best.primaryGenreName || null,
+      duree: best.trackTimeMillis ? Math.round(best.trackTimeMillis / 1000) : null,
     };
   }
 
@@ -105,6 +109,8 @@ const Pochettes = (() => {
     return {
       art: best.album && (best.album.cover_xl || best.album.cover_big) || null,
       preview: best.preview || null,
+      album: best.album && best.album.title || null,
+      duree: best.duration || null,
     };
   }
 
@@ -114,12 +120,16 @@ const Pochettes = (() => {
     if (!apple || !apple.preview || !apple.art) {
       try { deezer = await chercherDeezer(m); } catch (e) {}
     }
+    const pris = k => (apple && apple[k]) || (deezer && deezer[k]) || null;
     return {
-      art: (apple && apple.art) || (deezer && deezer.art) || null,
-      preview: (apple && apple.preview) || (deezer && deezer.preview) || null,
+      art: pris('art'), preview: pris('preview'),
+      album: pris('album'), annee: pris('annee'), genre: pris('genre'), duree: pris('duree'),
       t: Date.now()
     };
   }
+
+  // la fiche du morceau (album, année, genre, durée), quand on l'a trouvée
+  function meta(m) { return cache[m.id] || null; }
 
   // 'inconnu' (recherche pas encore faite), 'ok' (extrait dispo) ou 'absent'
   function etat(m) {
@@ -215,5 +225,5 @@ const Pochettes = (() => {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  return { html, image, extrait, etat, demander, couleur, echapper };
+  return { html, image, extrait, etat, meta, demander, couleur, echapper, artistePrincipal, normaliser };
 })();

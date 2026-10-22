@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Table de tri, Music Discovery</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Familjen+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --mur: #dedcd8; --mur-2: #ecebe8; --encre: #1c1d22; --encre-2: #5d5d66; --klein: #1b3cc4;
+      --oui: #1f9a5a; --non: #d6402f; --trait: rgba(28,29,34,.12);
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(120% 80% at 50% 0%, #f1f0ed, var(--mur)); color: var(--encre); font: 16px/1.5 "Familjen Grotesk", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+    h1, h2, .gros { font-family: "Unbounded", system-ui, sans-serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; margin: 0; }
+    main { max-width: 980px; margin: 0 auto; padding: 24px 18px 140px; display: grid; gap: 22px; }
+    p { margin: 0; }
+    .sous { color: var(--encre-2); max-width: 60ch; }
+    a { color: var(--klein); }
+    :focus-visible { outline: 2px solid var(--klein); outline-offset: 3px; border-radius: 8px; }
+
+    .tete { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+    .tete h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+    .compteurs { display: flex; gap: 10px; flex-wrap: wrap; }
+    .compteur { padding: 6px 12px; border-radius: 999px; background: var(--mur-2); box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; }
+    .compteur b { font-variant-numeric: tabular-nums; }
+    .c-oui b { color: var(--oui); } .c-non b { color: var(--non); }
+
+    .charger { display: grid; gap: 10px; padding: 20px; border-radius: 18px; background: var(--mur-2); box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+    .charger textarea { width: 100%; min-height: 84px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--trait); background: #fff; font: inherit; resize: vertical; }
+    .ligne { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .bouton { min-height: 48px; padding: 0 22px; border-radius: 999px; background: var(--encre); color: #fff; font-weight: 600; }
+    .bouton-clair { background: #fff; color: var(--encre); box-shadow: inset 0 0 0 1px var(--trait); }
+    .petit { font-size: 14px; color: var(--encre-2); }
+    .listes { display: flex; gap: 8px; flex-wrap: wrap; }
+    .liste-pastille { padding: 6px 12px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--trait); font-size: 14px; }
+    .liste-pastille[aria-pressed="true"] { background: var(--klein); color: #fff; }
+
+    .table { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+    .ecran { position: relative; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; background: #111; box-shadow: 0 20px 50px rgba(0,0,0,.18); touch-action: pan-y; }
+    .ecran > div, .ecran iframe { width: 100%; height: 100%; display: block; border: 0; }
+    .verdict-flash { position: absolute; inset: 0; display: grid; place-items: center; font-family: "Unbounded", sans-serif; font-size: 3rem; color: #fff; pointer-events: none; opacity: 0; transition: opacity .2s; }
+    .verdict-flash.oui { background: rgba(31,154,90,.75); opacity: 1; }
+    .verdict-flash.non { background: rgba(214,64,47,.75); opacity: 1; }
+    .fiche { display: grid; gap: 14px; }
+    .position { font-size: 14px; color: var(--encre-2); font-variant-numeric: tabular-nums; }
+    .fiche h2 { font-size: clamp(1.4rem, 3vw, 2.1rem); overflow-wrap: anywhere; }
+    .artiste { font-size: 1.15rem; font-weight: 500; overflow-wrap: anywhere; }
+    .deja { padding: 8px 12px; border-radius: 10px; background: #fff3c4; font-size: 14px; }
+    .refus { padding: 8px 12px; border-radius: 10px; background: #ffe0dc; font-size: 14px; }
+    .transport { display: flex; gap: 8px; flex-wrap: wrap; }
+    .transport button { min-width: 64px; min-height: 42px; padding: 0 12px; border-radius: 10px; background: #fff; box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; }
+    .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .v { min-height: 92px; border-radius: 18px; color: #fff; font-family: "Unbounded", sans-serif; font-size: 1.6rem; display: grid; place-items: center; box-shadow: 0 6px 0 rgba(0,0,0,.18); transition: transform .08s, box-shadow .08s; }
+    .v:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+    .v small { display: block; font-family: "Familjen Grotesk", sans-serif; font-size: 13px; font-weight: 500; opacity: .85; }
+    .v-non { background: var(--non); } .v-oui { background: var(--oui); }
+    .options { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--encre-2); }
+    .options label { display: inline-flex; gap: 8px; align-items: center; }
+    .lien { text-decoration: underline; text-underline-offset: 4px; font-size: 14px; color: var(--encre-2); }
+    .raccourcis { font-size: 13px; color: var(--encre-2); }
+    kbd { display: inline-block; min-width: 22px; padding: 1px 6px; border-radius: 5px; background: #fff; box-shadow: inset 0 0 0 1px var(--trait), 0 1px 0 var(--trait); font: 600 12px "Familjen Grotesk", sans-serif; text-align: center; }
+
+    .export { display: grid; gap: 12px; padding: 20px; border-radius: 18px; background: var(--mur-2); }
+    .export h2 { font-size: 1.3rem; }
+    .export ol { margin: 0; padding-left: 22px; max-height: 260px; overflow: auto; font-size: 15px; }
+    .fin { text-align: center; padding: 40px 10px; display: grid; gap: 12px; justify-items: center; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--encre); color: #fff; padding: 10px 18px; border-radius: 12px; transition: .25s; pointer-events: none; z-index: 9; }
+    .toast.visible { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 760px) {
+      .table { grid-template-columns: minmax(0, 1fr); }
+      .raccourcis { display: none; }
+      .v { min-height: 76px; font-size: 1.3rem; }
+      .verdicts { position: sticky; bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <div class="tete">
+    <div>
+      <h1>Table de tri</h1>
+      <p class="sous">Colle une playlist, écoute, et décide : vert, le morceau entre sur le site ; rouge, il sort.</p>
+    </div>
+    <div class="compteurs" id="compteurs" hidden>
+      <span class="compteur c-oui">Oui <b id="n-oui">0</b></span>
+      <span class="compteur c-non">Non <b id="n-non">0</b></span>
+      <span class="compteur">Restants <b id="n-reste">0</b></span>
+    </div>
+  </div>
+
+  <section class="charger" id="charger">
+    <label for="entree"><strong>Lien d'une playlist YouTube ou YouTube Music</strong></label>
+    <textarea id="entree" placeholder="https://music.youtube.com/playlist?list=…&#10;Tu peux aussi coller des liens de morceaux, un par ligne."></textarea>
+    <div class="ligne">
+      <button class="bouton" id="bouton-charger" disabled>Préparation du lecteur…</button>
+      <span class="petit">Tes choix sont enregistrés au fur et à mesure dans ce navigateur. Tu peux fermer et revenir.</span>
+    </div>
+    <div class="listes" id="listes"></div>
+  </section>
+
+  <section class="table" id="table" hidden>
+    <div>
+      <div class="ecran" id="ecran"><div id="yt"></div><div class="verdict-flash" id="flash"></div></div>
+    </div>
+    <div class="fiche">
+      <p class="position" id="position"></p>
+      <h2 id="titre">…</h2>
+      <p class="artiste" id="artiste"></p>
+      <p class="deja" id="deja" hidden>Ce morceau est déjà sur le site.</p>
+      <p class="refus" id="refus" hidden>Ce morceau refuse d'être lu hors de YouTube : sur le site, on n'entendrait qu'un extrait de 30 s. <a id="lien-yt" target="_blank" rel="noopener">L'écouter sur YouTube</a></p>
+      <div class="transport">
+        <button id="t-lecture">Pause</button>
+        <button id="t-recul">−10 s</button>
+        <button id="t-avance">+30 s</button>
+        <button id="t-annuler">Annuler le dernier choix</button>
+      </div>
+      <div class="verdicts">
+        <button class="v v-non" id="v-non">Non<small>il sort</small></button>
+        <button class="v v-oui" id="v-oui">Oui<small>il entre sur le site</small></button>
+      </div>
+      <div class="options">
+        <label><input type="checkbox" id="opt-intro" checked> Sauter l'intro (démarrer à 0:40)</label>
+        <button class="lien" id="t-passer">Pas sûr, je reviendrai</button>
+      </div>
+      <p class="raccourcis">Clavier : <kbd>→</kbd> oui, <kbd>←</kbd> non, <kbd>↓</kbd> plus tard, <kbd>Espace</kbd> pause, <kbd>↑</kbd> +30 s, <kbd>Z</kbd> annuler. Sur téléphone, fais glisser la fiche à droite (oui) ou à gauche (non).</p>
+    </div>
+  </section>
+
+  <section class="fin" id="fin" hidden>
+    <p class="gros">Playlist triée.</p>
+    <p class="sous" id="fin-texte"></p>
+  </section>
+
+  <section class="export" id="export" hidden>
+    <h2>Tes oui, prêts à entrer sur le site</h2>
+    <p class="sous">Clique sur « Copier pour Claude », puis colle le texte dans la conversation : Claude les ajoute au site et règle leur énergie, leur étrangeté et leur côté dansant.</p>
+    <div class="ligne">
+      <button class="bouton" id="copier">Copier pour Claude</button>
+      <button class="bouton bouton-clair" id="telecharger">Télécharger la liste</button>
+      <button class="lien" id="revoir-passes">Revoir les « pas sûr »</button>
+    </div>
+    <ol id="liste-oui"></ol>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="tri.js"></script>
+</body>
+</html>

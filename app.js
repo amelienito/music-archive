@@ -1,8 +1,7 @@
 /* ════════════════════════════════════════════════════════════════════
-   MUSIC DISCOVERY — v0.3
+   MUSIC DISCOVERY — v0.5
    Toute la logique du site. Tu n'as normalement pas besoin d'y toucher :
-   la musique et les stations se gèrent dans data.js,
-   les couleurs dans teintes.css.
+   la musique se gère dans data.js, les couleurs dans teintes.css.
    ════════════════════════════════════════════════════════════════════ */
 
 (() => {
@@ -15,6 +14,8 @@ const E  = Pochettes.echapper;
 const hasard = arr => arr[Math.floor(Math.random() * arr.length)];
 const melanger = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const borner = (v, a, b) => Math.max(a, Math.min(b, v));
+const deux = n => String(Math.max(0, Math.floor(n))).padStart(2, '0');
+const minutes = s => `${Math.floor(s / 60)}:${deux(s % 60)}`;
 const reduitMouvement = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const tactile = matchMedia('(hover: none)').matches;
 const estMobile = () => matchMedia('(max-width: 640px)').matches;
@@ -55,17 +56,6 @@ const parId = Object.fromEntries(BANQUE.map(m => [m.id, m]));
 const parTitre = t => BANQUE.find(m => m.titre.toLowerCase() === String(t).toLowerCase());
 const distance = (a, b) => Math.hypot(a.energie - b.energie, a.etrange - b.etrange, (a.danse - b.danse) * 0.8);
 
-const STATIONS_BASE = (typeof STATIONS !== 'undefined' && STATIONS.length ? STATIONS : [
-  { nom: 'Brume', energie: 1, etrange: 8, danse: 1 }, { nom: 'Velours', energie: 3, etrange: 3, danse: 4 },
-  { nom: 'Bitume', energie: 6, etrange: 4, danse: 3 }, { nom: 'Groove', energie: 6, etrange: 3, danse: 9 },
-  { nom: 'Déflagration', energie: 9, etrange: 7, danse: 8 },
-]).map(s => ({ ...s, energie: num(s.energie, 5), etrange: num(s.etrange, 5), danse: num(s.danse, 5), ids: [] }));
-BANQUE.forEach(m => {
-  const st = STATIONS_BASE.reduce((best, s) => distance(m, s) < distance(m, best) ? s : best, STATIONS_BASE[0]);
-  st.ids.push(m.id);
-});
-const STATIONS_UI = [...STATIONS_BASE, { nom: 'Toutes', tout: true, ids: BANQUE.map(m => m.id) }, { nom: 'Ton bac', bac: true, ids: [] }];
-
 /* ─────────────────────────────── l'état ─────────────────────────────── */
 const S = {
   vue: 'allumage',
@@ -82,24 +72,24 @@ const S = {
   finTraitee: false,
   erreur: false,
   mode: 'decouvrir',      // ou 'radio'
-  station: memoire.lire('md-station', 0),
-  file: [], pos: 0,
+  ton: Object.assign({ energie: 5, etrange: 5, danse: 5 }, memoire.lire('md-ton', {})), // les molettes d'Écouter
+  sourceRadio: memoire.lire('md-source-radio', 'tout'),
+  file: [], pos: 0, recents: [],
   volume: borner(memoire.lire('md-volume', 60), 0, 100),
   croises: memoire.lire('md-croises', []),
   gardes: memoire.lire('md-gardes', []),
-  injouables: new Set(memoire.lire('md-injouables', [])), // ids YouTube qui refusent la lecture intégrée
-  son: memoire.lire('md-son', 'complet'), // 'complet' (YouTube) ou 'extraits' (30 s, sans pub)
+  injouables: new Set(memoire.lire('md-injouables', [])),
+  son: memoire.lire('md-son', 'complet'),
   onglet: 'gardes',
 };
 S.croises = S.croises.filter(id => parId[id]);
 S.gardes  = S.gardes.filter(id => parId[id]);
-if (!STATIONS_UI[S.station]) S.station = 0;
-// jouable en entier sur YouTube (et l'auditeur veut des morceaux complets)
+if (!S.gardes.length && S.sourceRadio === 'trouvailles') S.sourceRadio = 'tout';
+
 const jouable = m => S.son === 'complet' && !!m.yt && !S.injouables.has(m.yt);
-// on peut l'entendre d'une façon ou d'une autre
 const ecoutable = m => jouable(m) || Pochettes.etat(m) !== 'absent';
 
-/* ─────────────────────────────── sons de la machine ─────────────────────────────── */
+/* ─────────────────────────────── petits sons de la machine ─────────────────────────────── */
 let ctxAudio = null;
 function audioCtx() {
   try { ctxAudio = ctxAudio || new (window.AudioContext || window.webkitAudioContext)(); if (ctxAudio.state === 'suspended') ctxAudio.resume(); } catch (e) {}
@@ -135,14 +125,22 @@ function aller(vue) {
   majPoste();
 }
 
-/* ─────────────────────────────── VOLUME (molettes) ─────────────────────────────── */
-function majMolettesVolume() {
-  $$('[data-molette="volume"]').forEach(b => {
+/* ─────────────────────────────── LES MOLETTES (volume + réglages d'Écouter) ─────────────────────────────── */
+const MOLETTES = {
+  volume:  { max: 100, sensi: 0.45, pas: 5, get: () => S.volume, set: v => reglerVolume(v) },
+  energie: { max: 10, sensi: 0.06, pas: 1, get: () => S.ton.energie, set: v => reglerTon('energie', v), fin: tonChange },
+  etrange: { max: 10, sensi: 0.06, pas: 1, get: () => S.ton.etrange, set: v => reglerTon('etrange', v), fin: tonChange },
+  danse:   { max: 10, sensi: 0.06, pas: 1, get: () => S.ton.danse,   set: v => reglerTon('danse', v),   fin: tonChange },
+};
+function majMolettes() {
+  $$('[data-molette]').forEach(b => {
+    const cfg = MOLETTES[b.dataset.molette]; if (!cfg) return;
+    const f = cfg.get() / cfg.max;
     const mol = $('.molette', b);
-    mol.style.setProperty('--rot', `${-135 + S.volume * 2.7}deg`);
-    mol.setAttribute('aria-valuenow', Math.round(S.volume));
+    mol.style.setProperty('--rot', `${-135 + f * 270}deg`);
+    mol.setAttribute('aria-valuenow', Math.round(cfg.get()));
     const arc = $('.molette-arc circle', b);
-    if (arc) arc.style.strokeDasharray = `${S.volume * 0.75} 100`;
+    if (arc) arc.style.strokeDasharray = `${f * 75} 100`;
     const v = $('.valeur-volume', b);
     if (v) v.textContent = Math.round(S.volume);
   });
@@ -150,21 +148,21 @@ function majMolettesVolume() {
 function reglerVolume(v) {
   S.volume = borner(v, 0, 100);
   memoire.ecrire('md-volume', Math.round(S.volume));
-  majMolettesVolume();
+  majMolettes();
   appliquerVolume();
 }
-function appliquerVolume() {
-  const m = S.joue ? parId[S.joue] : null;
-  const f = m ? m.facteur : 1;
-  const yv = Math.round(S.volume * f * (extraitPour ? 0.15 : 1));
-  if (lecteur && lecteurPret) { try { lecteur.setVolume(yv); } catch (e) {} }
-  audioLecture.volume = borner(S.volume / 100 * f * (extraitPour ? 0.15 : 1), 0, 1);
+function reglerTon(cle, v) {
+  S.ton[cle] = borner(v, 0, 10);
+  majMolettes();
+  majAfficheur();
 }
 function brancherMolette(b) {
+  const cfg = MOLETTES[b.dataset.molette];
+  if (!cfg) return;
   const mol = $('.molette', b);
   let depart = null;
   mol.addEventListener('pointerdown', e => {
-    depart = { x: e.clientX, y: e.clientY, v: S.volume };
+    depart = { x: e.clientX, y: e.clientY, v: cfg.get() };
     try { mol.setPointerCapture(e.pointerId); } catch (er) {}
     mol.classList.add('saisie');
     e.preventDefault();
@@ -172,20 +170,42 @@ function brancherMolette(b) {
   mol.addEventListener('pointermove', e => {
     if (!depart) return;
     const delta = (depart.y - e.clientY) + (e.clientX - depart.x);
-    const nv = depart.v + delta * 0.45;
-    if (Math.round(nv / 5) !== Math.round(S.volume / 5)) clic(1600 + nv * 10, 0.012, 0.03);
-    reglerVolume(nv);
+    const nv = borner(depart.v + delta * cfg.sensi, 0, cfg.max);
+    if (Math.round(nv / cfg.pas) !== Math.round(cfg.get() / cfg.pas)) clic(1500 + (nv / cfg.max) * 1000, 0.012, 0.03);
+    cfg.set(nv);
   });
-  const fin = () => { depart = null; mol.classList.remove('saisie'); };
+  const fin = () => {
+    if (!depart) return;
+    depart = null; mol.classList.remove('saisie');
+    if (cfg.max === 10) cfg.set(Math.round(cfg.get()));
+    if (cfg.fin) cfg.fin();
+  };
   mol.addEventListener('pointerup', fin);
   mol.addEventListener('pointercancel', fin);
-  mol.addEventListener('wheel', e => { e.preventDefault(); reglerVolume(S.volume - e.deltaY * 0.05); }, { passive: false });
+  let roue = null;
+  mol.addEventListener('wheel', e => {
+    e.preventDefault();
+    cfg.set(borner(cfg.get() - Math.sign(e.deltaY) * cfg.pas, 0, cfg.max));
+    clearTimeout(roue); roue = setTimeout(() => cfg.fin && cfg.fin(), 400);
+  }, { passive: false });
   mol.addEventListener('keydown', e => {
-    const pas = { ArrowUp: 5, ArrowRight: 5, ArrowDown: -5, ArrowLeft: -5 }[e.key];
-    if (pas) { e.preventDefault(); reglerVolume(S.volume + pas); clic(2000, 0.012, 0.03); }
+    const pas = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
+    if (!pas) return;
+    e.preventDefault();
+    cfg.set(borner(cfg.get() + pas * cfg.pas, 0, cfg.max));
+    clic(2000, 0.012, 0.03);
+    clearTimeout(roue); roue = setTimeout(() => cfg.fin && cfg.fin(), 400);
   });
 }
-$$('[data-molette="volume"]').forEach(brancherMolette);
+$$('[data-molette]').forEach(brancherMolette);
+
+function appliquerVolume() {
+  const m = S.joue ? parId[S.joue] : null;
+  const f = m ? m.facteur : 1;
+  const att = extraitPour ? 0.15 : 1;
+  if (lecteur && lecteurPret) { try { lecteur.setVolume(Math.round(S.volume * f * att)); } catch (e) {} }
+  audioLecture.volume = borner(S.volume / 100 * f * att, 0, 1);
+}
 
 /* ─────────────────────────────── croiser / garder ─────────────────────────────── */
 function croiser(id) {
@@ -198,26 +218,38 @@ function croiser(id) {
 }
 const estGarde = id => S.gardes.includes(id);
 function basculerGarde(id) {
+  if (!id) return;
   if (estGarde(id)) {
     S.gardes = S.gardes.filter(x => x !== id);
-    toast('Retiré de ton bac.');
+    toast('Retiré de tes trouvailles.');
   } else {
     S.gardes.unshift(id);
-    toast('Gardé. Il t\'attend dans ton bac.');
+    toast('Gardé dans tes trouvailles.');
     clic(900, 0.08, 0.06);
-    const b = $('.bouton-bac'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
+    const b = $('.bouton-trouvailles'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
   }
   memoire.ecrire('md-gardes', S.gardes);
-  $('#compteur-bac').textContent = S.gardes.length;
+  majGarde();
   if (!$('#bac').hidden) rendreBac();
-  $$(`[data-garder="${id}"]`).forEach(b => { if (b.id !== 'radio-garder') majBoutonGarder(b, id); });
-  if (S.vue === 'machine') majMachine();
 }
-function majBoutonGarder(b, id) {
-  const g = estGarde(id);
-  b.classList.toggle('est-garde', g);
-  b.setAttribute('aria-pressed', g);
-  b.textContent = g ? 'Gardé' : 'Garder';
+// tous les boutons Garder de la page se mettent à jour d'un coup
+function majGarde() {
+  $('#compteur-bac').textContent = S.gardes.length;
+  $$('[data-garder]').forEach(b => {
+    const g = estGarde(b.dataset.garder);
+    b.classList.toggle('est-garde', g);
+    b.setAttribute('aria-pressed', g);
+    if (b.classList.contains('bouton-garder')) b.textContent = g ? 'Gardé' : 'Garder';
+  });
+  const pg = $('#poste-garder');
+  const gj = S.joue && estGarde(S.joue);
+  pg.classList.toggle('est-garde', !!gj); pg.setAttribute('aria-pressed', !!gj);
+  pg.setAttribute('aria-label', gj ? 'Retirer de mes trouvailles' : 'Garder ce morceau');
+  const rg = $('#radio-garder');
+  const idRadio = S.file[S.pos];
+  const gr = idRadio && estGarde(idRadio);
+  rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr);
+  $('.cd-garder-texte', rg).textContent = gr ? 'Gardé' : 'Garder';
 }
 
 /* ─────────────────────────────── le moteur de découverte ─────────────────────────────── */
@@ -226,14 +258,12 @@ function disponibles() {
   if (pool.length < 6) {
     S.vusSession = new Set(S.gardes);
     if (S.courant) S.vusSession.add(S.courant);
-    toast('Tu as fait le tour du bac. On rebat les cartes.');
+    toast('Tu as fait le tour de la sélection. On rebat les cartes.');
     pool = BANQUE.filter(m => !S.vusSession.has(m.id));
   }
-  // les morceaux qui jouent en entier passent devant
   const ok = pool.filter(ecoutable);
   return ok.length >= 6 ? ok : pool;
 }
-
 // Les deux propositions respectent l'énergie et l'envie de bouger demandées.
 // Ce qui change entre les deux, c'est l'étrangeté : un familier, un pas de côté.
 function candidats(cible) {
@@ -260,8 +290,7 @@ function apprendre(m) {
   S.cible.etrange = borner(S.cible.etrange + (m.etrange - S.cible.etrange) * 0.3, 0, 10);
   S.cible.danse   = borner(S.cible.danse   + (m.danse   - S.cible.danse)   * 0.25, 0, 10);
 }
-
-// Les chemins depuis un morceau : dans quelle direction tu veux aller ?
+// les directions possibles depuis un morceau
 function chemins(m) {
   const autres = BANQUE.filter(x => x.id !== m.id);
   const pris = new Set();
@@ -283,22 +312,19 @@ function chemins(m) {
     );
     return x && { m: x, etiquette };
   };
-  const liste = [];
+  // ce qui jouera tout seul à la fin : un lien choisi à la main, sinon le plus proche pas encore entendu
   const manuel = m.liens.map(parTitre).filter(x => x && x.id !== m.id)[0];
-  if (manuel) { pris.add(manuel.id); liste.push({ m: manuel, etiquette: 'Il mène là' }); }
-  liste.push(m.energie >= 5 ? dir('energie', -1, 'Plus calme') : dir('energie', 1, 'Plus intense'));
-  liste.push(m.etrange >= 5 ? dir('etrange', -1, 'Plus familier') : dir('etrange', 1, 'Plus étrange'));
-  liste.push(m.danse >= 5 ? dir('danse', -1, 'Plus posé') : dir('danse', 1, 'Plus dansant'));
-  if (!manuel) {
-    const loin = choisir(x => distance(x, m) >= 7, x => -distance(x, m) + Math.random() * 3);
-    if (loin) liste.push({ m: loin, etiquette: 'Complètement ailleurs' });
-  }
-  // ce qui jouera tout seul à la fin : le plus proche pas encore entendu
-  const suite = manuel || choisir(() => true, x => distance(x, m)) || (liste.find(Boolean) || {}).m;
+  if (manuel) pris.add(manuel.id);
+  const suite = manuel || choisir(() => true, x => distance(x, m));
+  const liste = [
+    m.energie >= 5 ? dir('energie', -1, 'Plus calme') : dir('energie', 1, 'Plus intense'),
+    m.etrange >= 5 ? dir('etrange', -1, 'Plus familier') : dir('etrange', 1, 'Plus étrange'),
+    m.danse >= 5 ? dir('danse', -1, 'Plus posé') : dir('danse', 1, 'Plus dansant'),
+  ];
+  const loin = choisir(x => distance(x, m) >= 7, x => -distance(x, m) + Math.random() * 3);
+  if (loin) liste.push({ m: loin, etiquette: 'Complètement ailleurs' });
   return { liste: liste.filter(Boolean), suite };
 }
-
-// une phrase-indice pour les cartes mystère
 function indice(m) {
   const e = ['Presque immobile', 'Presque immobile', 'Presque immobile', 'Calme', 'Calme', 'Ça avance', 'Ça avance', 'Ça pousse', 'Ça pousse', 'Ça cogne', 'Ça cogne'][Math.round(borner(m.energie, 0, 10))];
   const t = m.etrange <= 3 ? 'et familier' : m.etrange <= 6 ? 'et un peu de travers' : 'et franchement étrange';
@@ -309,7 +335,7 @@ function indice(m) {
 /* ─────────────────────────────── DÉCOUVRIR : accueil + morceau du jour ─────────────────────────────── */
 function dateDuJour() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return `${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDate())}`;
 }
 function morceauDuJour() {
   const j = dateDuJour();
@@ -353,7 +379,7 @@ function montrerDuel(paire) {
   paire.forEach(m => croiser(m.id));
   const mystere = S.tour >= 2 && Math.random() < 0.35 ? Math.floor(Math.random() * 2) : -1;
   $('#duel-phrase').textContent = mystere >= 0 ? 'L\'une des deux est cachée. Tu tentes à l\'aveugle ?'
-    : S.tour <= 1 ? 'Deux disques sortis du bac. Lequel tu écoutes ?' : hasard(PHRASES_DUEL);
+    : S.tour <= 1 ? 'Deux disques sortis de la pile. Lequel tu écoutes ?' : hasard(PHRASES_DUEL);
   $('#duel').innerHTML = paire.map((m, i) => i === mystere ? carteMystere(m, i) : carteDuel(m, i)).join('');
   aller('duel');
   if (!tactile) {
@@ -395,15 +421,15 @@ function carteMystere(m, i) {
 
 /* ─────────────────────────────── extraits (pré-écoute au survol) ─────────────────────────────── */
 const audioExtrait = $('#extrait');
-const audioLecture = new Audio(); // sert quand un morceau refuse la lecture YouTube
+const audioLecture = new Audio(); // sert au mode extraits, et quand un morceau refuse YouTube
 audioLecture.setAttribute('playsinline', '');
 let extraitPour = null, fondu = null, survol = null;
-// si l'extrait arrive pendant que la souris est déjà sur la pochette, on le lance
 document.addEventListener('pochette-prete', e => {
   if (survol === e.detail && S.vue === 'duel' && extraitPour !== survol) {
     const el = $(`.pochette-duel[data-id="${survol}"]`);
     if (el) lancerExtrait(survol, el);
   }
+  if (S.courant === e.detail && S.vue === 'rencontre') rendreFiche(parId[e.detail]);
 });
 function lancerExtrait(id, el) {
   const m = parId[id];
@@ -469,8 +495,8 @@ function interlude(type) {
   aller('interlude');
 }
 
-/* ─────────────────────────────── RENCONTRE ─────────────────────────────── */
-function ouvrir(id, { jouer = true } = {}) {
+/* ─────────────────────────────── RENCONTRE (la page d'un morceau) ─────────────────────────────── */
+function ouvrir(id, { jouer = true, versInfos = false } = {}) {
   const m = parId[id];
   if (!m) return;
   S.courant = id;
@@ -478,38 +504,55 @@ function ouvrir(id, { jouer = true } = {}) {
   const { liste, suite } = chemins(m);
   S.suite = suite ? suite.id : null;
   const autre = S.autreDuDuel && S.autreDuDuel !== id ? parId[S.autreDuDuel] : null;
+  const q = encodeURIComponent(`${Pochettes.artistePrincipal(m.artiste)} ${m.titre}`);
 
   $('#rencontre').innerHTML = `
     <div class="rencontre-pochette">${Pochettes.html(m, 'pochette-geante')}</div>
     <div class="rencontre-texte">
       <h1 class="rencontre-titre">${E(m.titre)}</h1>
-      <p class="rencontre-artiste">${E(m.artiste)}${m.album && m.album !== m.titre ? `<span class="rencontre-album">${E(m.album)}</span>` : ''}</p>
+      <p class="rencontre-artiste">${E(m.artiste)}</p>
       ${m.note ? `<blockquote class="rencontre-note">${E(m.note).replace(/\n/g, '<br>')}</blockquote>` : ''}
 
-      <div class="rencontre-lecture">
-        <div class="emplacement-ecran" data-emplacement="rencontre">${Pochettes.html(m, 'pochette-fond')}</div>
-        <div class="rencontre-actions">
-          <button class="bouton-garder" data-action="garder" data-garder="${m.id}" data-id="${m.id}"></button>
-          <a class="lien-bouton" href="${E(m.lien)}" target="_blank" rel="noopener">Ouvrir sur YouTube Music</a>
-        </div>
+      <div class="rencontre-boutons">
+        <button class="bouton-garder" data-action="garder" data-garder="${m.id}" data-id="${m.id}"></button>
+        ${suite ? `<button class="bouton-suivant" data-action="ouvrir" data-id="${suite.id}">
+          <span class="bouton-suivant-etiquette">Morceau suivant</span>
+          <span class="bouton-suivant-titre">${E(suite.titre)}</span>
+        </button>` : ''}
       </div>
+      <p class="suite-annonce" id="suite-annonce">Si tu ne touches à rien, il se lancera tout seul à la fin.</p>
+
+      <div class="emplacement-ecran emplacement-rencontre" data-emplacement="rencontre">${Pochettes.html(m, 'pochette-fond')}</div>
       <p class="rencontre-indispo" id="rencontre-indispo" hidden></p>
 
-      <nav class="chemins" aria-label="Et après ?">
-        <p class="chemins-titre">Et après ? Choisis une direction.</p>
+      <nav class="chemins" aria-label="Choisir une autre direction">
+        <p class="chemins-titre">Ou choisis une direction</p>
         <div class="chemins-portes">${liste.map(c => porte(c.m, c.etiquette)).join('')}</div>
-        <p class="suite-annonce" id="suite-annonce">${suite ? `À la fin, ça enchaîne tout seul sur <strong>${E(suite.titre)}</strong>.` : ''}</p>
         <div class="chemins-bas">
-          <button class="gros-bouton" data-action="duel-suivant">Nouveau duel</button>
-          ${autre ? `<button class="lien-bouton" data-action="ouvrir" data-id="${autre.id}">Et l'autre, c'était quoi ?</button>` : ''}
+          <button class="lien-bouton" data-action="duel-suivant">Revenir aux duels</button>
+          ${autre ? `<button class="lien-bouton" data-action="ouvrir" data-id="${autre.id}">Et l'autre du duel, c'était quoi ?</button>` : ''}
         </div>
       </nav>
+
+      <section class="a-propos" id="a-propos" aria-label="Plus d'infos">
+        <h2 class="a-propos-titre">Plus d'infos</h2>
+        <dl class="fiche" id="fiche"></dl>
+        <div class="bio" id="bio"><p class="bio-attente">On cherche qui est derrière ce morceau…</p></div>
+        <div class="liens-plus">
+          <a class="lien-bouton" href="https://genius.com/search?q=${q}" target="_blank" rel="noopener">Les paroles sur Genius</a>
+          <a class="lien-bouton" href="${E(m.lien)}" target="_blank" rel="noopener">Ouvrir sur YouTube Music</a>
+          <a class="lien-bouton" href="https://music.youtube.com/search?q=${encodeURIComponent(Pochettes.artistePrincipal(m.artiste))}" target="_blank" rel="noopener">Tout l'artiste sur YouTube Music</a>
+        </div>
+      </section>
     </div>`;
-  $$('[data-garder]', $('#rencontre')).forEach(b => majBoutonGarder(b, m.id));
+  majGarde();
+  rendreFiche(m);
+  rendreBio(m);
   teinterRencontre(m);
   aller('rencontre');
   if (jouer) { S.mode = 'decouvrir'; jouerMorceau(m); }
   else { placerEcranVideo(); majIndispo(); }
+  if (versInfos) setTimeout(() => $('#a-propos').scrollIntoView({ behavior: reduitMouvement ? 'auto' : 'smooth', block: 'start' }), 120);
 }
 function porte(m, etiquette) {
   return `<button class="porte-petite" data-action="ouvrir" data-id="${m.id}">
@@ -520,6 +563,36 @@ function porte(m, etiquette) {
       <span class="porte-petite-artiste">${E(m.artiste)}</span>
     </span>
   </button>`;
+}
+function rendreFiche(m) {
+  const el = $('#fiche');
+  if (!el || S.courant !== m.id) return;
+  const f = Pochettes.meta(m) || {};
+  const lignes = [
+    ['Album', f.album || (m.album && m.album !== m.titre ? m.album : '')],
+    ['Sortie', f.annee],
+    ['Genre', f.genre],
+    ['Durée', f.duree ? minutes(f.duree) : ''],
+  ].filter(([, v]) => v);
+  el.innerHTML = lignes.map(([k, v]) => `<div><dt>${k}</dt><dd>${E(v)}</dd></div>`).join('');
+  el.hidden = !lignes.length;
+}
+function rendreBio(m) {
+  Infos.artiste(m.artiste, fiche => {
+    const el = $('#bio');
+    if (!el || S.courant !== m.id) return;
+    if (!fiche) {
+      el.innerHTML = `<p class="bio-vide">Pas de fiche Wikipédia fiable pour ${E(Pochettes.artistePrincipal(m.artiste))}. Les meilleurs se cachent parfois là où personne n'a encore écrit.</p>`;
+      return;
+    }
+    el.innerHTML = `
+      ${fiche.image ? `<img class="bio-photo" src="${E(fiche.image)}" alt="" loading="lazy">` : ''}
+      <div>
+        <p class="bio-nom">${E(fiche.titre)}</p>
+        <p class="bio-texte">${E(fiche.extrait)}</p>
+        <a class="lien-bouton" href="${E(fiche.url)}" target="_blank" rel="noopener">Lire la suite sur Wikipédia${fiche.langue === 'en' ? ' (en anglais)' : ''}</a>
+      </div>`;
+  });
 }
 function teinterRencontre(m) {
   const ec = $('.ecran-rencontre');
@@ -548,7 +621,7 @@ function annulerSuiteSilencieux() { clearInterval(suiteMinuterie); suiteMinuteri
 function annulerSuite() {
   annulerSuiteSilencieux();
   const a = $('#suite-annonce');
-  if (a) a.textContent = 'Enchaînement annulé. Choisis une direction quand tu veux.';
+  if (a) a.textContent = 'Enchaînement annulé. Choisis quand tu veux.';
 }
 function enchainerDecouverte() {
   const suite = S.suite && parId[S.suite];
@@ -561,7 +634,6 @@ function enchainerDecouverte() {
     clearInterval(suiteMinuterie);
     suiteMinuterie = setInterval(() => { n--; if (n <= 0) { annulerSuiteSilencieux(); ouvrir(suite.id); } else maj(); }, 1000);
   } else {
-    // ailleurs sur le site : la musique continue sans te déplacer
     croiser(suite.id);
     const { suite: apres } = chemins(suite);
     S.suite = apres ? apres.id : null;
@@ -608,7 +680,6 @@ window.onYouTubeIframeAPIReady = () => {
     }
   });
 };
-
 function jouerMorceau(m) {
   annulerSuiteSilencieux();
   arreterExtrait();
@@ -619,15 +690,13 @@ function jouerMorceau(m) {
   if (!jouable(m)) { jouerExtraitComplet(m); return; }
   S.lecture = 'yt';
   $('#ecran-video').hidden = false;
-  if (!memoire.lire('md-encart-pub', false)) setTimeout(() => { $('#encart-pub').hidden = false; }, 1200);
+  if (!memoire.lire('md-encart-pub', false)) setTimeout(() => { $('#encart-pub').hidden = false; }, 1500);
   majPoste();
   if (!lecteurPret) { enAttente = m; chargerAPI(); majEtat(); return; }
   try { lecteur.loadVideoById(m.yt); } catch (e) {}
   appliquerVolume();
   majEtat();
 }
-
-// repli : l'extrait de 30 s quand YouTube refuse
 function jouerExtraitComplet(m) {
   if (lecteur && lecteurPret) { try { lecteur.stopVideo(); } catch (e) {} }
   const url = Pochettes.extrait(m);
@@ -638,7 +707,6 @@ function jouerExtraitComplet(m) {
     audioLecture.play().then(() => { S.enLecture = true; majEtat(); }).catch(() => { S.enLecture = false; majEtat(); });
   } else {
     S.lecture = null; S.enLecture = false; S.erreur = true;
-    // l'extrait est peut-être encore en route
     Pochettes.demander(m, () => { if (S.joue === m.id && S.erreur && Pochettes.extrait(m)) jouerExtraitComplet(m); });
     if (S.mode === 'radio') {
       toast(S.son === 'extraits' ? `Pas d'extrait pour ${m.titre}. Suivant.` : `${m.titre} ne s'écoute que sur YouTube Music. Suivant.`);
@@ -664,12 +732,10 @@ function finDuMorceau() {
   S.finTraitee = true;
   if (S.mode === 'radio') radioSuivant(); else enchainerDecouverte();
 }
-// filet de sécurité : si YouTube oublie de prévenir que le morceau est fini
 setInterval(() => {
   if (S.lecture !== 'yt' || !lecteurPret || S.finTraitee || !S.joue) return;
   try { if (lecteur.getPlayerState() === YT.PlayerState.ENDED) finDuMorceau(); } catch (e) {}
 }, 1500);
-
 function majEtat() {
   document.body.classList.toggle('en-lecture', S.enLecture);
   $('#poste-icone').classList.toggle('pause', S.enLecture);
@@ -682,7 +748,6 @@ function majEtat() {
 /* ─────────────────────────────── le poste et l'écran vidéo ─────────────────────────────── */
 function majPoste() {
   const p = $('#poste');
-  // sur la page du morceau en cours, la vidéo est déjà là : pas besoin du poste (sauf sur téléphone)
   const surSaPage = S.vue === 'rencontre' && S.courant === S.joue && !estMobile();
   const visible = !!S.joue && S.vue !== 'machine' && S.vue !== 'allumage' && !surSaPage;
   p.hidden = !visible;
@@ -694,6 +759,7 @@ function majPoste() {
     const slot = $('[data-emplacement="poste"]');
     if (slot.dataset.id !== m.id) { slot.innerHTML = Pochettes.html(m, 'pochette-fond'); slot.dataset.id = m.id; }
   }
+  majGarde();
   placerEcranVideo();
 }
 let suiviRAF = null;
@@ -708,6 +774,7 @@ function placerEcranVideo() {
   const ev = $('#ecran-video');
   const slot = emplacementCible();
   cancelAnimationFrame(suiviRAF);
+  document.body.classList.toggle('video-machine', !!slot && slot.dataset.emplacement === 'machine');
   if (!slot) { ev.classList.add('cache'); return; }
   ev.classList.remove('cache');
   const suivre = () => {
@@ -718,17 +785,30 @@ function placerEcranVideo() {
   };
   suivre();
 }
-
 addEventListener('resize', majPoste);
 
-/* ─────────────────────────────── ÉCOUTER : la chaîne hi-fi (lecteur CD) ───────────────────────────────
-   Chaque « disque » du changeur est une sélection (Brume, Velours…).
-   Les disques se définissent dans data.js (STATIONS). */
-function construireFil(ids) {
-  let reste = melanger(ids.map(id => parId[id]).filter(Boolean));
-  const ok = reste.filter(ecoutable);
-  if (ok.length >= 3) reste = ok;
+/* ─────────────────────────────── ÉCOUTER : la chaîne ───────────────────────────────
+   Pas de catégories : trois molettes règlent ce qui passe (calme / intense,
+   familier / étrange, assis / debout). Le morceau en cours continue,
+   c'est la suite qui change. */
+function descriptionTon() {
+  const t = S.ton;
+  const e = t.energie <= 3 ? 'calme' : t.energie >= 7 ? 'intense' : 'entre deux';
+  const b = t.etrange <= 3 ? 'familier' : t.etrange >= 7 ? 'étrange' : 'un peu de travers';
+  const d = t.danse <= 3 ? 'assis' : t.danse >= 7 ? 'debout' : 'ça balance';
+  return `${e}, ${b}, ${d}`;
+}
+// la file : les morceaux les plus proches du réglage, enchaînés avec un fil
+function construireFil(exclure = []) {
+  const base = (S.sourceRadio === 'trouvailles' && S.gardes.length ? S.gardes.map(id => parId[id]) : BANQUE)
+    .filter(m => m && !exclure.includes(m.id));
+  let pool = base.filter(ecoutable);
+  if (pool.length < 3) pool = base;
+  pool.sort((a, b) => distance(a, S.ton) - distance(b, S.ton));
+  const garde = S.sourceRadio === 'trouvailles' ? pool.length : Math.min(pool.length, 14);
+  const reste = melanger(pool.slice(0, garde));
   if (!reste.length) return [];
+  reste.sort((a, b) => distance(a, S.ton) - distance(b, S.ton));
   const fil = [reste.shift()];
   while (reste.length) {
     const der = fil[fil.length - 1];
@@ -738,85 +818,53 @@ function construireFil(ids) {
   }
   return fil.map(m => m.id);
 }
-const deux = n => String(Math.max(0, Math.floor(n))).padStart(2, '0');
-function rendreDisques() {
-  $('#cd-disques').innerHTML = STATIONS_UI.map((s, i) => `
-    <button class="cd-disque" data-action="station" data-station="${i}" aria-pressed="${i === S.station}">
-      <span class="led" aria-hidden="true"></span>
-      <span class="cd-disque-num">${i + 1}</span>
-      <span class="cd-disque-nom">${E(s.nom)}</span>
-    </button>`).join('');
+function reconstruireSuite() {
+  const actuel = S.mode === 'radio' && S.joue ? S.joue : null;
+  const nouveau = construireFil(actuel ? [actuel, ...S.recents.slice(-8)] : S.recents.slice(-8));
+  S.file = actuel ? [actuel, ...nouveau] : nouveau;
+  S.pos = 0;
 }
-function majDisques() {
-  $$('.cd-disque').forEach((b, i) => {
-    b.setAttribute('aria-pressed', i === S.station);
-    // sur téléphone la rangée de disques défile : on garde le disque choisi visible
-    if (i === S.station && b.parentElement.scrollWidth > b.parentElement.clientWidth) {
-      b.parentElement.scrollTo({ left: b.offsetLeft - 12, behavior: reduitMouvement ? 'auto' : 'smooth' });
-    }
-  });
+function tonChange() {
+  memoire.ecrire('md-ton', S.ton);
+  reconstruireSuite();
+  majMachine();
+  const prochain = parId[S.file[S.mode === 'radio' && S.joue ? 1 : 0]];
+  toast(prochain ? `Réglé : ${descriptionTon()}. Ensuite : ${prochain.titre}` : `Réglé : ${descriptionTon()}`);
 }
-function animerTiroir(apres) {
-  const t = $('#tiroir');
-  if (reduitMouvement) { apres(); return; }
-  t.classList.add('ouvert');
-  clic(500, 0.09, 0.07);
-  setTimeout(() => { apres(); t.classList.remove('ouvert'); setTimeout(() => clic(400, 0.06, 0.06), 350); }, 450);
-}
-function choisirStation(i, { jouer = true } = {}) {
-  const st = STATIONS_UI[i];
-  if (!st) return;
-  if (st.bac && !S.gardes.length) {
-    toast('Ton bac est vide. Garde des morceaux en découvrant, ils formeront ton disque.');
-    return;
-  }
-  const change = i !== S.station || !S.file.length || st.bac;
-  S.station = i;
-  memoire.ecrire('md-station', i);
-  majDisques();
-  const suite = () => {
-    if (change) { S.file = construireFil(st.bac ? S.gardes : st.ids); S.pos = 0; }
-    majMachine();
-    if (jouer && (change || S.mode !== 'radio' || !S.joue)) radioJouerCourant();
-  };
-  if (change && S.vue === 'machine') animerTiroir(suite); else suite();
-}
-function disqueSuivant() {
-  let i = S.station;
-  do { i = (i + 1) % STATIONS_UI.length; } while (STATIONS_UI[i].bac && !S.gardes.length);
-  choisirStation(i);
+function choisirSourceRadio(src) {
+  if (src === 'trouvailles' && !S.gardes.length) { toast('Garde des morceaux en découvrant : ils formeront ta sélection.'); return; }
+  S.sourceRadio = src;
+  memoire.ecrire('md-source-radio', src);
+  $$('.source-pos').forEach(b => b.setAttribute('aria-checked', b.dataset.source === src));
+  reconstruireSuite();
+  majMachine();
+  clic(1500, 0.03, 0.06);
 }
 function entrerMachine() {
-  if (!S.file.length) choisirStation(S.station, { jouer: false });
+  if (!S.file.length) reconstruireSuite();
+  $$('.source-pos').forEach(b => b.setAttribute('aria-checked', b.dataset.source === S.sourceRadio));
   aller('machine');
   majMachine();
 }
 function majMachine() {
   const m = parId[S.file[S.pos]];
-  $('#boitier-pochette').innerHTML = m ? Pochettes.html(m, 'pochette-boitier') : '';
   $('#cd-etiquette').innerHTML = m ? Pochettes.html(m, 'pochette-cd') : '';
-  const g = $('#radio-garder');
-  if (m) { g.dataset.garder = m.id; g.textContent = estGarde(m.id) ? 'Gardé' : 'Garder ce morceau'; g.classList.toggle('est-garde', estGarde(m.id)); }
   majAfficheur();
+  majGarde();
   S.file.slice(S.pos + 1, S.pos + 4).forEach(x => Pochettes.demander(parId[x]));
   placerEcranVideo();
 }
 function majAfficheur() {
-  const st = STATIONS_UI[S.station];
   const m = parId[S.file[S.pos]];
   const active = !!m && S.mode === 'radio' && S.joue === m.id;
-  $('#vfd-disque').textContent = `Disque ${S.station + 1}`;
-  $('#vfd-piste').textContent = `Piste ${deux(S.pos + 1)}/${deux(S.file.length)}`;
-  const texte = m ? `${st.nom} : ${m.titre}, ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'Disque vide.';
+  $('#vfd-piste').textContent = `Piste ${deux(S.recents.length + (active ? 0 : 1))}`;
+  const texte = m ? `${m.titre}, ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'Rien à jouer.';
   const t = $('#vfd-texte');
-  if (t.textContent !== texte) {
-    t.textContent = texte;
-    t.style.animationDuration = `${Math.max(8, texte.length * 0.28)}s`;
-  }
+  if (t.textContent !== texte) { t.textContent = texte; t.style.animationDuration = `${Math.max(8, texte.length * 0.28)}s`; }
+  $('#vfd-reglage').textContent = S.sourceRadio === 'trouvailles' ? 'Mes trouvailles' : descriptionTon();
   $('#vfd-etat').textContent = !active ? 'Stop' : S.enLecture ? 'Lecture' : 'Pause';
   document.body.classList.toggle('cd-tourne', active && S.enLecture);
 }
-// le compteur de temps de l'afficheur
 function tempsActuel() {
   try {
     if (S.lecture === 'yt' && lecteurPret) return [lecteur.getCurrentTime() || 0, lecteur.getDuration() || 0];
@@ -837,22 +885,34 @@ function radioJouerCourant() {
   if (!m) return;
   S.mode = 'radio';
   croiser(m.id);
+  if (S.recents[S.recents.length - 1] !== m.id) S.recents.push(m.id);
   jouerMorceau(m);
   majMachine();
 }
-function radioSuivant() { if (!S.file.length) return; S.pos = (S.pos + 1) % S.file.length; clic(1400); radioJouerCourant(); }
+function radioSuivant() {
+  if (!S.file.length) reconstruireSuite();
+  S.pos++;
+  // fin de la file : on en reconstruit une, sans répéter ce qu'on vient d'entendre
+  if (S.pos >= S.file.length) { S.file = construireFil(S.recents.slice(-10)); S.pos = 0; }
+  clic(1400);
+  radioJouerCourant();
+}
 function radioPrecedent() {
-  if (!S.file.length) return;
-  // comme sur une vraie chaîne : un appui revient au début du morceau, deux appuis à la piste d'avant
   const [t] = tempsActuel();
-  if (S.mode === 'radio' && S.joue === S.file[S.pos] && t > 5) {
+  if (S.mode === 'radio' && S.joue && t > 5) {
     try { if (S.lecture === 'yt') lecteur.seekTo(0, true); else audioLecture.currentTime = 0; } catch (e) {}
     clic(1100); return;
   }
-  S.pos = (S.pos - 1 + S.file.length) % S.file.length; clic(1100); radioJouerCourant();
+  if (S.recents.length >= 2) {
+    S.recents.pop();
+    const id = S.recents.pop();
+    S.file.splice(S.pos, 0, id);
+  } else if (S.pos > 0) S.pos--;
+  clic(1100);
+  radioJouerCourant();
 }
 function radioLecture() {
-  if (!S.file.length) choisirStation(S.station, { jouer: false });
+  if (!S.file.length) reconstruireSuite();
   const id = S.file[S.pos];
   if (S.mode === 'radio' && S.joue === id && S.lecture) basculerLecture(); else radioJouerCourant();
   clic(600, 0.06, 0.07);
@@ -862,23 +922,23 @@ function radioStop() {
   S.finTraitee = true;
   try { if (S.lecture === 'yt') lecteur.stopVideo(); } catch (e) {}
   audioLecture.pause();
-  S.enLecture = false;
-  S.lecture = null;
-  S.joue = null;
+  S.enLecture = false; S.lecture = null; S.joue = null;
   clic(500, 0.05, 0.06);
   majEtat(); majMachine();
 }
 
-/* ─────────────────────────────── LE BAC ─────────────────────────────── */
-function ouvrirBac() {
-  rendreBac();
+/* ─────────────────────────────── MES TROUVAILLES / RÉGLAGES (panneaux) ─────────────────────────────── */
+function ouvrirPanneau(id) {
+  fermerPanneaux(true);
+  if (id === 'bac') rendreBac();
   $('#voile').hidden = false;
-  $('#bac').hidden = false;
-  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('bac-ouvert')));
+  $('#' + id).hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('panneau-ouvert')));
 }
-function fermerBac() {
-  document.body.classList.remove('bac-ouvert');
-  setTimeout(() => { $('#voile').hidden = true; $('#bac').hidden = true; }, reduitMouvement ? 0 : 320);
+function fermerPanneaux(immediat) {
+  document.body.classList.remove('panneau-ouvert');
+  const cacher = () => { $('#voile').hidden = true; $('#bac').hidden = true; $('#reglages').hidden = true; };
+  if (immediat === true || reduitMouvement) cacher(); else setTimeout(cacher, 320);
 }
 function rendreBac() {
   $('#n-gardes').textContent = S.gardes.length;
@@ -887,7 +947,7 @@ function rendreBac() {
   const ids = S.onglet === 'gardes' ? S.gardes : S.croises;
   $('#bac-liste').innerHTML = !ids.length
     ? `<li class="bac-vide">${S.onglet === 'gardes'
-        ? 'Rien de gardé pour l\'instant. Quand un morceau te plaît, appuie sur Garder : il t\'attendra ici, même si tu reviens dans six mois.'
+        ? 'Rien de gardé pour l\'instant. Quand un morceau te plaît, appuie sur Garder : il t\'attendra ici.'
         : 'Tout ce que tu croises s\'inscrit ici. Lance une découverte.'}</li>`
     : ids.map(id => {
         const m = parId[id];
@@ -909,61 +969,55 @@ async function copierListe() {
   catch (e) { toast('Copie impossible dans ce navigateur.'); }
 }
 
-/* ─────────────────────────────── COMMENT ÉCOUTER (complet / extraits) ─────────────────────────────── */
-function majSon() {
-  $$('.choix-son').forEach(b => b.setAttribute('aria-checked', b.dataset.son === S.son));
-}
+/* ─────────────────────────────── COMMENT ÉCOUTER ─────────────────────────────── */
+function majSon() { $$('.choix-son').forEach(b => b.setAttribute('aria-checked', b.dataset.son === S.son)); }
 function choisirSon(son) {
   if (son === S.son) return;
   S.son = son;
   memoire.ecrire('md-son', son);
   majSon();
   toast(son === 'extraits' ? 'Mode extraits : 30 secondes par morceau, sans pub.' : 'Morceaux complets, via YouTube.');
-  // on relance le morceau en cours dans le nouveau mode
   if (S.joue) jouerMorceau(parId[S.joue]);
 }
 
 /* ─────────────────────────────── TEINTES ─────────────────────────────── */
 const TEINTES = [
-  { id: 'ambre',  nom: 'Ambre',  couleur: '#24161d' },
-  { id: 'papier', nom: 'Papier', couleur: '#dfe4d7' },
-  { id: 'signal', nom: 'Signal', couleur: '#1730ff' },
-  { id: 'vide',   nom: 'Vide',   couleur: '#f6f6f3' },
-  { id: 'fievre', nom: 'Fièvre', couleur: '#ff6fae', cachee: true },
+  { id: 'salon',  nom: 'Salon',  couleur: '#dcdbd8', pastille: 'conic-gradient(#1b3cc4 0 33%, #9a5f34 0 66%, #dcdbd8 0)' },
+  { id: 'ambre',  nom: 'Ambre',  couleur: '#24161d', pastille: 'linear-gradient(135deg, #24161d 50%, #ffb547 50%)' },
+  { id: 'papier', nom: 'Papier', couleur: '#dfe4d7', pastille: 'linear-gradient(135deg, #dfe4d7 50%, #1d2a4d 50%)' },
+  { id: 'signal', nom: 'Signal', couleur: '#1730ff', pastille: '#1730ff' },
+  { id: 'vide',   nom: 'Vide',   couleur: '#f6f6f3', pastille: 'linear-gradient(135deg, #f6f6f3 50%, #000 50%)' },
+  { id: 'fievre', nom: 'Fièvre', couleur: '#ff6fae', pastille: 'linear-gradient(135deg, #ff6fae 50%, #0e3b2c 50%)', cachee: true },
 ];
 let debloquees = memoire.lire('md-teintes-debloquees', []);
-let teinteActive = memoire.lire('md-teinte', 'ambre');
+let teinteActive = memoire.lire('md-teinte-v5', 'salon');
 const teintesDispo = () => TEINTES.filter(t => !t.cachee || debloquees.includes(t.id));
+function rendreTeintes() {
+  const html = teintesDispo().map(t => `<button class="pastille" role="radio" data-action="teinte" data-teinte="${t.id}" aria-checked="${t.id === teinteActive}" aria-label="Teinte ${t.nom}" title="${t.nom}"><span style="background:${t.pastille}"></span><em>${t.nom}</em></button>`).join('');
+  $('#teintes-facade').innerHTML = html;
+  $('#teintes-reglages').innerHTML = html;
+}
 function appliquerTeinte(id, annoncer) {
-  const dispo = teintesDispo();
-  const t = dispo.find(x => x.id === id) || dispo[0];
+  const t = teintesDispo().find(x => x.id === id) || TEINTES[0];
   teinteActive = t.id;
   document.documentElement.dataset.teinte = t.id;
   $('meta[name="theme-color"]').setAttribute('content', t.couleur);
-  const i = dispo.indexOf(t);
-  $$('.molette-crantee').forEach(m => m.style.setProperty('--rot', `${-120 + (240 / Math.max(1, dispo.length - 1)) * i}deg`));
-  $('#nom-teinte').textContent = t.nom;
-  $('#nom-teinte-bac').textContent = t.nom;
-  memoire.ecrire('md-teinte', t.id);
-  if (annoncer) toast(`Teinte ${t.nom}`, 1400);
-}
-function teinteSuivante() {
-  const dispo = teintesDispo();
-  const i = dispo.findIndex(t => t.id === teinteActive);
-  appliquerTeinte(dispo[(i + 1) % dispo.length].id, true);
-  clic(2400, 0.02, 0.05);
+  memoire.ecrire('md-teinte-v5', t.id);
+  rendreTeintes();
+  if (annoncer) { toast(`Teinte ${t.nom}`, 1400); clic(2400, 0.02, 0.05); }
 }
 function verifierDeblocage() {
   if (S.croises.length >= 12 && !debloquees.includes('fievre')) {
     debloquees.push('fievre');
     memoire.ecrire('md-teintes-debloquees', debloquees);
-    setTimeout(() => toast('Une nouvelle teinte vient de se débloquer sur la molette Teinte.', 5000), 1200);
+    rendreTeintes();
+    setTimeout(() => toast('Une nouvelle teinte vient de se débloquer : Fièvre.', 5000), 1200);
   }
 }
 
 /* ─────────────────────────────── toast ─────────────────────────────── */
 let toastMinuterie = null;
-function toast(msg, duree = 2600) {
+function toast(msg, duree = 2800) {
   const t = $('#toast');
   t.textContent = msg;
   t.classList.add('visible');
@@ -1020,21 +1074,19 @@ const ACTIONS = {
     b.classList.add('retournee');
     clic(900, 0.05, 0.06);
     const id = b.dataset.id;
-    setTimeout(() => {
-      S.autreDuDuel = S.duel.find(x => x !== id) || null;
-      apprendre(parId[id]); ouvrir(id);
-    }, reduitMouvement ? 0 : 800);
+    setTimeout(() => { S.autreDuDuel = S.duel.find(x => x !== id) || null; apprendre(parId[id]); ouvrir(id); }, reduitMouvement ? 0 : 800);
   },
   'autre-duel': () => { clic(); montrerDuel(tirerDuel()); },
   'duel-suivant': () => { S.autreDuDuel = null; nouveauDuel(); },
   'extrait': b => { const id = b.dataset.id; if (extraitPour === id) arreterExtrait(); else lancerExtrait(id, b.closest('.pochette-duel')); },
   'ouvrir': b => {
-    if (!$('#bac').hidden) fermerBac();
+    if (!$('#bac').hidden) fermerPanneaux();
     if (S.vue === 'rencontre') S.autreDuDuel = null;
     clic(1300);
     ouvrir(b.dataset.id);
   },
   'garder': b => basculerGarde(b.dataset.id),
+  'garder-joue': () => basculerGarde(S.joue),
   'ecart': () => { S.cible.etrange = 10 - S.cible.etrange; montrerDuel(tirerDuel()); },
   'continuer': () => montrerDuel(tirerDuel()),
   'retourner': () => {
@@ -1051,29 +1103,29 @@ const ACTIONS = {
     if (S.vue === 'rencontre' && S.courant === S.joue) ouvrir(s.id); else { S.finTraitee = true; enchainerDecouverte(); }
   },
   'retour-morceau': () => { if (S.mode === 'radio') entrerMachine(); else if (S.joue) ouvrir(S.joue, { jouer: false }); },
-  'station': b => choisirStation(+b.dataset.station),
-  'radio-stop': radioStop,
-  'ejecter': disqueSuivant,
-  'son': b => choisirSon(b.dataset.son),
-  'encart-ok': () => { memoire.ecrire('md-encart-pub', true); $('#encart-pub').hidden = true; },
-  'encart-extraits': () => { memoire.ecrire('md-encart-pub', true); $('#encart-pub').hidden = true; choisirSon('extraits'); },
   'radio-lecture': radioLecture,
   'radio-suivant': radioSuivant,
   'radio-precedent': radioPrecedent,
-  'radio-garder': () => { const id = S.file[S.pos]; if (id) basculerGarde(id); },
+  'radio-stop': radioStop,
+  'radio-garder': () => basculerGarde(S.file[S.pos]),
   'radio-raconte': () => {
     const id = S.file[S.pos];
     if (!id) return;
     const continuer = S.joue === id;
     if (continuer) S.mode = 'decouvrir';
-    ouvrir(id, { jouer: !continuer });
+    ouvrir(id, { jouer: !continuer, versInfos: true });
   },
-  'ouvrir-bac': ouvrirBac,
-  'fermer-bac': fermerBac,
+  'source-radio': b => choisirSourceRadio(b.dataset.source),
+  'ouvrir-bac': () => ouvrirPanneau('bac'),
+  'ouvrir-reglages': () => ouvrirPanneau('reglages'),
+  'fermer-panneaux': () => fermerPanneaux(),
   'onglet': b => { S.onglet = b.dataset.onglet; rendreBac(); },
-  'ecouter-gardes': () => { fermerBac(); aller('machine'); choisirStation(STATIONS_UI.length - 1); },
+  'ecouter-gardes': () => { fermerPanneaux(); S.sourceRadio = 'trouvailles'; memoire.ecrire('md-source-radio', 'trouvailles'); S.file = []; entrerMachine(); radioJouerCourant(); },
   'copier-liste': copierListe,
-  'teinte': teinteSuivante,
+  'son': b => choisirSon(b.dataset.son),
+  'teinte': b => appliquerTeinte(b.dataset.teinte, true),
+  'encart-ok': () => { memoire.ecrire('md-encart-pub', true); $('#encart-pub').hidden = true; },
+  'encart-extraits': () => { memoire.ecrire('md-encart-pub', true); $('#encart-pub').hidden = true; choisirSon('extraits'); },
 };
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-action]');
@@ -1082,26 +1134,25 @@ document.addEventListener('click', e => {
   if (a) { e.preventDefault(); a(b); }
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && !$('#bac').hidden) fermerBac();
+  if (e.key === 'Escape') fermerPanneaux();
   if (e.key === ' ' && e.target === document.body && S.joue) { e.preventDefault(); basculerLecture(); }
 });
 $$('.fader input').forEach(f => f.addEventListener('input', () => clic(2000 + +f.value * 120, 0.015, 0.03)));
 
 /* ─────────────────────────────── démarrage ─────────────────────────────── */
 appliquerTeinte(teinteActive, false);
-majMolettesVolume();
-rendreDisques();
+majMolettes();
 majSon();
-// on prépare pochettes et extraits de toute la sélection dès l'arrivée (mis en cache ensuite)
+majGarde();
+chargerAPI();
+// pochettes, extraits et fiches de toute la sélection, préparés dès l'arrivée (puis gardés en cache)
 BANQUE.forEach(m => Pochettes.demander(m));
-chargerAPI(); // le lecteur se prépare pendant que tu règles le volume
-$('#compteur-bac').textContent = S.gardes.length;
 if (IOS) $('#allumage-conseil').textContent = 'Sur iPhone, le volume se règle avec les boutons du téléphone : baisse-le un peu avant d\'allumer.';
 if (S.gardes.length || S.croises.length) {
   const r = $('#allumage-retour');
   r.hidden = false;
   r.textContent = S.gardes.length
-    ? `Ton bac t'attend : ${S.gardes.length} morceau${S.gardes.length > 1 ? 'x' : ''} gardé${S.gardes.length > 1 ? 's' : ''}.`
+    ? `Tes trouvailles t'attendent : ${S.gardes.length} morceau${S.gardes.length > 1 ? 'x' : ''} gardé${S.gardes.length > 1 ? 's' : ''}.`
     : `Content de te revoir. Tu avais croisé ${S.croises.length} morceaux.`;
 }
 aller('allumage');

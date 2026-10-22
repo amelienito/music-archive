@@ -8,8 +8,78 @@
    dans la liste TEINTES au milieu de app.js.
    ════════════════════════════════════════════════════════════════════ */
 
+/* ─── SALON (par défaut) : d'après la pochette « For A Good Time… » d'Odeal.
+   Mur gris clair de studio, velours bleu Klein, noyer, aluminium, plexi fumé, cuir cognac. ─── */
+:root, [data-teinte="salon"] {
+  --facade-cd: linear-gradient(180deg, #f6f5f2, #e2e0dc 62%, #d3d1cc), repeating-linear-gradient(90deg, rgba(255,255,255,.3) 0 1px, transparent 1px 3px);
+  --encre-cd: #25252a;
+  --sur-encre-cd: #f6f5f2;
+  --touche-cd: linear-gradient(180deg, #fdfcfa, #dddbd6);
+  --fente-cd: #1a1a1e;
+  --vfd: #8fe6ff;
+  --vfd-fond: #0c1317;
+  --vfd-halo: rgba(143, 230, 255, .45);
+
+  --noyer: linear-gradient(90deg, #5e3519, #8e5a31 18%, #7a4826 36%, #9d6838 58%, #7f4c28 78%, #63391c);
+  --noyer-grain: repeating-linear-gradient(88deg, rgba(0,0,0,.07) 0 2px, transparent 2px 7px, rgba(255,255,255,.05) 7px 8px, transparent 8px 13px);
+  --cone: #1b1b1e;
+  --cone-centre: #34343a;
+  --cone-bord: #2a2a2e;
+  --plexi: radial-gradient(120% 90% at 30% 10%, rgba(120,80,45,.55), rgba(40,24,14,.82));
+  --disque: conic-gradient(from 20deg, #1b3cc4, #5d7bff, #1b3cc4 30%, #9fb2ff 42%, #1b3cc4 55%, #3a58e8 75%, #1b3cc4);
+
+  --dos-carte: radial-gradient(130% 100% at 28% 18%, #3a57e6, #1b3cc4 48%, #0e2384);
+  --sur-dos: #ffffff;
+  --force-teinte: .26;
+
+  --fond: #dcdbd8;
+  --fond-2: #e9e8e5;
+  --fond-3: #f3f2ef;
+  --fond-image: radial-gradient(90% 70% at 50% -10%, rgba(255,255,255,.6), transparent 70%), linear-gradient(180deg, transparent 72%, rgba(184,113,47,.06));
+  --encre: #1c1c21;
+  --encre-2: #63626a;
+  --encre-3: rgba(28, 28, 33, .2);
+  --trait: rgba(28, 28, 33, .12);
+
+  --verre: #1b3cc4;
+  --verre-fond: #cfcecb;
+  --verre-trait: rgba(27, 60, 196, .3);
+  --verre-eteint: #bdbcb8;
+  --verre-halo: rgba(27, 60, 196, .3);
+  --aiguille: #1b3cc4;
+  --sur-aiguille: #ffffff;
+
+  --metal: #e8e7e3;
+  --metal-sombre: #8f8e8a;
+  --socle: linear-gradient(160deg, #f3f2ef, #dddbd7);
+  --plateau: radial-gradient(circle, #c9c8c4 0 60%, #8f8e8a 61% 63%, #c9c8c4 64%);
+  --rainure: #c4c3bf;
+  --capuchon-haut: #f6f5f2;
+  --capuchon-bas: #b5b3ae;
+
+  --relief: 0 1px 0 rgba(255,255,255,.75) inset, 0 8px 22px rgba(45,38,30,.13);
+  --relief-fort: 0 1px 0 rgba(255,255,255,.8) inset, 0 26px 56px rgba(45,38,30,.22), 0 4px 10px rgba(45,38,30,.08);
+  --relief-enfonce: inset 0 3px 10px rgba(0,0,0,.18);
+  --relief-plein: 0 10px 24px rgba(27,30,60,.22);
+  --ombre-pochette: 0 6px 16px rgba(45,32,20,.22);
+  --ombre-pochette-forte: 0 30px 60px -14px rgba(45,32,20,.45), 0 8px 18px rgba(45,32,20,.16);
+
+  --display: "Unbounded", system-ui, sans-serif;
+  --display-poids: 600;
+  --display-interlettre: -0.035em;
+  --texte: "Familjen Grotesk", system-ui, sans-serif;
+
+  --rayon-objet: 18px;
+  --rayon-pochette: 2px;
+  --rayon-ecran: 8px;
+  --rayon-verre: 8px;
+}
+
 /* ─── AMBRE : la chaîne hi-fi des années 70, bakélite prune et verre ambré ─── */
-:root, [data-teinte="ambre"] {
+[data-teinte="ambre"] {
+  --noyer: linear-gradient(90deg, #3a2028, #4d2c36 40%, #3e232c);
+  --plexi: radial-gradient(120% 90% at 30% 10%, rgba(255,160,60,.35), rgba(30,14,18,.85));
+  --disque: conic-gradient(from 0deg, #d9dde2, #b8f0ff, #f6d1ff, #fff4c2, #c9ffd8, #d9dde2, #ffd4e8, #c7d3ff, #d9dde2);
   --facade-cd: linear-gradient(180deg, #e4dfdc, #c4bcb9 60%, #b3aaa7), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
   --encre-cd: #2a1d22;
   --sur-encre-cd: #e4dfdc;
@@ -68,6 +138,11 @@
 
 /* ─── PAPIER : une archive privée, papier vert-de-gris, encre bleue, tampon magenta ─── */
 [data-teinte="papier"] {
+  --noyer: #1d2a4d;
+  --noyer-grain: none;
+  --cone: #2c3c66; --cone-centre: #eef1e8; --cone-bord: #1d2a4d;
+  --plexi: #1d2a4d;
+  --disque: repeating-radial-gradient(circle, #eef1e8 0 3px, #d3dacb 3px 5px);
   --facade-cd: #eef1e8;
   --encre-cd: #1d2a4d;
   --sur-encre-cd: #eef1e8;
@@ -127,6 +202,11 @@
 
 /* ─── SIGNAL : tout en bleu électrique, comme un écran de veille de studio ─── */
 [data-teinte="signal"] {
+  --noyer: #0d1fd6;
+  --noyer-grain: none;
+  --cone: #1730ff; --cone-centre: #ffffff; --cone-bord: #3a51ff;
+  --plexi: #0d1fd6;
+  --disque: conic-gradient(#ffffff, #ffa3d4, #ffffff, #bcc5ff, #ffffff);
   --facade-cd: #2a43ff;
   --encre-cd: #f3f5ff;
   --sur-encre-cd: #1730ff;
@@ -186,6 +266,11 @@
 
 /* ─── VIDE : presque rien. La pochette et le son, point. ─── */
 [data-teinte="vide"] {
+  --noyer: #f6f6f3;
+  --noyer-grain: none;
+  --cone: #000; --cone-centre: #333; --cone-bord: #111;
+  --plexi: #ebebe6;
+  --disque: conic-gradient(#000 0 25%, #fff 0 50%, #000 0 75%, #fff 0);
   --facade-cd: #ffffff;
   --encre-cd: #000000;
   --sur-encre-cd: #ffffff;
@@ -242,14 +327,19 @@
   --rayon-verre: 0px;
 }
 [data-teinte="vide"] .table-de-mixage, [data-teinte="vide"] .chemins { border-top: 1px solid #000; }
-[data-teinte="vide"] .lecteur-cd { box-shadow: 0 0 0 1px #000; }
+[data-teinte="vide"] .unite, [data-teinte="vide"] .platine-cd, [data-teinte="vide"] .enceinte { box-shadow: 0 0 0 1px #000; }
 [data-teinte="vide"] .porte-decouvrir::before, [data-teinte="vide"] .porte-decouvrir::after,
 [data-teinte="vide"] .porte-ecouter::before { opacity: 0; }
 [data-teinte="vide"] .cadran { border-bottom-color: transparent; }
-[data-teinte="vide"] .gros-bouton:not(.gros-bouton-plein), [data-teinte="vide"] .bouton-garder, [data-teinte="vide"] .touche:not(.touche-grosse), [data-teinte="vide"] .bouton-bac, [data-teinte="vide"] .bouton-lecture { box-shadow: 0 0 0 1px #000; }
+[data-teinte="vide"] .gros-bouton:not(.gros-bouton-plein), [data-teinte="vide"] .bouton-garder, [data-teinte="vide"] .touche:not(.touche-grosse), [data-teinte="vide"] .bouton-facade, [data-teinte="vide"] .bouton-lecture { box-shadow: 0 0 0 1px #000; }
 
 /* ─── FIÈVRE : teinte cachée, débloquée en explorant. Rose brûlant, vert profond. ─── */
 [data-teinte="fievre"] {
+  --noyer: #0e3b2c;
+  --noyer-grain: none;
+  --cone: #1d5442; --cone-centre: #fff35c; --cone-bord: #061f17;
+  --plexi: radial-gradient(circle at 30% 20%, #1d5442, #061f17);
+  --disque: conic-gradient(#ff6fae, #fff35c, #ff6fae, #ff9cc8, #ff6fae);
   --facade-cd: #0e3b2c;
   --encre-cd: #fff35c;
   --sur-encre-cd: #0e3b2c;
