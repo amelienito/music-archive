@@ -121,8 +121,15 @@ function lireEntree(texte) {
 }
 function cuePlaylist(list, index) {
   return new Promise(res => {
-    const minuterie = setTimeout(() => { attenteCue = null; res(null); }, 10000);
-    attenteCue = () => { clearTimeout(minuterie); res(lecteur.getPlaylist() || []); };
+    // si le lecteur est déjà « prêt », YouTube ne prévient pas toujours : on vérifie aussi nous-mêmes
+    let fini = false;
+    const finir = v => { if (fini) return; fini = true; clearTimeout(minuterie); clearInterval(sonde); attenteCue = null; res(v); };
+    const minuterie = setTimeout(() => finir(null), 10000);
+    const sonde = setInterval(() => {
+      try { const pl = lecteur.getPlaylist(); if (pl && pl.length && lecteur.getPlaylistIndex() === index) finir(pl); } catch (e) {}
+    }, 400);
+    attenteCue = () => finir(lecteur.getPlaylist() || []);
+    try { lecteur.stopVideo(); } catch (e) {}
     lecteur.cuePlaylist({ list, listType: 'playlist', index });
   });
 }
@@ -131,15 +138,48 @@ function fusionner(l, ids) {
   ids.forEach(id => { if (!l.ids.includes(id)) l.ids.push(id); });
   return l.ids.length - avant;
 }
+// Invidious découpe une playlist en pages de 200 qui se chevauchent : la page N commence vers (N-1)×100-50
+const MIROIRS = ['https://inv.nadeko.net'];
+async function suiteParMiroir(l) {
+  const page = Math.floor((l.ids.length + 50) / 100) + 1;
+  for (const hote of MIROIRS) {
+    try {
+      const c = new AbortController(); const m = setTimeout(() => c.abort(), 12000);
+      const r = await fetch(`${hote}/api/v1/playlists/${encodeURIComponent(l.list)}?page=${page}`, { signal: c.signal });
+      clearTimeout(m);
+      if (!r.ok) continue;
+      const j = await r.json();
+      const videos = (j.videos || []).filter(v => v && /^[\w-]{11}$/.test(v.videoId)).sort((a, b) => a.index - b.index);
+      if (!videos.length) continue;
+      const avant = l.ids.length;
+      videos.forEach(v => {
+        if (l.ids.includes(v.videoId)) return;
+        l.ids.push(v.videoId);
+        // on a déjà le titre et la chaîne : la fiche s'affiche tout de suite
+        if (!l.infos[v.videoId]) l.infos[v.videoId] = Object.assign(analyser({ title: v.title, author: v.author }), { brut: v.title, chaine: v.author || '' });
+      });
+      if (j.videoCount && l.ids.length >= j.videoCount) l.complet = true;
+      return l.ids.length - avant;
+    } catch (e) {}
+  }
+  return 0;
+}
 // le lecteur YouTube ne donne que 200 morceaux à la fois : on lui redemande la suite à partir du dernier
 async function chargerSuite() {
   const l = L();
   if (!l.list || l.complet) return false;
-  let nouveaux = await cuePlaylist(l.list, l.ids.length - 1);
-  if (!nouveaux || !nouveaux.some(id => !l.ids.includes(id))) nouveaux = await cuePlaylist(l.list, l.ids.length);
-  if (!nouveaux || !nouveaux.length) { l.complet = true; sauver(); return false; }
-  const ajoutes = fusionner(l, nouveaux);
-  if (!ajoutes) l.complet = true;
+  let ajoutes = 0;
+  if (l.ids.length < 199) {
+    const nouveaux = await cuePlaylist(l.list, 0);
+    if (nouveaux) ajoutes = fusionner(l, nouveaux);
+  } else {
+    // le lecteur YouTube s'arrête net à 200 : on demande la suite à Invidious, un miroir public de YouTube
+    $('#position').textContent = 'Je charge la suite de la playlist…';
+    ajoutes = await suiteParMiroir(l);
+  }
+  // pile 200 et rien de plus : YouTube bloque sans doute. On ne déclare pas la playlist finie, on explique quoi faire
+  l.bloquee = !ajoutes && l.ids.length >= 199 && !l.complet;
+  if (!ajoutes && !l.bloquee) l.complet = true;
   sauver();
   return ajoutes > 0;
 }
@@ -230,6 +270,8 @@ function afficherFiche() {
 function majCompteurs() {
   const l = L();
   const v = Object.values(l.decisions);
+  $('#fin-titre').textContent = l.bloquee ? `Les ${l.ids.length} premiers sont triés.` : 'Playlist triée.';
+  $('#fin-bloque').hidden = !l.bloquee;
   $('#n-oui').textContent = v.filter(x => x === 'oui').length;
   $('#n-non').textContent = v.filter(x => x === 'non').length;
   $('#n-deja').textContent = v.filter(x => x === 'deja' || x === 'vu').length;
