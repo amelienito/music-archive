@@ -11,6 +11,8 @@
 /* ─── SALON (par défaut) : d'après la pochette « For A Good Time… » d'Odeal.
    Mur gris clair de studio, velours bleu Klein, noyer, aluminium, plexi fumé, cuir cognac. ─── */
 :root, [data-teinte="salon"] {
+  --etiquette: #f7f3ea;
+  --sur-etiquette: #1c1c21;
   --facade-cd: linear-gradient(180deg, #f6f5f2, #e2e0dc 62%, #d3d1cc), repeating-linear-gradient(90deg, rgba(255,255,255,.3) 0 1px, transparent 1px 3px);
   --encre-cd: #25252a;
   --sur-encre-cd: #f6f5f2;
@@ -78,6 +80,8 @@
 /* ─── NUIT : le même salon, lampe allumée. Mur sombre, noyer, velours bleu,
    afficheur ambré. C'est le mode sombre du site. ─── */
 [data-teinte="nuit"] {
+  --etiquette: #ebe5d6;
+  --sur-etiquette: #17161b;
   --facade-cd: linear-gradient(180deg, #2c2b32, #201f25 62%, #19181d), repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
   --encre-cd: #ebe9e4;
   --sur-encre-cd: #17161b;
@@ -148,6 +152,8 @@
 
 /* ─── PAPIER : une archive privée, papier vert-de-gris, encre bleue, tampon magenta ─── */
 [data-teinte="papier"] {
+  --etiquette: #d01e6a;
+  --sur-etiquette: #f6f7f1;
   --noyer: #1d2a4d;
   --noyer-grain: none;
   --cone: #2c3c66; --cone-centre: #eef1e8; --cone-bord: #1d2a4d;

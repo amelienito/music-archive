@@ -1,22 +1,23 @@
 # Music Discovery
 
-Quelqu'un a fouillé pendant des années. Allume, et écoute ce qu'il a trouvé.
+Quelqu'un a fouillé pendant des années. Commence, et écoute ce qu'il a trouvé.
 
 Site en ligne : https://amelienito.github.io/music-archive/
 
 ---
 
-## Ce que fait la v0.6
+## Ce que fait la v0.7
 
-- **Allumage** : on règle le volume avec la molette, puis on allume. Les morceaux très énergiques sont baissés automatiquement.
+- **L'intro** : on règle le volume (la molette se tourne comme une vraie, ou on touche l'anneau), puis **Commencer**. Les morceaux très énergiques sont baissés automatiquement.
 - **La façade** (en haut) : Découvrir / Écouter, les pastilles de teinte, le volume, **Réglages** (teinte + façon d'écouter) et **Mes trouvailles**.
-- **Le morceau du jour** : une carte à retourner, la même pour tout le monde, elle change chaque jour.
-- **Découvrir** : « Je te fais confiance » ou trois faders (calme ↔ agressif, familier ↔ étrange, se poser ↔ bouger).
-- **Duels** : deux morceaux à la fois, de la même énergie, l'un familier, l'autre un pas de côté. Survol (ou « Écouter un extrait » sur téléphone) = 30 secondes de pré-écoute.
-- **Cartes mystère** et **ruptures de rythme** tous les 3 duels.
-- **La page d'un morceau** : il joue tout de suite. Juste sous le titre, **Garder** et le gros bouton **Morceau suivant** (qui se lance aussi tout seul à la fin). Puis **Écouter en entier sur** YouTube Music, Deezer, Apple Music, Qobuz ou Bandcamp, des directions (plus calme, plus étrange, plus dansant, complètement ailleurs), et **Plus d'infos** : album, année, genre, durée, qui est l'artiste (Wikipédia), paroles sur Genius.
+- **Découvrir, par où commencer** : une seule question, « T'as envie de quoi ? » : *Quelque chose d'énergique*, *De la détente*, ou *Surprends-moi*. Plus le morceau du jour, une carte à retourner (le même pour tout le monde, il change chaque jour).
+- **Découvrir, la fouille** : une seule page. En haut, le disque qui joue (vidéo, titre, album, **Garder**). Juste à côté, **la suite** : deux disques, chacun avec une étiquette de disquaire qui dit où il t'emmène (« Dans la même veine », « Plus barré », « Plus calme », « Complètement ailleurs »…). On survole ou on touche « Écouter 30 s » pour entendre un bout, on clique pour choisir. Si on ne choisit pas, le premier démarre tout seul à la fin du morceau (compte à rebours de 5 secondes, « Rester ici » pour l'arrêter). « Aucun des deux » en propose deux autres. Les directions que tu choisis souvent reviennent plus souvent.
+- **Les surprises** : de temps en temps une carte mystère (un des deux disques est caché, juste un indice), et un « Coup de cœur » mis de côté pour toi.
+- **Le livret** (replié, sous la page) : l'album en une phrase (« Album sorti le 26 octobre 1992 chez Epic. 8 titres, 47 minutes. Au rayon soul. »), sa fiche Wikipédia quand elle existe, la liste des titres avec le morceau en cours surligné, l'artiste, et les liens pour écouter le morceau en entier (YouTube Music, Deezer, Apple Music, Qobuz, Bandcamp) et lire les paroles.
+- **Clavier** : 1 ou 2 pour choisir la suite, G pour garder, Espace pour la pause.
 - **Mes trouvailles** : les morceaux gardés + l'historique de tout ce que tu as croisé, enregistré dans ton navigateur. On peut les écouter à la suite, les ouvrir en playlist YouTube ou copier la liste.
-- **Écouter** : une chaîne inspirée de la pochette *For A Good Time…* d'Odeal. Enceintes en noyer qui bougent avec la musique, platine CD verticale à couvercle fumé (appuie dessus = lecture/pause), unité avec afficheur fluorescent, touches, **Garder** et **Plus d'infos** intégrés. Pas de catégories : trois molettes règlent ce qui passe (calme ↔ intense, familier ↔ étrange, assis ↔ debout), le morceau en cours continue et la suite s'adapte. Interrupteur « Toute la sélection / Mes trouvailles / Au hasard ». L'afficheur annonce le morceau suivant.
+- **Écouter** : une chaîne inspirée de la pochette *For A Good Time…* d'Odeal. Enceintes en noyer qui bougent avec la musique, platine CD verticale à couvercle fumé (appuie dessus = lecture/pause), afficheur fluorescent qui annonce la suite, **Garder** et **Plus d'infos** (le livret s'ouvre sous la chaîne). Deux sélecteurs à trois positions règlent ce qui passe : **Détente / Entre deux / Énergique** et **Accessible / De travers / Barré**. On touche le mot, le bouton tourne. Interrupteur « Toute la sélection / Mes trouvailles / Au hasard ».
+- **Une radio qui ne se bloque plus** : un morceau qui refuse de se lire (vidéo refusée, extrait périmé, vidéo qui ne démarre pas) est remplacé par son extrait ou sauté au bout de quelques secondes ; après trois ratés d'affilée, la radio s'arrête proprement et dit pourquoi.
 - **Réglages** : morceaux complets via YouTube, ou extraits de 30 secondes sans pub ; teinte du site.
 - **Trois teintes** : Salon (le jour), Nuit (le mode sombre, choisi tout seul si le téléphone est en mode sombre), Papier.
 
@@ -41,8 +42,8 @@ Site en ligne : https://amelienito.github.io/music-archive/
 | `teintes.css` | Les couleurs et polices de chaque teinte | Si tu veux créer une teinte |
 | `styles.css` | La forme des objets (façade, chaîne, pochettes) | Rarement |
 | `app.js` | Le fonctionnement | Non |
-| `pochettes.js` | Va chercher pochettes, extraits, album, année, genre | Non |
-| `infos.js` | Va chercher la fiche de l'artiste sur Wikipédia | Non |
+| `pochettes.js` | Va chercher pochettes, extraits, et la fiche de l'album (date, label, titres) | Non |
+| `infos.js` | Va chercher les fiches Wikipédia de l'artiste et de l'album | Non |
 | `tri.html` + `tri.js` | La table de tri des playlists | Non |
 | `index.html` | La page | Non |
 
@@ -59,7 +60,7 @@ Dans `data.js`, copie un bloc, colle-le avant le `];` final, remplis :
 
 - La **pochette** et l'**extrait** se trouvent tout seuls (pas besoin de les fournir).
 - La **note** est facultative. Un morceau sans texte, c'est très bien aussi.
-- `liens: ["Judy", "Quiet Storm"]` force les morceaux proposés dans « Et après ? ».
+- `liens: ["Judy", "Quiet Storm"]` force le morceau proposé « Dans la même veine ».
 
 ## Vérifier que tous les morceaux se lisent
 

@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   MUSIC DISCOVERY — la structure et les objets (v0.6)
+   MUSIC DISCOVERY — la structure et les objets (v0.7)
    Les couleurs et polices viennent de teintes.css (une teinte = un skin).
    ════════════════════════════════════════════════════════════════════ */
 
@@ -27,7 +27,7 @@ img { display: block; max-width: 100%; }
 h1, h2, p { margin: 0; }
 :focus-visible { outline: 2px solid var(--aiguille); outline-offset: 3px; border-radius: 6px; }
 
-h1, h2, .porte-titre, .rencontre-titre, .interlude-grand, .gros-bouton, .afficheur-titre, .duel-phrase, .jour-titre, .marque {
+h1, h2, .envie-titre, .platine-titre, .suite-titre, .gros-bouton, .jour-titre, .marque {
   font-family: var(--display);
   font-weight: var(--display-poids);
   font-stretch: var(--display-etirement, 100%);
@@ -120,6 +120,7 @@ body[data-source="ecouter"] .selecteur-curseur { transform: translateX(100%); }
   cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
 }
 .molette.saisie { cursor: grabbing; }
+.bouton-rotatif-grand .molette { cursor: pointer; }
 .molette-repere {
   position: absolute; inset: 0; transform: rotate(var(--rot));
   transition: transform .12s ease-out;
@@ -182,42 +183,33 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 }
 .lien-bouton:hover { color: var(--encre); }
 
-/* ─────────────────────────────── DÉCOUVRIR : accueil ─────────────────────────────── */
+/* ─────────────────────────────── DÉCOUVRIR : par où commencer ─────────────────────────────── */
 .ecran-accueil {
-  display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
-  gap: clamp(28px, 6vw, 90px); align-items: start; max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr);
+  gap: clamp(32px, 6vw, 96px); align-items: center; align-content: center;
+  max-width: 1180px; margin: 0 auto;
 }
-.accueil-jour { display: grid; justify-items: start; gap: 8px; }
-.jour-date { font-size: 14px; color: var(--encre-2); }
-.jour-titre { font-size: clamp(1.6rem, 2.8vw, 2.4rem); margin-bottom: 12px; }
-.jour-pied { font-size: 14px; color: var(--encre-2); margin-top: 6px; }
-.accueil-jour .carte-jour { width: min(100%, 380px); }
-.accueil-reglage { display: grid; gap: 20px; justify-items: start; }
-.accueil-reglage h2 { font-size: clamp(2rem, 4.6vw, 4rem); }
-.reglage-ou { color: var(--encre-2); }
-.table-de-mixage {
-  width: 100%; display: grid; gap: 24px;
-  padding: clamp(20px, 3vw, 34px); border-radius: var(--rayon-objet);
+.envie { display: grid; gap: 22px; justify-items: start; }
+.envie-titre { font-size: clamp(2.6rem, 7vw, 6.2rem); line-height: .98; max-width: 9ch; }
+.envie-choix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; width: 100%; max-width: 640px; }
+.choix-envie {
+  display: grid; gap: 18px; align-content: space-between; min-height: 150px; padding: 20px 22px 20px;
+  text-align: left; border-radius: var(--rayon-objet);
   background: var(--fond-2); box-shadow: var(--relief);
+  transition: transform .2s cubic-bezier(.2,.9,.3,1.3), box-shadow .2s;
 }
-.table-de-mixage .gros-bouton { justify-self: start; }
-.fader { display: grid; gap: 8px; }
-.fader-question { font-weight: 600; font-size: 1.05rem; }
-.fader-bornes { display: flex; justify-content: space-between; font-size: 14px; color: var(--encre-2); }
-.fader input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; cursor: grab; margin: 0; }
-.fader input[type="range"]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--rainure); box-shadow: inset 0 2px 4px rgba(0,0,0,.45); }
-.fader input[type="range"]::-moz-range-track { height: 8px; border-radius: 4px; background: var(--rainure); box-shadow: inset 0 2px 4px rgba(0,0,0,.45); }
-.fader input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; border: 0;
-  width: 26px; height: 42px; margin-top: -17px; border-radius: 5px;
-  background-image: linear-gradient(90deg, transparent 11px, var(--aiguille) 11px 15px, transparent 15px), linear-gradient(var(--capuchon-haut), var(--capuchon-bas));
-  box-shadow: 0 4px 10px rgba(0,0,0,.35);
-}
-.fader input[type="range"]::-moz-range-thumb {
-  width: 26px; height: 42px; border-radius: 5px; border: 0;
-  background-image: linear-gradient(90deg, transparent 11px, var(--aiguille) 11px 15px, transparent 15px), linear-gradient(var(--capuchon-haut), var(--capuchon-bas));
-  box-shadow: 0 4px 10px rgba(0,0,0,.35);
-}
+.choix-envie:hover { transform: translateY(-4px); box-shadow: var(--relief-fort); }
+.choix-envie:active { transform: translateY(1px); box-shadow: var(--relief-enfonce); }
+.choix-envie-onde { width: 100%; max-width: 180px; height: 30px; overflow: visible; transition: transform .6s cubic-bezier(.2,.9,.3,1); }
+.choix-envie-onde path { fill: none; stroke: var(--aiguille); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.choix-envie:hover .choix-envie-onde { transform: translateX(8px); }
+.choix-envie-texte { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); letter-spacing: var(--display-interlettre, -0.02em); font-size: clamp(1.1rem, 1.7vw, 1.45rem); line-height: 1.12; }
+.envie-hasard { font-size: 16px; }
+.envie-aide { color: var(--encre-2); max-width: 44ch; font-size: 15px; }
+.accueil-jour { display: grid; justify-items: start; gap: 10px; }
+.jour-titre { font-size: clamp(1.15rem, 1.7vw, 1.45rem); }
+.accueil-jour .carte-jour { width: min(100%, 330px); }
+.jour-pied { font-size: 14px; color: var(--encre-2); max-width: 32ch; }
 
 /* ─────────────────────────────── POCHETTES ─────────────────────────────── */
 .pochette {
@@ -233,8 +225,7 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
   font-family: var(--display); font-weight: 800; line-height: 1; font-size: 4rem;
   color: hsl(var(--h) 55% 72%);
 }
-.pochette-mini .pochette-repli { font-size: 1.5rem; }
-.pochette-geante .pochette-repli { font-size: 9rem; }
+.pochette-mini .pochette-repli, .pochette-livret .pochette-repli { font-size: 1.5rem; }
 .pochette img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
 .pochette img.est-yt { transform: scale(1.36); }
 .pochette img.se-revele { animation: revele .6s ease both; }
@@ -244,6 +235,7 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 
 .titre-morceau { font-weight: 600; font-size: clamp(1.05rem, 1.6vw, 1.3rem); line-height: 1.2; overflow-wrap: anywhere; }
 .artiste-morceau { color: var(--encre-2); font-size: clamp(.92rem, 1.2vw, 1.02rem); overflow-wrap: anywhere; }
+@keyframes sortie { from { opacity: 0; transform: translateY(34px); } }
 
 /* les cartes qu'on retourne (morceau du jour, carte mystère) */
 .carte-retournable { position: relative; display: block; width: 100%; aspect-ratio: 1 / 1; perspective: 1400px; }
@@ -267,27 +259,108 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
   position: absolute; inset: 0; opacity: .35;
   background: repeating-radial-gradient(circle at 50% 50%, transparent 0 9px, var(--sur-dos) 9px 10px);
 }
-.carte-dos-texte { position: relative; font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: clamp(1.05rem, 2vw, 1.5rem); line-height: 1.2; text-align: center; }
+.carte-dos-texte { position: relative; font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: clamp(1rem, 1.8vw, 1.4rem); line-height: 1.2; text-align: center; }
 .carte-retournable:not(.retournee):hover .carte-dos { transform: rotateY(-12deg); }
 
-/* ─────────────────────────────── DUEL ─────────────────────────────── */
-.ecran-duel { display: grid; align-content: start; justify-items: center; gap: clamp(22px, 4vw, 44px); }
-.duel-phrase { font-size: clamp(1.3rem, 2.6vw, 2.2rem); text-align: center; max-width: 24ch; }
-.duel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 5vw, 80px); width: min(100%, 960px); }
-.pochette-duel { display: grid; gap: 14px; align-content: start; animation: sortie .7s cubic-bezier(.2,.9,.3,1.15) both; }
-.pochette-duel:nth-child(2) { animation-delay: .09s; }
-@keyframes sortie { from { opacity: 0; transform: translateY(40px); } }
-.pochette-duel-choix {
-  position: relative; display: block; width: 100%;
-  transform: rotate(var(--penche));
-  transition: transform .45s cubic-bezier(.2,.9,.3,1.25);
+/* ─────────────────────────────── LA FOUILLE ─────────────────────────────── */
+.ecran-fouille {
+  background-image: radial-gradient(70% 55% at 18% 16%, rgba(var(--couleur-disque, 0, 0, 0), var(--force-teinte, .3)), transparent 72%);
+  transition: background-image .6s;
 }
-.pochette-duel-choix .pochette { box-shadow: var(--ombre-pochette-forte); }
-.pochette-duel:hover .pochette-duel-choix, .pochette-duel.ecoute .pochette-duel-choix { transform: rotate(0deg) translateY(-6px); }
-.pochette-duel.ecoute .pochette { box-shadow: var(--ombre-pochette-forte), 0 0 0 3px var(--aiguille); }
-.pochette-duel-legende { display: grid; gap: 3px; justify-items: start; padding-inline: 4px; }
-.extrait-bouton { margin-top: 8px; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--encre-2); min-height: 32px; }
-.extrait-icone { width: 18px; height: 12px; background:
+.fouille {
+  display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  grid-template-areas: "platine suite" "livret livret";
+  gap: clamp(30px, 4vw, 60px) clamp(28px, 4.4vw, 76px); align-items: start;
+  max-width: 1320px; margin: 0 auto;
+}
+.fouille.sans-platine { grid-template-columns: minmax(0, 1fr); grid-template-areas: "suite" "livret"; max-width: 940px; }
+
+/* le disque qui joue */
+.platine { grid-area: platine; display: grid; gap: 20px; min-width: 0; animation: sortie .6s cubic-bezier(.2,.9,.3,1.1) both; }
+.platine-ecran { position: relative; width: 100%; }
+.emplacement-fouille { min-height: 200px; }
+body:not(.video-fouille) .emplacement-fouille { display: none; }
+.platine-pochette { width: min(100%, 400px); }
+body.video-fouille .platine-pochette { display: none; }
+.pochette-platine { box-shadow: var(--ombre-pochette-forte); }
+.platine-texte { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.platine-titre { font-size: clamp(1.9rem, 3.5vw, 3.3rem); overflow-wrap: anywhere; }
+.platine-artiste { font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 500; }
+.platine-album { margin-top: 2px; font-size: 15px; color: var(--encre-2); text-align: left; text-decoration: underline; text-decoration-color: var(--encre-3); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.platine-album:hover { color: var(--encre); text-decoration-color: currentColor; }
+.platine-note { margin-top: 6px; font-family: var(--note, var(--texte)); font-size: clamp(1.05rem, 1.5vw, 1.25rem); line-height: 1.5; max-width: 38em; }
+.platine-note::before { content: "« "; color: var(--aiguille); }
+.platine-note::after { content: " »"; color: var(--aiguille); }
+.platine-actions { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 12px; }
+.platine-lecture {
+  min-height: 52px; padding: 0 22px 0 20px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 12px;
+  background: var(--encre); color: var(--fond); font-weight: 600; box-shadow: var(--relief-plein);
+  transition: transform .12s;
+}
+.platine-lecture:active { transform: translateY(2px); }
+.platine-progression { width: min(100%, 400px); height: 4px; margin-top: 4px; border-radius: 2px; background: var(--trait); overflow: hidden; }
+.platine-progression span { display: block; height: 100%; width: 0; background: var(--aiguille); transition: width .5s linear; }
+.platine-info { font-size: 14px; color: var(--encre-2); max-width: 52ch; }
+.platine-info a { color: var(--encre); }
+.platine-info .lien-bouton { font-size: 14px; }
+
+/* les disques pour la suite */
+.suite { grid-area: suite; min-width: 0; display: grid; gap: 10px; align-content: start; }
+.suite-titre { font-size: clamp(1.45rem, 2.4vw, 2.1rem); }
+.suite-sous { font-size: 15px; color: var(--encre-2); min-height: 1.5em; }
+.suite-sous .lien-bouton { font-size: 15px; margin-left: 4px; }
+.fouille.sans-platine .suite-titre, .fouille.sans-platine .suite-sous { text-align: center; }
+.fouille.sans-platine .suite-titre { font-size: clamp(1.9rem, 4vw, 3.4rem); }
+.suite-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(18px, 2.6vw, 34px); margin-top: 16px; }
+.fouille.sans-platine .suite-options { gap: clamp(18px, 5vw, 64px); width: 100%; max-width: 760px; margin-inline: auto; }
+.option { display: grid; gap: 3px; align-content: start; min-width: 0; animation: sortie .6s cubic-bezier(.2,.9,.3,1.15) both; }
+.option:nth-child(2) { animation-delay: .08s; }
+.option-pochette {
+  position: relative; display: block; width: 100%; margin-bottom: 12px;
+  transform: rotate(var(--penche, 0deg));
+  transition: transform .4s cubic-bezier(.2,.9,.3,1.25);
+}
+.option-pochette .pochette { box-shadow: var(--ombre-pochette-forte); }
+.option:hover .option-pochette, .option.ecoute .option-pochette, .option.compte .option-pochette { transform: rotate(0deg) translateY(-5px); }
+.option.ecoute .pochette, .option.compte .pochette { box-shadow: var(--ombre-pochette-forte), 0 0 0 3px var(--aiguille); }
+.option-titre { font-weight: 600; font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 1.2; overflow-wrap: anywhere; }
+.option-artiste { color: var(--encre-2); font-size: 15px; overflow-wrap: anywhere; }
+.option-extrait { display: grid; justify-items: start; gap: 0; margin-top: 4px; }
+
+/* l'étiquette du disquaire, collée sur la pochette : elle dit dans quelle direction ce disque t'emmène */
+.sticker {
+  position: absolute; z-index: 2; left: -9px; top: 14px; max-width: calc(100% - 4px);
+  padding: 6px 11px 6px 10px; border-radius: 2px;
+  background: var(--etiquette); color: var(--sur-etiquette);
+  font-family: var(--texte); font-weight: 600; font-size: 13px; line-height: 1.15; text-align: left;
+  transform: rotate(-4deg);
+  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 6px 14px rgba(0,0,0,.2);
+}
+.option:nth-child(2) .sticker { transform: rotate(3deg); }
+.sticker-coup { background: var(--aiguille); color: var(--sur-aiguille); }
+/* le compte à rebours de l'enchaînement, sous la première pochette */
+.option-barre { position: absolute; left: 0; right: 0; bottom: -10px; height: 4px; border-radius: 2px; background: var(--aiguille); transform: scaleX(0); transform-origin: left; opacity: 0; }
+.option.compte .option-barre, .coup.compte .option-barre { opacity: 1; animation: remplir 5s linear forwards; }
+@keyframes remplir { to { transform: scaleX(1); } }
+/* la carte mystère se retourne avant de se lancer */
+.option.mystere .option-pochette { transform: rotate(var(--penche, 0deg)); }
+.option.mystere .carte-retournable.retournee { transform: rotate(0deg); }
+/* le coup de cœur, tout seul */
+.coup { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); gap: clamp(18px, 3vw, 34px); align-items: center; animation: sortie .6s cubic-bezier(.2,.9,.3,1.1) both; }
+.coup .option-pochette { transform: rotate(-2deg); margin-bottom: 0; }
+.coup:hover .option-pochette, .coup.ecoute .option-pochette { transform: rotate(0deg) translateY(-4px); }
+.coup.ecoute .pochette { box-shadow: var(--ombre-pochette-forte), 0 0 0 3px var(--aiguille); }
+.coup-texte { display: grid; gap: 4px; justify-items: start; min-width: 0; }
+.coup-actions { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; margin-top: 14px; }
+.suite-coup { grid-template-columns: minmax(0, 1fr); }
+.suite-pied { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; margin-top: 14px; }
+.fouille.sans-platine .suite-pied { justify-content: center; }
+.raccourcis { font-size: 13px; color: var(--encre-2); }
+
+/* les pré-écoutes */
+.extrait-bouton { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--encre-2); min-height: 34px; text-align: left; }
+.extrait-icone { flex: none; width: 18px; height: 12px; background:
   linear-gradient(currentColor, currentColor) 0 60%/3px 40% no-repeat,
   linear-gradient(currentColor, currentColor) 50% 100%/3px 100% no-repeat,
   linear-gradient(currentColor, currentColor) 100% 80%/3px 60% no-repeat; }
@@ -298,85 +371,76 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 .extrait-bouton[data-etat="absent"] .extrait-icone { display: none; }
 .extrait-bouton.en-cours .extrait-icone { animation: egaliseur .5s ease-in-out infinite alternate; }
 @keyframes egaliseur { to { background-size: 3px 90%, 3px 30%, 3px 100%; } }
-.extrait-lien { font-size: 13px; color: var(--encre-2); text-decoration: underline; text-underline-offset: 3px; }
+.extrait-lien { font-size: 13px; color: var(--encre-2); text-decoration: underline; text-decoration-color: var(--encre-3); text-underline-offset: 3px; }
 .extrait-lien:hover { color: var(--encre); }
-.duel-pied { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: center; }
 
-/* ─────────────────────────────── INTERLUDE ─────────────────────────────── */
-.ecran-interlude { display: grid; place-items: center; }
-.interlude { display: grid; justify-items: center; gap: 18px; text-align: center; max-width: 760px; animation: sortie .7s cubic-bezier(.2,.9,.3,1.1) both; }
-.interlude-grand { font-size: clamp(1.9rem, 5vw, 3.8rem); }
-.interlude-petit { color: var(--encre-2); font-size: 1.1rem; }
-.interlude-actions { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; justify-content: center; margin-top: 8px; }
-.pochette-solo { width: min(60vw, 320px); margin: 8px 0 4px; transform: rotate(-2deg); transition: transform .4s cubic-bezier(.2,.9,.3,1.2); }
-.pochette-solo:hover { transform: rotate(0) scale(1.03); }
-.pochette-solo .pochette { box-shadow: var(--ombre-pochette-forte); }
+/* ─────────────────────────────── LE LIVRET ─────────────────────────────── */
+.livret { width: 100%; padding-top: 24px; border-top: 1px solid var(--trait); scroll-margin-top: 92px; }
+.fouille .livret { grid-area: livret; }
+.livret-bouton { display: flex; align-items: center; gap: 18px; text-align: left; padding: 4px 0; max-width: 100%; }
+.livret-icone { position: relative; flex: none; width: 54px; height: 44px; }
+.livret-icone::before, .livret-icone::after {
+  content: ""; position: absolute; top: 3px; bottom: 3px; width: 26px;
+  background: var(--fond-3); box-shadow: 0 3px 8px rgba(0,0,0,.18), inset 0 0 0 1px var(--trait);
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.2);
+}
+.livret-icone::before { left: 1px; border-radius: 3px 0 0 3px; transform: perspective(80px) rotateY(28deg); transform-origin: right center; }
+.livret-icone::after { right: 1px; border-radius: 0 3px 3px 0; transform: perspective(80px) rotateY(-28deg); transform-origin: left center; }
+.livret-icone span { position: absolute; z-index: 1; left: 50%; top: 5px; bottom: 5px; width: 1px; background: var(--encre-3); }
+.livret-bouton:hover .livret-icone::before, .livret.ouvert .livret-icone::before,
+.livret-bouton:hover .livret-icone::after, .livret.ouvert .livret-icone::after { transform: none; }
+.livret-bouton-texte { display: grid; gap: 2px; min-width: 0; }
+.livret-bouton-texte strong { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); letter-spacing: var(--display-interlettre, -0.02em); font-size: clamp(1.15rem, 2vw, 1.55rem); line-height: 1.1; }
+.livret-bouton-texte span { color: var(--encre-2); font-size: 15px; overflow-wrap: anywhere; }
+.livret-bouton:hover strong { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 
-/* ─────────────────────────────── RENCONTRE ─────────────────────────────── */
-.ecran-rencontre {
-  background-image: radial-gradient(70% 60% at 22% 30%, rgba(var(--couleur-disque, 0, 0, 0), var(--force-teinte, .32)), transparent 72%);
-  transition: background-image .6s;
+.livret-pages {
+  position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 22px; border-radius: 6px;
+  background: var(--fond-3); box-shadow: var(--relief-fort);
+  animation: sortie .45s cubic-bezier(.2,.9,.3,1.1) both;
 }
-.rencontre {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  gap: clamp(28px, 5vw, 80px); align-items: start; max-width: 1320px; margin: 0 auto;
-}
-.rencontre-pochette { position: -webkit-sticky; position: sticky; top: calc(76px + clamp(20px, 4vw, 56px)); animation: sortie .7s cubic-bezier(.2,.9,.3,1.1) both; }
-.pochette-geante { max-width: min(100%, 64vh); box-shadow: var(--ombre-pochette-forte); }
-.rencontre-texte { display: grid; gap: 18px; min-width: 0; }
-.rencontre-titre { font-size: clamp(2rem, 4.2vw, 4rem); overflow-wrap: anywhere; }
-.rencontre-artiste { font-size: clamp(1.1rem, 1.8vw, 1.4rem); font-weight: 500; display: grid; gap: 2px; }
-.rencontre-album { font-size: 15px; font-weight: 400; color: var(--encre-2); }
-.rencontre-note { margin: 0; font-family: var(--note, var(--texte)); font-size: clamp(1.15rem, 1.7vw, 1.4rem); line-height: 1.5; max-width: 34em; }
-.rencontre-note::before { content: "« "; color: var(--aiguille); }
-.rencontre-note::after  { content: " »"; color: var(--aiguille); }
-.rencontre-boutons { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
-/* le bouton qui mène au morceau suivant : la prochaine étape, toujours visible */
-.bouton-suivant {
-  display: inline-grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 18px; align-items: center; text-align: left;
-  min-height: 52px; max-width: 100%; padding: 7px 22px 7px 24px; border-radius: 999px;
-  background: var(--aiguille); color: var(--sur-aiguille); box-shadow: var(--relief-plein);
-  transition: transform .15s cubic-bezier(.2,.9,.3,1.3);
-}
-.bouton-suivant::after { content: "→"; grid-column: 2; grid-row: 1 / 3; font-size: 1.4rem; line-height: 1; }
-.bouton-suivant:hover { transform: translateX(4px); }
-.bouton-suivant-etiquette { font-size: 12px; font-weight: 600; opacity: .8; }
-.bouton-suivant-titre { min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.emplacement-rencontre { max-width: 440px; min-height: 200px; }
-/* le cadre vidéo n'apparaît que quand c'est bien ce morceau qui joue sur YouTube */
-body:not(.video-rencontre) .emplacement-rencontre { display: none; }
-.bouton-suivant-artiste { font-weight: 400; opacity: .85; }
+/* la pliure au milieu du livret */
+.livret-pages::before { content: ""; position: absolute; top: 20px; bottom: 20px; left: 50%; width: 1px; background: var(--trait); box-shadow: 0 0 22px 6px rgba(0,0,0,.05); }
+.livret-page { padding: clamp(20px, 3vw, 36px); min-width: 0; }
+.livret-album, .livret-artiste { display: grid; gap: 14px; align-content: start; }
+.livret-nom { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); letter-spacing: var(--display-interlettre, -0.02em); font-size: clamp(1.2rem, 2vw, 1.65rem); line-height: 1.1; overflow-wrap: anywhere; }
+.livret-phrase { margin-top: 6px; color: var(--encre-2); }
+.livret-album-tete { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 18px; align-items: center; }
+.pochette-livret { width: 104px; }
+.livret-wiki { display: grid; gap: 8px; justify-items: start; }
+.livret-wiki p, .livret-texte { max-width: 62ch; }
+.pistes { list-style: none; counter-reset: piste; margin: 0; padding: 0; display: grid; gap: 1px; font-size: 15px; font-variant-numeric: tabular-nums; max-height: 360px; overflow-y: auto; }
+.pistes li { counter-increment: piste; display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 10px; padding: 4px 8px 4px 4px; border-radius: 4px; }
+.pistes li::before { content: counter(piste); color: var(--encre-2); text-align: right; }
+.piste-titre { overflow-wrap: anywhere; }
+.piste-duree { color: var(--encre-2); }
+.pistes li.ici { background: var(--aiguille); color: var(--sur-aiguille); font-weight: 600; }
+.pistes li.ici::before, .pistes li.ici .piste-duree { color: inherit; }
+.livret-artiste-tete { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
+.livret-photo { width: 88px; height: 88px; object-fit: cover; border-radius: 50%; box-shadow: var(--ombre-pochette); }
+.livret-liens { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.livret-liens .lien-bouton { font-size: 14px; }
+.livret-vide, .livret-attente { color: var(--encre-2); max-width: 50ch; }
+.livret-ailleurs { display: grid; gap: 10px; margin-top: 24px; }
+.livret-ailleurs-titre { font-weight: 600; }
+.livret-paroles .lien-bouton { font-size: 14px; }
+.livret-machine { max-width: 1100px; margin-top: 34px; }
 
 /* écouter en entier ailleurs, légalement */
 .ailleurs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
-.ailleurs-titre { color: var(--encre-2); margin-right: 2px; }
-.ailleurs a { padding: 6px 12px; border-radius: 999px; background: var(--fond-2); box-shadow: var(--relief); color: var(--encre); font-weight: 600; text-decoration: none; transition: box-shadow .15s; }
+.ailleurs a { padding: 7px 13px; border-radius: 999px; background: var(--fond-2); box-shadow: var(--relief); color: var(--encre); font-weight: 600; text-decoration: none; transition: box-shadow .15s; }
 .ailleurs a:hover { box-shadow: var(--relief), 0 0 0 2px var(--aiguille); }
 
 /* pourquoi des pubs (affiché une fois, dans la page : jamais par-dessus la vidéo) */
-.avis-pub { display: grid; gap: 10px; max-width: 580px; padding: 18px 20px; border-radius: var(--rayon-objet); background: var(--fond-2); box-shadow: var(--relief), 0 0 0 1px var(--trait); font-size: 15px; animation: sortie .45s cubic-bezier(.2,.9,.3,1.1); }
-.avis-titre { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 1.2rem; line-height: 1.1; }
-.avis-pub ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--encre-2); }
-.avis-pub strong { color: var(--encre); }
+.avis-pub { display: grid; gap: 10px; max-width: 560px; padding: 18px 20px; border-radius: var(--rayon-objet); background: var(--fond-2); box-shadow: var(--relief), 0 0 0 1px var(--trait); font-size: 15px; animation: sortie .45s cubic-bezier(.2,.9,.3,1.1); }
+.avis-titre { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 1.15rem; line-height: 1.1; }
+.avis-pub p { color: var(--encre-2); }
+.avis-pub .avis-titre { color: var(--encre); }
 .avis-actions { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-top: 4px; }
 .avis-machine { width: 100%; max-width: 880px; margin-top: 30px; }
 .machine-source { margin-top: 26px; font-size: 14px; color: var(--encre-2); text-align: center; }
 
-/* plus d'infos : la fiche, l'artiste, les liens */
-.a-propos { display: grid; gap: 18px; margin-top: 8px; padding-top: 24px; border-top: 1px solid var(--trait); scroll-margin-top: 96px; }
-.a-propos-titre { font-size: clamp(1.4rem, 2.4vw, 2rem); }
-.fiche { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; }
-.fiche div { padding: 12px 14px; border-radius: 12px; background: var(--fond-2); box-shadow: var(--relief); min-width: 0; }
-.fiche dt { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--encre-2); }
-.fiche dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
-.bio { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: start; }
-.bio > div { display: grid; gap: 8px; justify-items: start; }
-.bio-photo { width: 112px; height: 112px; object-fit: cover; border-radius: var(--rayon-pochette); box-shadow: var(--ombre-pochette); }
-.bio-nom { font-weight: 600; font-size: 1.1rem; }
-.bio-texte { max-width: 62ch; }
-.bio-attente, .bio-vide { grid-column: 1 / -1; color: var(--encre-2); max-width: 52ch; }
-.liens-plus { display: flex; flex-wrap: wrap; gap: 10px 24px; }
-.rencontre-indispo { font-size: 15px; color: var(--encre-2); max-width: 46ch; }
 .emplacement-ecran {
   position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 9;
   border-radius: var(--rayon-ecran);
@@ -395,29 +459,6 @@ body:not(.video-rencontre) .emplacement-rencontre { display: none; }
 .bouton-garder.est-garde { background: var(--aiguille); color: var(--sur-aiguille); }
 .bouton-garder.est-garde::before { content: "✓"; font-size: 1.05em; }
 .bouton-garder:active { transform: scale(.96); }
-
-.chemins {
-  margin-top: 6px; padding: 22px; border-radius: var(--rayon-objet);
-  background: var(--fond-2); box-shadow: var(--relief);
-  display: grid; gap: 14px;
-}
-.chemins-titre { font-weight: 600; font-size: 1.1rem; }
-.chemins-portes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.porte-petite {
-  display: grid; grid-template-columns: 60px 1fr; gap: 12px; align-items: center; text-align: left;
-  padding: 8px; border-radius: calc(var(--rayon-objet) - 8px); min-width: 0;
-  transition: background-color .2s;
-}
-.porte-petite:hover { background: var(--fond-3); }
-.pochette-mini { width: 60px; }
-.porte-petite-texte { display: grid; min-width: 0; }
-.porte-petite-etiquette { font-size: 13px; color: var(--aiguille); font-weight: 600; }
-.porte-petite-titre { display: block; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.porte-petite-artiste { display: block; font-size: 14px; color: var(--encre-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.suite-annonce { font-size: 14px; color: var(--encre-2); }
-.suite-annonce strong { color: var(--encre); font-weight: 600; }
-.suite-annonce .lien-bouton { font-size: 14px; margin-left: 6px; }
-.chemins-bas { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; }
 
 /* ─────────────────────────────── ÉCOUTER : la chaîne (d'après la pochette « For A Good Time… ») ─────────────────────────────── */
 .ecran-machine { display: grid; align-content: start; justify-items: center; padding-top: clamp(24px, 4vw, 52px); }
@@ -533,12 +574,38 @@ body:not(.video-machine) .emplacement-cd { display: none; }
 .cd-garder.est-garde { color: var(--aiguille); }
 .cd-garder.est-garde .led { background: var(--aiguille); box-shadow: 0 0 8px 1px var(--aiguille); }
 
-.unite-reglages { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid rgba(0,0,0,.1); }
-.unite-legende { font-size: 13px; font-weight: 600; opacity: .75; }
-.reglages-molettes { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: start; }
-.bouton-rotatif-ton .molette { width: 52px; height: 52px; }
-.bouton-rotatif-ton .bouton-rotatif-nom { display: flex; justify-content: space-between; gap: 8px; width: 104px; color: var(--encre-cd); opacity: .8; }
-.bouton-rotatif-ton .bouton-rotatif-nom span:only-child { margin: 0 auto; }
+.unite-reglages { display: grid; gap: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,.1); }
+/* deux sélecteurs à trois positions : on touche le mot, le bouton tourne jusqu'à lui */
+.selecteurs { display: flex; flex-wrap: wrap; gap: 18px 34px; align-items: end; }
+.selecteur-rotatif {
+  --rot: 0deg;
+  display: grid; grid-template-columns: auto 54px auto; grid-template-rows: auto auto;
+  grid-template-areas: ". haut ." "gauche bouton droite";
+  align-items: center; justify-items: center; column-gap: 6px; row-gap: 2px;
+}
+.sel-etiquette {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 5px; border-radius: 4px;
+  font-size: 13px; font-weight: 600; white-space: nowrap; color: var(--encre-cd); opacity: .6;
+  transition: opacity .2s, color .2s;
+}
+.sel-etiquette[data-pos="0"] { grid-area: gauche; justify-self: end; }
+.sel-etiquette[data-pos="1"] { grid-area: haut; }
+.sel-etiquette[data-pos="2"] { grid-area: droite; justify-self: start; }
+.sel-etiquette:hover { opacity: .9; }
+.sel-etiquette[aria-checked="true"] { opacity: 1; color: var(--aiguille); }
+.sel-led { width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,.22); box-shadow: inset 0 1px 1px rgba(0,0,0,.35); transition: background .2s, box-shadow .2s; }
+.sel-etiquette[aria-checked="true"] .sel-led { background: var(--aiguille); box-shadow: 0 0 6px 1px var(--aiguille); }
+.sel-bouton {
+  grid-area: bouton; position: relative; width: 54px; height: 54px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 40%, var(--capuchon-haut) 0 50%, transparent 51%),
+    repeating-conic-gradient(var(--capuchon-bas) 0 6deg, var(--capuchon-haut) 6deg 12deg);
+  box-shadow: 0 5px 12px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.18);
+}
+.sel-bouton .molette-repere { transition: transform .4s cubic-bezier(.3,1.6,.5,1); }
+.bouton-rotatif-unite { align-self: end; }
+.bouton-rotatif-unite .molette { width: 54px; height: 54px; }
+.bouton-rotatif-unite .bouton-rotatif-nom { color: var(--encre-cd); opacity: .7; font-weight: 600; font-size: 13px; }
 .source-radio { justify-self: start; display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 999px; background: rgba(0,0,0,.07); box-shadow: inset 0 1px 3px rgba(0,0,0,.16); }
 .source-pos { min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 600; opacity: .7; transition: background-color .2s, color .2s; }
 .source-pos[aria-checked="true"] { background: var(--encre-cd); color: var(--sur-encre-cd); opacity: 1; }
@@ -633,6 +700,8 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 .bac-morceau { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; padding: 6px 8px; border-radius: 8px; min-width: 0; }
 .bac-morceau > span { min-width: 0; }
 .bac-morceau .pochette-mini { width: 52px; }
+.bac-titre { display: block; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bac-artiste { display: block; font-size: 14px; color: var(--encre-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bac-morceau:hover { background: var(--fond-2); }
 .bac-garder { width: 40px; height: 40px; border-radius: 50%; font-size: 20px; font-weight: 600; color: var(--encre-2); }
 .bac-garder:hover { background: var(--fond-2); color: var(--encre); }
@@ -660,20 +729,24 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 .toast.visible { opacity: 1; transform: translate(-50%, 0); }
 
 /* ─────────────────────────────── TABLETTE ─────────────────────────────── */
+@media (max-width: 1200px) { #teintes-facade { display: none; } }
 @media (max-width: 960px) {
-  .ecran-accueil, .rencontre, .machine { grid-template-columns: minmax(0, 1fr); }
-  .rencontre-pochette { position: static; width: min(100%, 420px); }
+  .ecran-accueil { grid-template-columns: minmax(0, 1fr); align-content: start; }
+  .fouille { grid-template-columns: minmax(0, 1fr); grid-template-areas: "platine" "suite" "livret"; }
+  .platine-pochette { width: min(100%, 360px); }
   .chaine { grid-template-columns: 70px minmax(0, 1fr) 70px; }
   .pile { grid-template-columns: minmax(170px, 210px) minmax(0, 1fr); }
   .unite-haut { flex-direction: column; align-items: stretch; }
   .emplacement-cd { flex-basis: auto; width: 100%; height: auto; aspect-ratio: 16 / 9; min-height: 200px; }
 }
-@media (max-width: 1200px) { #teintes-facade { display: none; } }
 @media (max-width: 760px) {
   .chaine { grid-template-columns: minmax(0, 1fr); }
   .enceinte { display: none; }
   .pile { grid-template-columns: minmax(0, 1fr); }
   .platine-cd { justify-self: center; width: min(52vw, 210px); padding: 10px; }
+  .livret-pages { grid-template-columns: minmax(0, 1fr); }
+  .livret-pages::before { display: none; }
+  .livret-page + .livret-page { border-top: 1px solid var(--trait); }
 }
 
 /* ─────────────────────────────── TÉLÉPHONE ─────────────────────────────── */
@@ -684,7 +757,6 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   #scene { padding-top: calc(64px + env(safe-area-inset-top)); }
   .ecran { min-height: calc(100vh - 64px); padding: 18px 16px 120px; }
   body.avec-poste .ecran { padding-bottom: calc(var(--poste-h, 70px) + 28px); }
-  .marque { font-size: 10px; }
   .selecteur { justify-self: start; }
   .selecteur-pos { min-width: 0; height: 38px; padding: 0 13px; font-size: 14px; }
   .bouton-reglages { width: 38px; padding: 0; justify-content: center; }
@@ -698,26 +770,38 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .bouton-rotatif-grand .molette { width: 88px; height: 88px; }
   .interrupteur { width: 104px; height: 104px; }
 
+  /* par où commencer */
+  .ecran-accueil { gap: 36px; }
+  .envie { gap: 18px; }
+  .envie-titre { font-size: clamp(2.4rem, 11vw, 3.2rem); }
+  .envie-choix { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .choix-envie { grid-template-columns: 74px minmax(0, 1fr); align-items: center; align-content: center; gap: 16px; min-height: 76px; padding: 14px 18px; }
+  .choix-envie-onde { height: 24px; }
   .accueil-jour { justify-items: center; text-align: center; }
-  .accueil-jour .carte-jour { width: min(72vw, 300px); }
-  .jour-titre { margin-bottom: 6px; }
-  .accueil-reglage { justify-items: stretch; }
-  .accueil-reglage .gros-bouton-plein { justify-self: stretch; }
+  .accueil-jour .carte-jour { width: min(70vw, 280px); }
 
-  .duel { gap: 14px; }
-  .pochette-duel-choix { transform: rotate(calc(var(--penche) * .6)); }
+  /* la fouille : la vidéo en haut, les deux disques juste dessous */
+  .fouille { gap: 26px; }
+  .platine { gap: 14px; }
+  .platine-pochette { width: min(72vw, 300px); }
+  .platine-titre { font-size: clamp(1.5rem, 7vw, 2rem); }
+  .platine-artiste { font-size: 1.02rem; }
+  .platine-actions { margin-top: 8px; gap: 10px 16px; }
+  .bouton-garder { min-height: 48px; }
+  .suite-options { gap: 14px; margin-top: 10px; }
+  .fouille.sans-platine .suite-titre { font-size: clamp(1.6rem, 7vw, 2.2rem); }
+  .sticker { font-size: 12px; padding: 5px 8px; left: -6px; top: 10px; }
+  .option-artiste { font-size: 14px; }
+  .coup { grid-template-columns: minmax(0, 1fr); }
+  .coup .option-pochette { width: min(70vw, 280px); }
   .carte-dos-texte { font-size: .95rem; }
+  .livret-album-tete { grid-template-columns: 76px minmax(0, 1fr); gap: 14px; }
+  .pochette-livret { width: 76px; }
+  .livret-photo { width: 68px; height: 68px; }
+  .livret-icone { width: 46px; height: 38px; }
+  .livret-icone::before, .livret-icone::after { width: 22px; }
 
-  .rencontre-pochette { width: min(70vw, 300px); justify-self: center; }
-  /* sur téléphone, quand la vidéo joue, elle prend la place de la grande pochette (pas de doublon) */
-  body.video-rencontre .rencontre-pochette { display: none; }
-  .emplacement-rencontre { max-width: none; }
-  .chemins { padding: 16px; }
-  .chemins-portes { grid-template-columns: minmax(0, 1fr); }
-
-  .rencontre-boutons .bouton-suivant { flex: 1 1 180px; }
-  .bio { grid-template-columns: minmax(0, 1fr); }
-  .bio-photo { width: 84px; height: 84px; }
+  /* la chaîne */
   .unite { padding: 14px; }
   .vfd-defile { font-size: 18px; }
   .vfd { padding: 10px 12px; }
@@ -727,8 +811,10 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .cd-touche-texte { width: auto; flex: 1; justify-content: center; }
   .unite-touches .cd-transport { flex: 1 1 100%; }
   .unite-touches .cd-transport:first-child { justify-content: space-between; }
-  .reglages-molettes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-items: center; gap: 14px 6px; }
-  .bouton-rotatif-ton .bouton-rotatif-nom { width: 100%; max-width: 92px; font-size: 11px; gap: 4px; }
+  .selecteurs { justify-content: center; gap: 18px 24px; }
+  .source-radio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; border-radius: 14px; }
+  .source-pos { padding: 0 6px; font-size: 13px; border-radius: 11px; line-height: 1.15; }
+  .sel-etiquette { font-size: 12px; }
   .touche { width: 56px; height: 56px; }
   .touche-grosse { width: 74px; height: 74px; }
 

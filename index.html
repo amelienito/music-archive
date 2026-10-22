@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Music Discovery</title>
-  <meta name="description" content="Quelqu'un a fouillé pendant des années. Allume, et écoute ce qu'il a trouvé.">
+  <meta name="description" content="Quelqu'un a fouillé pendant des années. Commence, et écoute ce qu'il a trouvé.">
   <meta name="theme-color" content="#dcdbd8">
   <script>
     // la teinte est posée tout de suite (évite un flash de la mauvaise couleur) ; sans choix, on suit le mode sombre du téléphone
@@ -13,9 +13,9 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Archivo:wdth,wght@112..125,500;112..125,800&family=Doto:wght@700;900&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=7">
-  <link rel="stylesheet" href="teintes.css?v=7">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="teintes.css?v=8">
 </head>
 <body>
 
@@ -48,11 +48,11 @@
 
   <main id="scene">
 
-    <!-- ═════════════ ALLUMAGE ═════════════ -->
+    <!-- ═════════════ INTRODUCTION ═════════════ -->
     <section class="ecran ecran-allumage" data-ecran="allumage">
       <div class="allumage-texte">
         <h1>Quelqu'un a fouillé pendant des années.</h1>
-        <p class="allumage-sous">Allume, et écoute ce qu'il a trouvé.</p>
+        <p class="allumage-sous">Commence, et écoute ce qu'il a trouvé.</p>
       </div>
       <div class="panneau-allumage">
         <div class="bouton-rotatif bouton-rotatif-grand" data-molette="volume">
@@ -62,61 +62,44 @@
           </div>
           <span class="bouton-rotatif-nom">Volume <span class="valeur-volume">60</span></span>
         </div>
-        <button class="interrupteur" data-action="allumer" aria-label="Allumer">
+        <button class="interrupteur" data-action="allumer">
           <span class="interrupteur-led"></span>
-          <span class="interrupteur-label">Allumer</span>
+          <span class="interrupteur-label">Commencer</span>
         </button>
       </div>
-      <p class="allumage-conseil" id="allumage-conseil">Règle le volume d'abord : tourne la molette, ou fais-la glisser vers le haut.</p>
+      <p class="allumage-conseil" id="allumage-conseil">Règle le volume d'abord : attrape la molette et tourne-la, ou touche l'anneau à la hauteur voulue.</p>
       <p class="allumage-retour" id="allumage-retour" hidden></p>
     </section>
 
-    <!-- ═════════════ DÉCOUVRIR : accueil ═════════════ -->
+    <!-- ═════════════ DÉCOUVRIR : par où commencer ═════════════ -->
     <section class="ecran ecran-accueil" data-ecran="accueil" hidden>
-      <div class="accueil-jour" id="accueil-jour"></div>
-      <div class="accueil-reglage">
-        <h2>Comment tu veux t'y prendre ?</h2>
-        <button class="gros-bouton gros-bouton-plein" data-action="confiance">Je te fais confiance</button>
-        <p class="reglage-ou">ou règle la machine :</p>
-        <div class="table-de-mixage">
-          <label class="fader">
-            <span class="fader-question">Ce soir, plutôt</span>
-            <input type="range" min="0" max="10" step="1" value="5" id="f-energie">
-            <span class="fader-bornes"><span>calme</span><span>agressif</span></span>
-          </label>
-          <label class="fader">
-            <span class="fader-question">Tu veux que ça soit</span>
-            <input type="range" min="0" max="10" step="1" value="5" id="f-etrange">
-            <span class="fader-bornes"><span>familier</span><span>étrange</span></span>
-          </label>
-          <label class="fader">
-            <span class="fader-question">Ton corps a envie de</span>
-            <input type="range" min="0" max="10" step="1" value="5" id="f-danse">
-            <span class="fader-bornes"><span>se poser</span><span>bouger</span></span>
-          </label>
-          <button class="gros-bouton" data-action="regle">C'est réglé, montre-moi</button>
+      <div class="envie">
+        <h1 class="envie-titre">T'as envie de quoi&nbsp;?</h1>
+        <div class="envie-choix">
+          <button class="choix-envie" data-action="envie" data-envie="energique">
+            <svg class="choix-envie-onde" viewBox="0 0 120 28" aria-hidden="true"><path d="M2 14 L10 3 L18 25 L26 6 L34 22 L42 2 L50 26 L58 7 L66 21 L74 3 L82 25 L90 5 L98 23 L106 4 L118 14"/></svg>
+            <span class="choix-envie-texte">Quelque chose d'énergique</span>
+          </button>
+          <button class="choix-envie" data-action="envie" data-envie="detente">
+            <svg class="choix-envie-onde" viewBox="0 0 120 28" aria-hidden="true"><path d="M2 14 C17 4 27 4 42 14 S67 24 82 14 S107 4 118 14"/></svg>
+            <span class="choix-envie-texte">De la détente</span>
+          </button>
         </div>
+        <button class="lien-bouton envie-hasard" data-action="envie" data-envie="hasard">Surprends-moi</button>
+        <p class="envie-aide">Ensuite, deux disques à chaque fois : tu choisis la suite. Ce qui te plaît, tu le gardes.</p>
       </div>
+      <div class="accueil-jour" id="accueil-jour"></div>
     </section>
 
-    <!-- ═════════════ DUEL ═════════════ -->
-    <section class="ecran ecran-duel" data-ecran="duel" hidden>
-      <p class="duel-phrase" id="duel-phrase"></p>
-      <div class="duel" id="duel"></div>
-      <div class="duel-pied">
-        <button class="lien-bouton" data-action="autre-duel">Aucun des deux, deux autres</button>
-        <button class="lien-bouton" data-action="accueil">Régler à nouveau</button>
+    <!-- ═════════════ DÉCOUVRIR : la fouille ═════════════
+         En haut le disque qui joue, juste à côté les deux pour la suite,
+         en bas le livret (l'album, l'artiste, où l'écouter en entier). -->
+    <section class="ecran ecran-fouille" data-ecran="fouille" hidden>
+      <div class="fouille sans-platine" id="fouille">
+        <article class="platine" id="platine" aria-label="Le disque qui joue" hidden></article>
+        <section class="suite" id="suite" aria-labelledby="suite-titre"></section>
+        <section class="livret" id="livret-fouille" aria-label="Le livret" hidden></section>
       </div>
-    </section>
-
-    <!-- ═════════════ INTERLUDE ═════════════ -->
-    <section class="ecran ecran-interlude" data-ecran="interlude" hidden>
-      <div class="interlude" id="interlude"></div>
-    </section>
-
-    <!-- ═════════════ RENCONTRE ═════════════ -->
-    <section class="ecran ecran-rencontre" data-ecran="rencontre" hidden>
-      <div class="rencontre" id="rencontre"></div>
     </section>
 
     <!-- ═════════════ ÉCOUTER : la chaîne ═════════════ -->
@@ -158,40 +141,31 @@
               </div>
               <div class="cd-transport">
                 <button class="cd-touche cd-touche-texte cd-garder" data-action="radio-garder" id="radio-garder" aria-pressed="false"><span class="led" aria-hidden="true"></span><span class="cd-garder-texte">Garder</span></button>
-                <button class="cd-touche cd-touche-texte" data-action="radio-raconte">Plus d'infos</button>
+                <button class="cd-touche cd-touche-texte" data-action="radio-raconte" aria-controls="livret-machine">Plus d'infos</button>
               </div>
             </div>
 
+            <!-- deux sélecteurs à trois positions : on touche une position, le bouton tourne -->
             <div class="unite-reglages">
-              <p class="unite-legende">Règle ce qui passe :</p>
-              <div class="reglages-molettes">
-                <div class="bouton-rotatif bouton-rotatif-ton" data-molette="energie">
-                  <div class="molette" role="slider" tabindex="0" aria-label="Calme ou intense" aria-valuemin="0" aria-valuemax="10">
-                    <svg class="molette-arc" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" pathLength="100"/></svg>
-                    <span class="molette-repere"></span>
-                  </div>
-                  <span class="bouton-rotatif-nom"><span>calme</span><span>intense</span></span>
+              <div class="selecteurs">
+                <div class="selecteur-rotatif" data-reglage="energie" role="radiogroup" aria-label="Énergie">
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="0" aria-checked="false"><span class="sel-led"></span>Détente</button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="1" aria-checked="true"><span class="sel-led"></span>Entre deux</button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="2" aria-checked="false"><span class="sel-led"></span>Énergique</button>
+                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="energie" tabindex="-1" aria-hidden="true"><span class="molette-repere"></span></button>
                 </div>
-                <div class="bouton-rotatif bouton-rotatif-ton" data-molette="etrange">
-                  <div class="molette" role="slider" tabindex="0" aria-label="Familier ou étrange" aria-valuemin="0" aria-valuemax="10">
-                    <svg class="molette-arc" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" pathLength="100"/></svg>
-                    <span class="molette-repere"></span>
-                  </div>
-                  <span class="bouton-rotatif-nom"><span>familier</span><span>étrange</span></span>
+                <div class="selecteur-rotatif" data-reglage="etrange" role="radiogroup" aria-label="Style">
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="0" aria-checked="false"><span class="sel-led"></span>Accessible</button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="1" aria-checked="true"><span class="sel-led"></span>De travers</button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="2" aria-checked="false"><span class="sel-led"></span>Barré</button>
+                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="etrange" tabindex="-1" aria-hidden="true"><span class="molette-repere"></span></button>
                 </div>
-                <div class="bouton-rotatif bouton-rotatif-ton" data-molette="danse">
-                  <div class="molette" role="slider" tabindex="0" aria-label="Assis ou debout" aria-valuemin="0" aria-valuemax="10">
-                    <svg class="molette-arc" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" pathLength="100"/></svg>
-                    <span class="molette-repere"></span>
-                  </div>
-                  <span class="bouton-rotatif-nom"><span>assis</span><span>debout</span></span>
-                </div>
-                <div class="bouton-rotatif bouton-rotatif-ton seulement-sans-ios" data-molette="volume">
+                <div class="bouton-rotatif bouton-rotatif-unite seulement-sans-ios" data-molette="volume">
                   <div class="molette" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100">
                     <svg class="molette-arc" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" pathLength="100"/></svg>
                     <span class="molette-repere"></span>
                   </div>
-                  <span class="bouton-rotatif-nom"><span>volume</span></span>
+                  <span class="bouton-rotatif-nom">Volume</span>
                 </div>
               </div>
               <div class="source-radio" role="radiogroup" aria-label="Ce qui passe">
@@ -209,11 +183,12 @@
       </div>
       <p class="machine-source" id="machine-source" hidden></p>
       <div class="avis-pub avis-machine" data-avis hidden></div>
+      <section class="livret livret-machine" id="livret-machine" aria-label="Le livret du disque qui passe" hidden></section>
     </section>
 
   </main>
 
-  <!-- ═════════════ LE POSTE (lecteur en cours, partout sauf sur Écouter) ═════════════ -->
+  <!-- ═════════════ LE POSTE (lecteur en cours, quand on n'est pas sur sa page) ═════════════ -->
   <div class="poste" id="poste" hidden>
     <div class="emplacement-ecran emplacement-poste" data-emplacement="poste"></div>
     <button class="poste-infos" data-action="retour-morceau">
@@ -268,7 +243,7 @@
       <button class="choix-son" role="radio" data-action="son" data-son="extraits" aria-checked="false">
         <strong>Extraits de 30 secondes</strong><span>Zéro pub, sans compte, fournis par Deezer et Apple Music. Idéal pour découvrir vite.</span>
       </button>
-      <p class="reglage-note">Tu as Deezer, Apple Music, Qobuz ou Bandcamp ? Chaque page de morceau a ses liens pour l'écouter en entier chez eux.</p>
+      <p class="reglage-note">Tu as Deezer, Apple Music, Qobuz ou Bandcamp ? Le livret de chaque morceau a ses liens pour l'écouter en entier chez eux.</p>
     </div>
     <div class="reglage-teinte">
       <p class="reglage-titre">Teinte du site</p>
@@ -279,9 +254,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <audio id="extrait" preload="none" playsinline></audio>
 
-  <script src="data.js?v=7"></script>
-  <script src="pochettes.js?v=7"></script>
-  <script src="infos.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="data.js?v=8"></script>
+  <script src="pochettes.js?v=8"></script>
+  <script src="infos.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

@@ -32,8 +32,8 @@
 
    Les réglages (de 0 à 10) servent au moteur de découverte.
    Ils ne sont jamais montrés aux visiteurs. Ajuste-les à l'instinct :
-     energie  0 = immobile, 10 = ça cogne
-     etrange  0 = familier, 10 = d'où ça sort ?
+     energie  0 = détente, 10 = ça cogne
+     etrange  0 = accessible, 10 = barré (d'où ça sort ?)
      danse    0 = on se pose, 10 = impossible de rester assis
 
    ⚠ Les valeurs actuelles sont une première estimation faite par Claude.

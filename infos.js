@@ -1,8 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════
-   INFOS — la fiche Wikipédia de l'artiste
+   INFOS — les fiches Wikipédia de l'artiste et de l'album
    Cherche d'abord sur Wikipédia en français, puis en anglais.
-   On n'accepte une page que si elle parle bien d'un·e musicien·ne
-   et que son titre correspond au nom de l'artiste.
+   On n'accepte une page que si elle parle bien de musique et que son
+   titre correspond : sinon, mieux vaut rien qu'une mauvaise fiche.
    Tout est mis en cache dans le navigateur.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -14,6 +14,10 @@ const Infos = (() => {
   const enCours = {};
 
   const MUSIQUE = /(chanteu|rappeu|musicien|musicienne|groupe|duo|trio|disc[- ]?jockey|\bDJ\b|producteur|productrice|compositeu|auteur-compositeur|artiste|beatmaker|singer|rapper|musician|band|producer|songwriter|record producer|composer|hip hop|soul|jazz|électronique|electronic)/i;
+  const OEUVRE = {
+    album: /(album|\bEP\b|mixtape|bande originale|soundtrack|compilation|\bLP\b|disque)/i,
+    chanson: /(chanson|single|\bsong\b|\btitre\b|morceau)/i,
+  };
 
   const norm = s => Pochettes.normaliser(String(s || '').replace(/\(.*?\)/g, ''));
 
@@ -22,26 +26,47 @@ const Infos = (() => {
     if (!r.ok) throw new Error(r.status);
     return r.json();
   }
+  async function resume(titre, langue) {
+    return json(`https://${langue}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titre.replace(/ /g, '_'))}`);
+  }
+  const fiche = (s, langue, p) => ({
+    titre: s.title,
+    extrait: couper(s.extract || '', 520),
+    image: s.thumbnail ? s.thumbnail.source : null,
+    url: s.content_urls && s.content_urls.desktop ? s.content_urls.desktop.page : `https://${langue}.wikipedia.org/wiki/${encodeURIComponent(p.title)}`,
+    langue
+  });
 
-  async function chercher(nom, langue) {
+  async function chercherArtiste(nom, langue) {
     const n = norm(nom);
     if (!n) return null;
-    const q = encodeURIComponent(nom);
-    const res = await json(`https://${langue}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${q}&srlimit=6&format=json&origin=*`);
-    const pages = (res.query && res.query.search) || [];
-    for (const p of pages) {
+    const res = await json(`https://${langue}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(nom)}&srlimit=6&format=json&origin=*`);
+    for (const p of (res.query && res.query.search) || []) {
       const t = norm(p.title);
       if (!(t === n || t.startsWith(n + ' ') || n.startsWith(t + ' ') || t === n.replace(/^the /, ''))) continue;
-      const s = await json(`https://${langue}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(p.title.replace(/ /g, '_'))}`);
+      const s = await resume(p.title, langue);
       if (s.type !== 'standard') continue;
       if (!MUSIQUE.test(`${s.description || ''} ${s.extract || ''}`)) continue;
-      return {
-        titre: s.title,
-        extrait: couper(s.extract || '', 520),
-        image: s.thumbnail ? s.thumbnail.source : null,
-        url: s.content_urls && s.content_urls.desktop ? s.content_urls.desktop.page : `https://${langue}.wikipedia.org/wiki/${encodeURIComponent(p.title)}`,
-        langue
-      };
+      return fiche(s, langue, p);
+    }
+    return null;
+  }
+
+  // un album (ou une chanson) : le titre doit correspondre, et la page doit citer l'artiste
+  async function chercherOeuvre(titre, artiste, sorte, langue) {
+    const t = norm(titre), a = norm(Pochettes.artistePrincipal(artiste));
+    if (!t || !a) return null;
+    const q = encodeURIComponent(`${titre} ${Pochettes.artistePrincipal(artiste)}`);
+    const res = await json(`https://${langue}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${q}&srlimit=6&format=json&origin=*`);
+    for (const p of (res.query && res.query.search) || []) {
+      const pt = norm(p.title);
+      if (!(pt === t || pt.startsWith(t + ' '))) continue;
+      const s = await resume(p.title, langue);
+      if (s.type !== 'standard') continue;
+      const texte = `${s.description || ''} ${s.extract || ''}`;
+      if (!OEUVRE[sorte].test(texte)) continue;
+      if (!norm(texte).includes(a)) continue;
+      return fiche(s, langue, p);
     }
     return null;
   }
@@ -55,23 +80,30 @@ const Infos = (() => {
     return (out || txt.slice(0, max) + '…').trim();
   }
 
-  // cb(fiche) avec fiche = null si rien de fiable n'a été trouvé
-  function artiste(nomComplet, cb) {
-    const nom = Pochettes.artistePrincipal(nomComplet);
-    const cle = norm(nom);
+  // file d'attente commune : une seule recherche par fiche, résultat en cache
+  function trouver(cle, chercher, cb) {
     if (cle in cache) { cb(cache[cle]); return; }
     if (enCours[cle]) { enCours[cle].push(cb); return; }
     enCours[cle] = [cb];
     (async () => {
-      let fiche = null, panne = false;
-      try { fiche = await chercher(nom, 'fr'); } catch (e) { panne = true; }
-      if (!fiche) { try { fiche = await chercher(nom, 'en'); } catch (e) { panne = true; } }
+      let f = null, panne = false;
+      try { f = await chercher('fr'); } catch (e) { panne = true; }
+      if (!f) { try { f = await chercher('en'); } catch (e) { panne = true; } }
       // en cas de souci réseau, on ne mémorise pas l'échec : on retentera
-      if (fiche || !panne) { cache[cle] = fiche; sauver(); }
-      enCours[cle].forEach(f => f(fiche));
+      if (f || !panne) { cache[cle] = f; sauver(); }
+      enCours[cle].forEach(fn => fn(f));
       delete enCours[cle];
     })();
   }
 
-  return { artiste };
+  // cb(fiche) avec fiche = null si rien de fiable n'a été trouvé
+  function artiste(nomComplet, cb) {
+    const nom = Pochettes.artistePrincipal(nomComplet);
+    trouver(norm(nom), langue => chercherArtiste(nom, langue), cb);
+  }
+  function oeuvre(titre, artisteNom, sorte, cb) {
+    trouver(`${sorte}:${norm(titre)}:${norm(Pochettes.artistePrincipal(artisteNom))}`, langue => chercherOeuvre(titre, artisteNom, sorte, langue), cb);
+  }
+
+  return { artiste, oeuvre };
 })();
