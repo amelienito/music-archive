@@ -73,7 +73,7 @@ const MORCEAUX = [
     energie: 3, etrange: 5, danse: 2 },
 
   { titre: "I'm the Devil", artiste: "Lil B", album: "6 Kiss",
-    lien: "https://music.youtube.com/watch?v=jMbTbVF0u2A", note: "",
+    lien: "https://music.youtube.com/watch?v=7-1nLlYjpKY", note: "",
     energie: 6, etrange: 9, danse: 3 },
 
   { titre: "Got to Be Real", artiste: "Cheryl Lynn", album: "Cheryl Lynn",
@@ -291,5 +291,201 @@ const MORCEAUX = [
   { titre: "The Empty Room", artiste: "Haruomi Hosono", album: "",
     lien: "https://music.youtube.com/watch?v=CYC30CSXG4o", note: "",
     energie: 2, etrange: 6, danse: 1 },
+
+  { titre: "Symphonie n° 6 : I. Allegro energico, ma non troppo", artiste: "Mahler, Berliner Philharmoniker", album: "",
+    lien: "https://music.youtube.com/watch?v=hoVnIDmuwLw", note: "",
+    energie: 7, etrange: 4, danse: 2 },
+
+  { titre: "Symphonie n° 2 : IV. Finale (Allegro moderato)", artiste: "Sibelius, Berliner Philharmoniker", album: "",
+    lien: "https://music.youtube.com/watch?v=-10jYSvWYeI", note: "",
+    energie: 6, etrange: 3, danse: 1 },
+
+  { titre: "Resurrections", artiste: "Lena Raine", album: "",
+    lien: "https://music.youtube.com/watch?v=-YjgOzSQNQ0", note: "",
+    energie: 6, etrange: 4, danse: 4 },
+
+  { titre: "Moments (Voice Memo)", artiste: "Teesa", album: "",
+    lien: "https://music.youtube.com/watch?v=R8BmJxhrZdo", note: "",
+    energie: 2, etrange: 7, danse: 1 },
+
+  { titre: "Wake Up Everybody", artiste: "Harold Melvin & The Blue Notes", album: "",
+    lien: "https://music.youtube.com/watch?v=FMR6eMHjqIo", note: "",
+    energie: 4, etrange: 2, danse: 5 },
+
+  { titre: "Out Of The Picture", artiste: "Tavares", album: "",
+    lien: "https://music.youtube.com/watch?v=w_VZD6RcQI4", note: "",
+    energie: 4, etrange: 3, danse: 5 },
+
+  { titre: "Swing and Jump", artiste: "Alba Lamar", album: "",
+    lien: "https://music.youtube.com/watch?v=pNPw1PZboWI", note: "",
+    energie: 6, etrange: 6, danse: 7 },
+
+  { titre: "Overjoyed", artiste: "Stevie Wonder", album: "",
+    lien: "https://music.youtube.com/watch?v=678STgx-Esw", note: "",
+    energie: 2, etrange: 2, danse: 2 },
+
+  { titre: "Concerto pour piano n° 21 : II. Andante", artiste: "Mozart, London Mozart Players", album: "",
+    lien: "https://music.youtube.com/watch?v=sgqtFZ9S5sA", note: "",
+    energie: 1, etrange: 2, danse: 0 },
+
+  { titre: "My Cherie Amour", artiste: "Stevie Wonder", album: "",
+    lien: "https://music.youtube.com/watch?v=Fjufjv4rH0s", note: "",
+    energie: 3, etrange: 1, danse: 5 },
+
+  { titre: "Outstanding", artiste: "The Gap Band", album: "",
+    lien: "https://music.youtube.com/watch?v=xBcpaB8lq44", note: "",
+    energie: 5, etrange: 2, danse: 7 },
+
+  { titre: "Come Outside", artiste: "ScarLip", album: "",
+    lien: "https://music.youtube.com/watch?v=q34xnPe-C1g", note: "",
+    energie: 8, etrange: 5, danse: 6 },
+
+  { titre: "MINISKIRT", artiste: "Aliyah's Interlude", album: "",
+    lien: "https://music.youtube.com/watch?v=WZKXguICxUo", note: "",
+    energie: 7, etrange: 5, danse: 8 },
+
+  { titre: "Les volets clos", artiste: "Paul Mauriat", album: "",
+    lien: "https://music.youtube.com/watch?v=lkHNEb72DH0", note: "",
+    energie: 2, etrange: 4, danse: 2 },
+
+  { titre: "Bi Kelma Menak", artiste: "Sherine", album: "",
+    lien: "https://music.youtube.com/watch?v=BSHhX8nypcY", note: "",
+    energie: 4, etrange: 5, danse: 4 },
+
+  { titre: "Raubíri", artiste: "Marcel Gidote's Holy Crab", album: "",
+    lien: "https://music.youtube.com/watch?v=CA1ZmK3DC8o", note: "",
+    energie: 5, etrange: 8, danse: 5 },
+
+  { titre: "The Weekend (Original 12 Inch Mix)", artiste: "Michael Gray", album: "",
+    lien: "https://music.youtube.com/watch?v=beO3qViOUiQ", note: "",
+    energie: 7, etrange: 3, danse: 9 },
+
+  { titre: "I Miss You (Part 1)", artiste: "David Ruffin", album: "",
+    lien: "https://music.youtube.com/watch?v=sbNioahCQlA", note: "",
+    energie: 3, etrange: 3, danse: 3 },
+
+  { titre: "Walk Away From Love", artiste: "David Ruffin", album: "",
+    lien: "https://music.youtube.com/watch?v=34yv3D8oYBI", note: "",
+    energie: 5, etrange: 2, danse: 7 },
+
+  { titre: "Through the Fire (A COLORS SHOW)", artiste: "Chaka Khan", album: "",
+    lien: "https://music.youtube.com/watch?v=1DqzwJlvX-0", note: "",
+    energie: 3, etrange: 2, danse: 2 },
+
+  { titre: "Jōdo", artiste: "Hiroshi Sato", album: "",
+    lien: "https://music.youtube.com/watch?v=xCJIDvmyKO8", note: "",
+    energie: 3, etrange: 6, danse: 4 },
+
+  { titre: "Life goes on", artiste: "Steven Boyd", album: "",
+    lien: "https://music.youtube.com/watch?v=uYa_YH9AH3A", note: "",
+    energie: 4, etrange: 5, danse: 5 },
+
+  { titre: "Symphonie n° 1 : I. Allegro (molto moderato)", artiste: "Bruckner, Orchestre Métropolitain", album: "",
+    lien: "https://music.youtube.com/watch?v=_Ak0zpy-ICU", note: "",
+    energie: 6, etrange: 4, danse: 1 },
+
+  { titre: "Mermaid", artiste: "Sade Adu", album: "",
+    lien: "https://music.youtube.com/watch?v=dwTedc_QUOI", note: "",
+    energie: 2, etrange: 4, danse: 2 },
+
+  { titre: "I Miss You, Pt. 1", artiste: "Harold Melvin & The Blue Notes", album: "",
+    lien: "https://music.youtube.com/watch?v=4fIeEVHhGyQ", note: "",
+    energie: 3, etrange: 2, danse: 3 },
+
+  { titre: "The Adults Are Talking", artiste: "The Strokes", album: "",
+    lien: "https://music.youtube.com/watch?v=826mxiKjoP0", note: "",
+    energie: 6, etrange: 2, danse: 6 },
+
+  { titre: "The Weekend (Radio Edit)", artiste: "Michael Gray", album: "",
+    lien: "https://music.youtube.com/watch?v=uDGJ9DyF25I", note: "",
+    energie: 7, etrange: 2, danse: 9 },
+
+  { titre: "The Only Thing They Fear...", artiste: "Banana Jim", album: "",
+    lien: "https://music.youtube.com/watch?v=w5k4YLWvOT0", note: "",
+    energie: 9, etrange: 7, danse: 5 },
+
+  { titre: "Reasons", artiste: "Earth, Wind & Fire", album: "",
+    lien: "https://music.youtube.com/watch?v=zTeD3RWvE6A", note: "",
+    energie: 3, etrange: 2, danse: 3 },
+
+  { titre: "ANTIOXYDANT", artiste: "Mairo", album: "",
+    lien: "https://music.youtube.com/watch?v=fYky_uuCzVE", note: "",
+    energie: 6, etrange: 5, danse: 6 },
+
+  { titre: "Can't Take My Eyes Off You (Original Extended Version)", artiste: "Boys Town Gang", album: "",
+    lien: "https://music.youtube.com/watch?v=i0iD4KzoIqk", note: "",
+    energie: 7, etrange: 3, danse: 9 },
+
+  { titre: "Fantasy", artiste: "Aquarian Dream", album: "",
+    lien: "https://music.youtube.com/watch?v=2p8Ev0jm8kM", note: "",
+    energie: 5, etrange: 4, danse: 7 },
+
+  { titre: "Mutant", artiste: "Arca", album: "",
+    lien: "https://music.youtube.com/watch?v=pW4I_y56DC0", note: "",
+    energie: 6, etrange: 9, danse: 3 },
+
+  { titre: "No Voy a Llorar", artiste: "DJ Pablito", album: "",
+    lien: "https://music.youtube.com/watch?v=hSUAlPKgeto", note: "",
+    energie: 7, etrange: 6, danse: 8 },
+
+  { titre: "MINIBUS AVEC LES PETITS", artiste: "Igouh", album: "",
+    lien: "https://music.youtube.com/watch?v=4xeY7BinY9E", note: "",
+    energie: 6, etrange: 6, danse: 6 },
+
+  { titre: "STOPLIGHT", artiste: "SUMIN", album: "",
+    lien: "https://music.youtube.com/watch?v=Ox3uJaLsXgI", note: "",
+    energie: 5, etrange: 5, danse: 6 },
+
+  { titre: "Moral Tem Hora", artiste: "Cristina Camargo", album: "",
+    lien: "https://music.youtube.com/watch?v=O5FlEwQ1IHo", note: "",
+    energie: 5, etrange: 6, danse: 6 },
+
+  { titre: "Une pieuvre dans un seau", artiste: "Surprise", album: "",
+    lien: "https://music.youtube.com/watch?v=eEXjdCmQ5pU", note: "",
+    energie: 4, etrange: 7, danse: 4 },
+
+  { titre: "all-american bitch", artiste: "Olivia Rodrigo", album: "",
+    lien: "https://music.youtube.com/watch?v=jPzKKSzqYzk", note: "",
+    energie: 6, etrange: 2, danse: 4 },
+
+  { titre: "honeybee", artiste: "Olivia Rodrigo", album: "",
+    lien: "https://music.youtube.com/watch?v=OrNTGMmSpz0", note: "",
+    energie: 4, etrange: 2, danse: 4 },
+
+  { titre: "264bpm Song", artiste: "Andrew Baena", album: "",
+    lien: "https://music.youtube.com/watch?v=kSF0hIIDofM", note: "",
+    energie: 9, etrange: 8, danse: 6 },
+
+  { titre: "Hooked (Remastered)", artiste: "D.R.I.", album: "",
+    lien: "https://music.youtube.com/watch?v=PXIuSHT4YoE", note: "",
+    energie: 10, etrange: 5, danse: 5 },
+
+  { titre: "Bird Call (feat. Lil Wayne & Cam'Ron)", artiste: "JR Writer", album: "",
+    lien: "https://music.youtube.com/watch?v=jYb-B1j4ul8", note: "",
+    energie: 7, etrange: 4, danse: 5 },
+
+  { titre: "Private Valet", artiste: "Larry June", album: "",
+    lien: "https://music.youtube.com/watch?v=TIBbr_u9gBc", note: "",
+    energie: 4, etrange: 3, danse: 5 },
+
+  { titre: "All of Me", artiste: "Andrus, Blackwood & Co.", album: "",
+    lien: "https://music.youtube.com/watch?v=t2mSibwG6Hg", note: "",
+    energie: 4, etrange: 5, danse: 4 },
+
+  { titre: "Glue Song (feat. Clairo)", artiste: "beabadoobee", album: "",
+    lien: "https://music.youtube.com/watch?v=9Yy4-LCOi34", note: "",
+    energie: 2, etrange: 2, danse: 2 },
+
+  { titre: "we fell in love in october", artiste: "girl in red", album: "",
+    lien: "https://music.youtube.com/watch?v=FJX0JPXD2nM", note: "",
+    energie: 3, etrange: 2, danse: 3 },
+
+  { titre: "BEST INTEREST", artiste: "Tyler, The Creator", album: "",
+    lien: "https://music.youtube.com/watch?v=37kWL6Qowq4", note: "",
+    energie: 4, etrange: 3, danse: 5 },
+
+  { titre: "A Lot Has Changed (Rough Trade Session)", artiste: "Weyes Blood", album: "",
+    lien: "https://music.youtube.com/watch?v=NmFqLz6tyLA", note: "",
+    energie: 2, etrange: 4, danse: 1 },
 
 ];
