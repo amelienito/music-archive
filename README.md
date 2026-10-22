@@ -30,7 +30,7 @@ Site en ligne : https://amelienito.github.io/music-archive/
 3. Clavier : → oui, ← non, ↓ plus tard, Espace pause, ↑ +30 s, Z annuler. Sur téléphone : glisser la fiche à droite ou à gauche.
 4. Un morceau déjà sur le site, ou déjà trié dans n'importe quelle playlist, est sauté tout seul. Tes choix sont enregistrés au fur et à mesure : tu peux fermer et revenir. Recoller la même playlist la reprend là où tu t'étais arrêté (et ajoute les morceaux que tu y as mis depuis).
 5. **Ordre aléatoire** (case à cocher) : les morceaux arrivent dans le désordre, pour juger chacun sans être influencé par ceux d'à côté.
-6. **Plus de 200 morceaux** : le lecteur YouTube n'en donne que 200 d'un coup. La table redemande la suite toute seule ; si ça bloque quand même, inverse l'ordre de la playlist dans YouTube Music (ou coupe-la en deux) et recolle-la : tout ce qui est déjà trié est sauté.
+6. **Plus de 200 morceaux** : le lecteur YouTube s'arrête à 200. Pour la suite, la table demande la liste à Invidious, un miroir public de YouTube (seulement les titres, la musique passe toujours par le lecteur officiel). Si le miroir est en panne, la table explique comment inverser l'ordre de la playlist pour continuer.
 5. Sous chaque titre, la table dit si la vidéo vient d'une chaîne officielle (YouTube Music, l'artiste, le label). Si elle doute, cherche la version officielle avant de dire oui.
 6. **Trier aussi les morceaux déjà sur le site** : repasse la sélection actuelle. Vert, il reste ; rouge, il sort.
 7. Mode sombre par défaut, bouton « Mode clair » en haut.
