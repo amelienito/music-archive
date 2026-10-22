@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   MUSIC DISCOVERY — v0.5
+   MUSIC DISCOVERY — v0.6
    Toute la logique du site. Tu n'as normalement pas besoin d'y toucher :
    la musique se gère dans data.js, les couleurs dans teintes.css.
    ════════════════════════════════════════════════════════════════════ */
@@ -18,7 +18,6 @@ const deux = n => String(Math.max(0, Math.floor(n))).padStart(2, '0');
 const minutes = s => `${Math.floor(s / 60)}:${deux(s % 60)}`;
 const reduitMouvement = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const tactile = matchMedia('(hover: none)').matches;
-const estMobile = () => matchMedia('(max-width: 640px)').matches;
 const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 if (IOS) document.documentElement.classList.add('ios');
 
@@ -81,6 +80,7 @@ const S = {
   injouables: new Set(memoire.lire('md-injouables', [])),
   son: memoire.lire('md-son', 'complet'),
   onglet: 'gardes',
+  posteReduit: false,     // poste replié : la vidéo YouTube est alors en pause (jamais de lecture cachée)
 };
 S.croises = S.croises.filter(id => parId[id]);
 S.gardes  = S.gardes.filter(id => parId[id]);
@@ -214,7 +214,6 @@ function croiser(id) {
     S.croises.unshift(id);
     memoire.ecrire('md-croises', S.croises);
   }
-  verifierDeblocage();
 }
 const estGarde = id => S.gardes.includes(id);
 function basculerGarde(id) {
@@ -390,6 +389,7 @@ function montrerDuel(paire) {
   }
 }
 function carteDuel(m, i) {
+  const src = Pochettes.source(m);
   return `<article class="pochette-duel" style="--penche:${i ? 2.2 : -2.6}deg" data-id="${m.id}">
     <button class="pochette-duel-choix" data-action="choisir" data-id="${m.id}" aria-label="Choisir ${E(m.titre)}, ${E(m.artiste)}">
       ${Pochettes.html(m, 'pochette-grande')}
@@ -397,12 +397,13 @@ function carteDuel(m, i) {
     <div class="pochette-duel-legende">
       <p class="titre-morceau">${E(m.titre)}</p>
       <p class="artiste-morceau">${E(m.artiste)}</p>
-      <button class="extrait-bouton" data-action="extrait" data-id="${m.id}" data-extrait-pour="${m.id}" data-etat="${Pochettes.etat(m)}">
+      <button class="extrait-bouton" data-action="extrait" data-id="${m.id}" data-extrait-pour="${m.id}" data-etat="${Pochettes.etat(m)}" data-source="${src ? src.nom : ''}">
         <span class="extrait-icone"></span>
         <span class="extrait-ok">${tactile ? 'Écouter un extrait' : 'Survole pour un extrait'}</span>
         <span class="extrait-inconnu">Extrait en route…</span>
         <span class="extrait-absent">Pas d'extrait, choisis à l'instinct</span>
       </button>
+      <a class="extrait-lien" data-lien-pour="${m.id}" target="_blank" rel="noopener" href="${src && src.lien ? E(src.lien) : '#'}"${src && src.lien ? '' : ' hidden'}>${src ? `En entier sur ${src.nom}` : ''}</a>
     </div>
   </article>`;
 }
@@ -429,7 +430,8 @@ document.addEventListener('pochette-prete', e => {
     const el = $(`.pochette-duel[data-id="${survol}"]`);
     if (el) lancerExtrait(survol, el);
   }
-  if (S.courant === e.detail && S.vue === 'rencontre') rendreFiche(parId[e.detail]);
+  if (S.courant === e.detail && S.vue === 'rencontre') { rendreFiche(parId[e.detail]); rendreAilleurs(parId[e.detail]); majIndispo(); }
+  if (S.joue === e.detail && S.vue === 'machine') majAfficheur();
 });
 function lancerExtrait(id, el) {
   const m = parId[id];
@@ -517,13 +519,15 @@ function ouvrir(id, { jouer = true, versInfos = false } = {}) {
         <button class="bouton-garder" data-action="garder" data-garder="${m.id}" data-id="${m.id}"></button>
         ${suite ? `<button class="bouton-suivant" data-action="ouvrir" data-id="${suite.id}">
           <span class="bouton-suivant-etiquette">Morceau suivant</span>
-          <span class="bouton-suivant-titre">${E(suite.titre)}</span>
+          <span class="bouton-suivant-titre">${E(suite.titre.trim() || '(sans titre)')} <span class="bouton-suivant-artiste">· ${E(suite.artiste)}</span></span>
         </button>` : ''}
       </div>
       <p class="suite-annonce" id="suite-annonce">Si tu ne touches à rien, il se lancera tout seul à la fin.</p>
 
       <div class="emplacement-ecran emplacement-rencontre" data-emplacement="rencontre">${Pochettes.html(m, 'pochette-fond')}</div>
       <p class="rencontre-indispo" id="rencontre-indispo" hidden></p>
+      <p class="ailleurs" id="ailleurs"></p>
+      <div class="avis-pub" data-avis hidden></div>
 
       <nav class="chemins" aria-label="Choisir une autre direction">
         <p class="chemins-titre">Ou choisis une direction</p>
@@ -540,13 +544,14 @@ function ouvrir(id, { jouer = true, versInfos = false } = {}) {
         <div class="bio" id="bio"><p class="bio-attente">On cherche qui est derrière ce morceau…</p></div>
         <div class="liens-plus">
           <a class="lien-bouton" href="https://genius.com/search?q=${q}" target="_blank" rel="noopener">Les paroles sur Genius</a>
-          <a class="lien-bouton" href="${E(m.lien)}" target="_blank" rel="noopener">Ouvrir sur YouTube Music</a>
           <a class="lien-bouton" href="https://music.youtube.com/search?q=${encodeURIComponent(Pochettes.artistePrincipal(m.artiste))}" target="_blank" rel="noopener">Tout l'artiste sur YouTube Music</a>
         </div>
       </section>
     </div>`;
   majGarde();
   rendreFiche(m);
+  rendreAilleurs(m);
+  majAvis();
   rendreBio(m);
   teinterRencontre(m);
   aller('rencontre');
@@ -563,6 +568,39 @@ function porte(m, etiquette) {
       <span class="porte-petite-artiste">${E(m.artiste)}</span>
     </span>
   </button>`;
+}
+// écouter le morceau en entier, en toute légalité, sur le service de son choix
+function rendreAilleurs(m) {
+  const el = $('#ailleurs');
+  if (!el || S.courant !== m.id) return;
+  const q = encodeURIComponent(`${Pochettes.artistePrincipal(m.artiste)} ${m.titre}`);
+  const l = Pochettes.liens(m);
+  const liens = [
+    ['YouTube Music', m.lien],
+    ['Deezer', l.deezer || `https://www.deezer.com/search/${q}`],
+    ['Apple Music', l.apple || `https://music.apple.com/fr/search?term=${q}`],
+    ['Qobuz', `https://www.qobuz.com/fr-fr/search?q=${q}`],
+    ['Bandcamp', m.bandcamp || `https://bandcamp.com/search?q=${q}&item_type=t`],
+  ];
+  el.innerHTML = `<span class="ailleurs-titre">Écouter en entier sur</span> ` +
+    liens.map(([nom, url]) => `<a href="${E(url)}" target="_blank" rel="noopener">${nom}</a>`).join('');
+}
+// la première fois qu'un morceau passe par YouTube : pourquoi des pubs, et comment s'en passer légalement
+const AVIS_PUB = `
+  <p class="avis-titre">Pourquoi des pubs ?</p>
+  <p>Les morceaux complets passent par le lecteur officiel de YouTube : ses pubs, c'est ce qui rémunère les artistes. Pour écouter sans pub en restant réglo :</p>
+  <ul>
+    <li><strong>YouTube Premium</strong> : connecté à ton compte, plus aucune pub, ici non plus.</li>
+    <li><strong>Le mode extraits</strong> : 30 secondes par morceau, sans compte.</li>
+    <li><strong>Ton service à toi</strong> : chaque morceau a ses liens Deezer, Apple Music, Qobuz et Bandcamp.</li>
+  </ul>
+  <div class="avis-actions">
+    <button class="gros-bouton gros-bouton-plein" data-action="encart-ok">Compris</button>
+    <button class="lien-bouton" data-action="encart-extraits">Passer en extraits</button>
+  </div>`;
+function majAvis() {
+  const montrer = S.lecture === 'yt' && !memoire.lire('md-encart-pub', false);
+  $$('[data-avis]').forEach(a => { if (montrer && !a.innerHTML.trim()) a.innerHTML = AVIS_PUB; a.hidden = !montrer; });
 }
 function rendreFiche(m) {
   const el = $('#fiche');
@@ -605,10 +643,15 @@ function majIndispo() {
   const m = parId[S.joue];
   if (!m || S.courant !== S.joue) { i.hidden = true; return; }
   if (S.lecture === 'extrait') {
+    const src = Pochettes.source(m);
+    const par = src ? `, fourni par ${src.nom}` : '';
+    const entier = src && src.lien
+      ? `<a href="${E(src.lien)}" target="_blank" rel="noopener">En entier sur ${src.nom}</a> ou <a href="${E(m.lien)}" target="_blank" rel="noopener">sur YouTube Music</a>.`
+      : `<a href="${E(m.lien)}" target="_blank" rel="noopener">En entier sur YouTube Music</a>.`;
     i.hidden = false;
     i.innerHTML = S.son === 'extraits'
-      ? `Mode extraits : 30 secondes, sans pub. <a href="${E(m.lien)}" target="_blank" rel="noopener">La version complète est sur YouTube Music.</a>`
-      : `Ce morceau refuse d'être lu sur un autre site : tu entends un extrait de 30 secondes. <a href="${E(m.lien)}" target="_blank" rel="noopener">La version complète est sur YouTube Music.</a>`;
+      ? `Extrait de 30 secondes${par}. ${entier}`
+      : `Ce morceau refuse d'être lu sur un autre site : tu entends un extrait de 30 secondes${par}. ${entier}`;
   } else if (S.erreur) {
     i.hidden = false;
     i.innerHTML = `Ce morceau ne peut pas être lu ici. <a href="${E(m.lien)}" target="_blank" rel="noopener">L'écouter sur YouTube Music</a>`;
@@ -689,8 +732,8 @@ function jouerMorceau(m) {
   audioLecture.pause();
   if (!jouable(m)) { jouerExtraitComplet(m); return; }
   S.lecture = 'yt';
+  S.posteReduit = false;
   $('#ecran-video').hidden = false;
-  if (!memoire.lire('md-encart-pub', false)) setTimeout(() => { $('#encart-pub').hidden = false; }, 1500);
   majPoste();
   if (!lecteurPret) { enAttente = m; chargerAPI(); majEtat(); return; }
   try { lecteur.loadVideoById(m.yt); } catch (e) {}
@@ -722,6 +765,7 @@ audioLecture.addEventListener('play', () => { if (S.lecture === 'extrait') { S.e
 function basculerLecture() {
   if (!S.joue) return;
   if (S.lecture === 'extrait') { if (audioLecture.paused) audioLecture.play().catch(() => {}); else audioLecture.pause(); return; }
+  if (S.lecture === 'yt' && S.posteReduit) { S.posteReduit = false; majPoste(); }
   if (S.lecture === 'yt' && lecteurPret) {
     const st = lecteur.getPlayerState();
     if (st === YT.PlayerState.PLAYING) lecteur.pauseVideo(); else lecteur.playVideo();
@@ -741,16 +785,24 @@ function majEtat() {
   $('#poste-icone').classList.toggle('pause', S.enLecture);
   $('#radio-icone').classList.toggle('pause', S.enLecture && S.mode === 'radio');
   majIndispo();
+  majAvis();
   majPoste();
   if (S.vue === 'machine') majAfficheur();
 }
 
 /* ─────────────────────────────── le poste et l'écran vidéo ─────────────────────────────── */
+/* Règles du lecteur YouTube, respectées ici : la vidéo est toujours visible
+   pendant qu'elle joue (jamais de lecture cachée), dans un cadre d'au moins
+   200 × 200 pixels, sans rien posé par-dessus. */
 function majPoste() {
   const p = $('#poste');
-  const surSaPage = S.vue === 'rencontre' && S.courant === S.joue && !estMobile();
-  const visible = !!S.joue && S.vue !== 'machine' && S.vue !== 'allumage' && !surSaPage;
+  const yt = S.lecture === 'yt';
+  const surSaPage = yt && S.vue === 'rencontre' && S.courant === S.joue;
+  const radioSurMachine = S.vue === 'machine' && S.mode === 'radio';
+  const visible = !!S.joue && S.vue !== 'allumage' && !radioSurMachine && !surSaPage;
   p.hidden = !visible;
+  p.classList.toggle('avec-video', visible && yt && !S.posteReduit);
+  p.classList.toggle('reduit', visible && yt && S.posteReduit);
   document.body.classList.toggle('avec-poste', visible);
   if (S.joue) {
     const m = parId[S.joue];
@@ -759,23 +811,36 @@ function majPoste() {
     const slot = $('[data-emplacement="poste"]');
     if (slot.dataset.id !== m.id) { slot.innerHTML = Pochettes.html(m, 'pochette-fond'); slot.dataset.id = m.id; }
   }
+  const r = $('#poste-reduire');
+  r.hidden = !yt;
+  r.classList.toggle('deplier', S.posteReduit);
+  r.setAttribute('aria-label', S.posteReduit ? 'Afficher la vidéo' : 'Réduire le lecteur (met en pause)');
+  r.title = S.posteReduit ? 'Afficher la vidéo' : 'Réduire (met en pause)';
   majGarde();
   placerEcranVideo();
+  requestAnimationFrame(() => document.body.style.setProperty('--poste-h', visible ? `${p.offsetHeight}px` : '0px'));
 }
 let suiviRAF = null;
 function emplacementCible() {
   if (!S.joue || S.lecture !== 'yt') return null;
-  if (S.vue === 'machine') return S.mode === 'radio' ? $('[data-emplacement="machine"]') : null;
-  if (S.vue === 'rencontre' && S.courant === S.joue && !estMobile()) return $('[data-emplacement="rencontre"]');
-  if (!$('#poste').hidden) return $('[data-emplacement="poste"]');
+  if (S.vue === 'machine' && S.mode === 'radio') return $('[data-emplacement="machine"]');
+  if (S.vue === 'rencontre' && S.courant === S.joue) return $('[data-emplacement="rencontre"]');
+  if (!$('#poste').hidden && !S.posteReduit) return $('[data-emplacement="poste"]');
   return null;
 }
 function placerEcranVideo() {
   const ev = $('#ecran-video');
   const slot = emplacementCible();
   cancelAnimationFrame(suiviRAF);
-  document.body.classList.toggle('video-machine', !!slot && slot.dataset.emplacement === 'machine');
-  if (!slot) { ev.classList.add('cache'); return; }
+  const ou = slot ? slot.dataset.emplacement : '';
+  document.body.classList.toggle('video-machine', ou === 'machine');
+  document.body.classList.toggle('video-rencontre', ou === 'rencontre');
+  if (!slot) {
+    ev.classList.add('cache');
+    // garde-fou : une vidéo qui n'est pas à l'écran ne doit pas jouer
+    if (S.lecture === 'yt' && S.enLecture && lecteurPret) { try { lecteur.pauseVideo(); } catch (e) {} }
+    return;
+  }
   ev.classList.remove('cache');
   const suivre = () => {
     const r = slot.getBoundingClientRect();
@@ -870,6 +935,12 @@ function majAfficheur() {
   if (t.textContent !== texte) { t.textContent = texte; t.style.animationDuration = `${Math.max(8, texte.length * 0.28)}s`; }
   $('#vfd-reglage').textContent = S.sourceRadio === 'trouvailles' ? 'Mes trouvailles' : S.sourceRadio === 'hasard' ? 'Au hasard' : descriptionTon();
   $('#vfd-etat').textContent = !active ? 'Stop' : S.enLecture ? 'Lecture' : 'Pause';
+  const ensuite = parId[S.file[S.pos + 1]];
+  $('#vfd-ensuite').textContent = ensuite ? `Ensuite : ${ensuite.titre}` : '';
+  const ms = $('#machine-source');
+  const src = active && S.lecture === 'extrait' ? Pochettes.source(m) : null;
+  ms.hidden = !src;
+  if (src) ms.innerHTML = `Extrait de 30 secondes fourni par ${src.nom}.${src.lien ? ` <a href="${E(src.lien)}" target="_blank" rel="noopener">L'écouter en entier sur ${src.nom}</a>` : ''}`;
   document.body.classList.toggle('cd-tourne', active && S.enLecture);
 }
 function tempsActuel() {
@@ -990,36 +1061,27 @@ function choisirSon(son) {
 /* ─────────────────────────────── TEINTES ─────────────────────────────── */
 const TEINTES = [
   { id: 'salon',  nom: 'Salon',  couleur: '#dcdbd8', pastille: 'conic-gradient(#1b3cc4 0 33%, #9a5f34 0 66%, #dcdbd8 0)' },
-  { id: 'ambre',  nom: 'Ambre',  couleur: '#24161d', pastille: 'linear-gradient(135deg, #24161d 50%, #ffb547 50%)' },
+  { id: 'nuit',   nom: 'Nuit',   couleur: '#141318', pastille: 'conic-gradient(#5470ff 0 33%, #6e4122 0 66%, #141318 0)' },
   { id: 'papier', nom: 'Papier', couleur: '#dfe4d7', pastille: 'linear-gradient(135deg, #dfe4d7 50%, #1d2a4d 50%)' },
-  { id: 'signal', nom: 'Signal', couleur: '#1730ff', pastille: '#1730ff' },
-  { id: 'vide',   nom: 'Vide',   couleur: '#f6f6f3', pastille: 'linear-gradient(135deg, #f6f6f3 50%, #000 50%)' },
-  { id: 'fievre', nom: 'Fièvre', couleur: '#ff6fae', pastille: 'linear-gradient(135deg, #ff6fae 50%, #0e3b2c 50%)', cachee: true },
 ];
-let debloquees = memoire.lire('md-teintes-debloquees', []);
-let teinteActive = memoire.lire('md-teinte-v5', 'salon');
-const teintesDispo = () => TEINTES.filter(t => !t.cachee || debloquees.includes(t.id));
+// anciennes teintes (avant la v0.6) : on retombe sur la plus proche
+const ANCIENNES = { ambre: 'nuit', signal: 'salon', vide: 'salon', fievre: 'salon' };
+const teinteChoisie = memoire.lire('md-teinte-v5', null);
+let teinteActive = teinteChoisie ? (ANCIENNES[teinteChoisie] || teinteChoisie)
+  : (matchMedia('(prefers-color-scheme: dark)').matches ? 'nuit' : 'salon'); // sans choix : comme le téléphone
 function rendreTeintes() {
-  const html = teintesDispo().map(t => `<button class="pastille" role="radio" data-action="teinte" data-teinte="${t.id}" aria-checked="${t.id === teinteActive}" aria-label="Teinte ${t.nom}" title="${t.nom}"><span style="background:${t.pastille}"></span><em>${t.nom}</em></button>`).join('');
+  const html = TEINTES.map(t => `<button class="pastille" role="radio" data-action="teinte" data-teinte="${t.id}" aria-checked="${t.id === teinteActive}" aria-label="Teinte ${t.nom}" title="${t.nom}"><span style="background:${t.pastille}"></span><em>${t.nom}</em></button>`).join('');
   $('#teintes-facade').innerHTML = html;
   $('#teintes-reglages').innerHTML = html;
 }
-function appliquerTeinte(id, annoncer) {
-  const t = teintesDispo().find(x => x.id === id) || TEINTES[0];
+function appliquerTeinte(id, choisie) {
+  const t = TEINTES.find(x => x.id === id) || TEINTES[0];
   teinteActive = t.id;
   document.documentElement.dataset.teinte = t.id;
   $('meta[name="theme-color"]').setAttribute('content', t.couleur);
-  memoire.ecrire('md-teinte-v5', t.id);
+  if (choisie || teinteChoisie) memoire.ecrire('md-teinte-v5', t.id);
   rendreTeintes();
-  if (annoncer) { toast(`Teinte ${t.nom}`, 1400); clic(2400, 0.02, 0.05); }
-}
-function verifierDeblocage() {
-  if (S.croises.length >= 12 && !debloquees.includes('fievre')) {
-    debloquees.push('fievre');
-    memoire.ecrire('md-teintes-debloquees', debloquees);
-    rendreTeintes();
-    setTimeout(() => toast('Une nouvelle teinte vient de se débloquer : Fièvre.', 5000), 1200);
-  }
+  if (choisie) { toast(`Teinte ${t.nom}`, 1400); clic(2400, 0.02, 0.05); }
 }
 
 /* ─────────────────────────────── toast ─────────────────────────────── */
@@ -1131,8 +1193,14 @@ const ACTIONS = {
   'copier-liste': copierListe,
   'son': b => choisirSon(b.dataset.son),
   'teinte': b => appliquerTeinte(b.dataset.teinte, true),
-  'encart-ok': () => { memoire.ecrire('md-encart-pub', true); $('#encart-pub').hidden = true; },
-  'encart-extraits': () => { memoire.ecrire('md-encart-pub', true); $('#encart-pub').hidden = true; choisirSon('extraits'); },
+  'encart-ok': () => { memoire.ecrire('md-encart-pub', true); majAvis(); },
+  'encart-extraits': () => { memoire.ecrire('md-encart-pub', true); majAvis(); choisirSon('extraits'); },
+  'reduire-poste': () => {
+    S.posteReduit = !S.posteReduit;
+    if (S.posteReduit && S.lecture === 'yt' && lecteurPret) { try { lecteur.pauseVideo(); } catch (e) {} }
+    clic(1200, 0.03, 0.05);
+    majPoste();
+  },
 };
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-action]');

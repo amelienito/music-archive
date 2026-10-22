@@ -1,6 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════
    TABLE DE TRI — oui / non sur de longues playlists
    Les choix sont gardés dans ce navigateur (localStorage).
+   Un morceau déjà trié (dans n'importe quelle playlist) ou déjà présent
+   sur le site n'est jamais reproposé.
    Les « oui » s'exportent en texte à coller à Claude, qui les ajoute à data.js.
    ════════════════════════════════════════════════════════════════════ */
 (() => {
@@ -10,16 +12,43 @@ const CLE = 'md-tri-v1';
 const charger = () => { try { return JSON.parse(localStorage.getItem(CLE)) || { listes: {}, active: null }; } catch (e) { return { listes: {}, active: null }; } };
 const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(T)); } catch (e) { toast('Mémoire du navigateur pleine : exporte tes oui.'); } };
 const T = charger();
+T.listes = T.listes || {};
 const L = () => T.listes[T.active];
+const SITE = 'site';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9぀-ヿ一-龯]+/g, '');
 
+/* ─────────── thème clair / sombre ─────────── */
+function majTheme() {
+  const sombre = document.documentElement.dataset.theme === 'sombre';
+  $('#theme').textContent = sombre ? 'Mode clair' : 'Mode sombre';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', sombre ? '#141418' : '#dedcd8');
+}
+$('#theme').addEventListener('click', () => {
+  const t = document.documentElement.dataset.theme === 'sombre' ? 'clair' : 'sombre';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('md-tri-theme', t); } catch (e) {}
+  majTheme();
+});
+majTheme();
+
+/* ─────────── ce qui est déjà connu ─────────── */
+const MORC = typeof MORCEAUX !== 'undefined' ? MORCEAUX : [];
+const idDe = lien => { const r = (lien || '').match(/[?&]v=([\w-]{11})/) || (lien || '').match(/youtu\.be\/([\w-]{11})/); return r && r[1]; };
 // morceaux déjà présents sur le site
-const DEJA = new Set((typeof MORCEAUX !== 'undefined' ? MORCEAUX : []).map(m => {
-  const r = (m.lien || '').match(/[?&]v=([\w-]{11})/) || (m.lien || '').match(/youtu\.be\/([\w-]{11})/);
-  return r && r[1];
-}).filter(Boolean));
+const DEJA = new Set(MORC.map(m => idDe(m.lien)).filter(Boolean));
+// tout ce qui a déjà reçu un oui ou un non, toutes playlists confondues
+function dejaTries() {
+  const g = {};
+  for (const [k, l] of Object.entries(T.listes)) {
+    if (k === SITE) continue;
+    for (const [id, d] of Object.entries(l.decisions || {})) if (d === 'oui' || d === 'non') g[id] = d;
+  }
+  return g;
+}
 
 let toastMin = null;
-function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('visible'); clearTimeout(toastMin); toastMin = setTimeout(() => el.classList.remove('visible'), 2200); }
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('visible'); clearTimeout(toastMin); toastMin = setTimeout(() => el.classList.remove('visible'), 2600); }
 
 /* ─────────── lecteur ─────────── */
 let lecteur = null, pret = false, attenteCue = null, courant = null;
@@ -58,12 +87,27 @@ function analyser(data) {
   }
   return { artiste: auteur, titre: nettoie(brut) };
 }
+// la vidéo vient-elle d'une chaîne officielle ? (c'est ce qui garantit que l'artiste est payé)
+function statutChaine(chaine, artiste) {
+  if (!chaine) return null;
+  if (/\s-\sTopic$/i.test(chaine)) return { ok: true, texte: 'Version officielle (fournie par le label à YouTube Music)' };
+  if (/vevo$/i.test(chaine)) return { ok: true, texte: `Chaîne officielle (${chaine})` };
+  const a = norm(chaine), b = norm(String(artiste || '').split(/\s+(?:feat\.?|ft\.?|&|x)\s+|,/i)[0]);
+  if (a && b && (a.includes(b) || b.includes(a))) return { ok: true, texte: `Chaîne de l'artiste (${chaine})` };
+  return { ok: false, texte: `Mise en ligne par « ${chaine} » : peut-être pas officielle, cherche la version de l'artiste ou du label` };
+}
 function lireInfos() {
   if (!courant || !lecteur.getVideoData) return;
   const d = lecteur.getVideoData();
   if (!d || d.video_id !== courant || !d.title) return;
   const l = L();
-  l.infos[courant] = Object.assign(l.infos[courant] || {}, analyser(d), { brut: d.title });
+  const i = l.infos[courant] = l.infos[courant] || {};
+  // pour les morceaux du site, on garde le titre et l'artiste de data.js
+  if (T.active !== SITE) Object.assign(i, analyser(d));
+  i.brut = d.title;
+  i.chaine = d.author || '';
+  const st = statutChaine(i.chaine, i.artiste);
+  i.officiel = st ? st.ok : null;
   sauver(); afficherFiche();
 }
 
@@ -82,29 +126,48 @@ function cuePlaylist(list, index) {
     lecteur.cuePlaylist({ list, listType: 'playlist', index });
   });
 }
+function fusionner(l, ids) {
+  const avant = l.ids.length;
+  ids.forEach(id => { if (!l.ids.includes(id)) l.ids.push(id); });
+  return l.ids.length - avant;
+}
 async function chargerSuite() {
   const l = L();
   if (!l.list || l.complet) return false;
   const nouveaux = await cuePlaylist(l.list, l.ids.length);
   if (!nouveaux || !nouveaux.length) { l.complet = true; sauver(); return false; }
-  const avant = l.ids.length;
-  nouveaux.forEach(id => { if (!l.ids.includes(id)) l.ids.push(id); });
-  if (l.ids.length === avant) l.complet = true;
+  const ajoutes = fusionner(l, nouveaux);
+  if (!ajoutes) l.complet = true;
   sauver();
-  return l.ids.length > avant;
+  return ajoutes > 0;
 }
 async function demarrer() {
   const e = lireEntree($('#entree').value);
   if (!e) { toast('Je ne trouve pas de lien de playlist ou de morceau YouTube.'); return; }
-  if (!T.listes[e.cle]) T.listes[e.cle] = { nom: '', list: e.list, ids: e.ids, infos: {}, decisions: {}, historique: [], complet: !e.list, cree: Date.now() };
+  const existait = !!T.listes[e.cle];
+  if (!existait) T.listes[e.cle] = { nom: '', list: e.list, ids: [], infos: {}, decisions: {}, historique: [], complet: !e.list, cree: Date.now() };
   T.active = e.cle;
+  const l = L();
+  if (!e.list) fusionner(l, e.ids);
   sauver();
   $('#bouton-charger').textContent = 'Chargement…';
-  if (e.list && !L().ids.length) {
+  if (e.list) {
+    // on relit toujours la playlist : si tu y as ajouté des morceaux, ils arrivent à la suite
     const ids = await cuePlaylist(e.list, 0);
-    if (!ids || !ids.length) { toast('Playlist introuvable ou privée. Vérifie qu\'elle est publique ou « non répertoriée ».'); $('#bouton-charger').textContent = 'Charger'; delete T.listes[e.cle]; sauver(); return; }
-    L().ids = ids;
-    if (ids.length < 199) L().complet = true;
+    if (!ids || !ids.length) {
+      $('#bouton-charger').textContent = 'Charger';
+      if (!existait) {
+        delete T.listes[e.cle]; T.active = null; sauver();
+        toast('Playlist introuvable ou privée. Vérifie qu\'elle est publique ou « non répertoriée ».');
+        return;
+      }
+      toast('Impossible de relire la playlist pour l\'instant : je reprends avec ce que j\'avais.');
+    } else {
+      const ajoutes = fusionner(l, ids);
+      if (ids.length >= 199) l.complet = false;
+      else if (!existait) l.complet = true;
+      if (existait) toast(ajoutes ? `Playlist reprise : ${ajoutes} nouveau${ajoutes > 1 ? 'x' : ''} morceau${ajoutes > 1 ? 'x' : ''}.` : 'Playlist reprise là où tu t\'étais arrêté.');
+    }
     sauver();
   }
   $('#bouton-charger').textContent = 'Charger';
@@ -120,9 +183,13 @@ function ouvrirTable() {
 /* ─────────── le tri ─────────── */
 function prochain() {
   const l = L();
+  const vus = T.active === SITE ? {} : dejaTries();
   for (const id of l.ids) {
     if (l.decisions[id]) continue;
-    if (DEJA.has(id) && T.active !== 'site') { l.decisions[id] = 'deja'; continue; }
+    if (T.active !== SITE) {
+      if (DEJA.has(id)) { l.decisions[id] = 'deja'; continue; }
+      if (vus[id]) { l.decisions[id] = 'vu'; continue; }
+    }
     return id;
   }
   return null;
@@ -130,7 +197,6 @@ function prochain() {
 async function suivant() {
   let id = prochain();
   if (!id && await chargerSuite()) id = prochain();
-  // on anticipe la suite quand il ne reste presque plus rien de chargé
   sauver();
   if (!id) return terminer();
   $('#fin').hidden = true;
@@ -149,6 +215,9 @@ function afficherFiche() {
   $('#position').textContent = `${faits + 1} sur ${total}${l.complet ? '' : '+'}`;
   $('#titre').textContent = i.titre || 'Chargement du titre…';
   $('#artiste').textContent = i.artiste || '';
+  const st = statutChaine(i.chaine, i.artiste);
+  $('#chaine').hidden = !st;
+  if (st) { $('#chaine').textContent = st.texte; $('#chaine').className = 'chaine ' + (st.ok ? 'ok' : 'doute'); }
   $('#deja').hidden = !DEJA.has(courant);
   $('#refus').hidden = !i.refus;
   $('#lien-yt').href = `https://www.youtube.com/watch?v=${courant}`;
@@ -158,6 +227,7 @@ function majCompteurs() {
   const v = Object.values(l.decisions);
   $('#n-oui').textContent = v.filter(x => x === 'oui').length;
   $('#n-non').textContent = v.filter(x => x === 'non').length;
+  $('#n-deja').textContent = v.filter(x => x === 'deja' || x === 'vu').length;
   $('#n-reste').textContent = l.ids.filter(x => !l.decisions[x]).length + (l.complet ? '' : '+');
   rendreExport();
 }
@@ -193,40 +263,57 @@ function terminer() {
   const l = L();
   const v = Object.values(l.decisions);
   const passes = v.filter(x => x === 'passe').length;
-  $('#fin-texte').textContent = `${v.filter(x => x === 'oui').length} oui, ${v.filter(x => x === 'non').length} non` + (passes ? `, ${passes} à revoir.` : '.');
+  const vus = v.filter(x => x === 'deja' || x === 'vu').length;
+  $('#fin-texte').textContent = `${v.filter(x => x === 'oui').length} oui, ${v.filter(x => x === 'non').length} non` +
+    (vus ? `, ${vus} déjà vus (sautés)` : '') + (passes ? `, ${passes} à revoir.` : '.');
   majCompteurs();
 }
 
 /* ─────────── export ─────────── */
+const marque = m => (m.refus ? ' | lecture intégrée refusée' : '') + (m.officiel === false ? ` | chaîne non officielle ? (${m.chaine})` : '');
 function lesOui() {
   const l = L();
   return l.ids.filter(id => l.decisions[id] === 'oui').map(id => ({ id, ...(l.infos[id] || {}) }));
 }
+function lesNon() {
+  const l = L();
+  return l.ids.filter(id => l.decisions[id] === 'non').map(id => ({ id, ...(l.infos[id] || {}) }));
+}
 function texteExport() {
-  const oui = lesOui();
-  if (T.active === 'site') {
-    const l = L(), non = l.ids.filter(id => l.decisions[id] === 'non');
-    return `Morceaux du site à RETIRER (${non.length}) :\n` + non.map(id => { const m = l.infos[id] || {}; return `${m.artiste || '?'} | ${m.titre || '?'} | https://music.youtube.com/watch?v=${id}`; }).join('\n');
+  if (T.active === SITE) {
+    const non = lesNon();
+    const doutes = lesOui().filter(m => m.officiel === false);
+    return `Morceaux du site à RETIRER (${non.length}) :\n` +
+      non.map(m => `${m.artiste || '?'} | ${m.titre || '?'} | https://music.youtube.com/watch?v=${m.id}`).join('\n') +
+      (doutes.length ? `\n\nGardés, mais chaîne peut-être pas officielle (${doutes.length}) :\n` +
+        doutes.map(m => `${m.artiste || '?'} | ${m.titre || '?'} | https://music.youtube.com/watch?v=${m.id}${marque(m)}`).join('\n') : '');
   }
+  const oui = lesOui();
   return `Morceaux validés sur la table de tri (${oui.length}) :\n` + oui.map(m =>
-    `${m.artiste || '?'} | ${m.titre || m.brut || '?'} | https://music.youtube.com/watch?v=${m.id}${m.refus ? ' | lecture intégrée refusée' : ''}`).join('\n');
+    `${m.artiste || '?'} | ${m.titre || m.brut || '?'} | https://music.youtube.com/watch?v=${m.id}${marque(m)}`).join('\n');
 }
 function rendreExport() {
-  const oui = lesOui();
-  $('#export').hidden = !oui.length && !(T.active === 'site' && Object.values(L().decisions).includes('non'));
-  $('#liste-oui').innerHTML = oui.map(m => `<li>${esc(m.artiste || '?')}, ${esc(m.titre || m.brut || m.id)}</li>`).join('');
+  const site = T.active === SITE;
+  const liste = site ? lesNon() : lesOui();
+  $('#export').hidden = !liste.length;
+  $('#export-titre').textContent = site ? 'Les morceaux à retirer du site' : 'Tes oui, prêts à entrer sur le site';
+  $('#export-aide').textContent = site
+    ? 'Clique sur « Copier pour Claude », puis colle le texte dans la conversation : Claude retire ces morceaux du site.'
+    : 'Clique sur « Copier pour Claude », puis colle le texte dans la conversation : Claude les ajoute au site et règle leur énergie, leur étrangeté et leur côté dansant.';
+  $('#liste-oui').innerHTML = liste.map(m => `<li>${esc(m.artiste || '?')}, ${esc(m.titre || m.brut || m.id)}${m.officiel === false ? ' <span class="petit">(chaîne à vérifier)</span>' : ''}</li>`).join('');
   const passes = Object.values(L().decisions).filter(x => x === 'passe').length;
   $('#revoir-passes').hidden = !passes;
   $('#revoir-passes').textContent = `Revoir les « pas sûr » (${passes})`;
 }
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function rendreListes() {
   const cles = Object.keys(T.listes);
+  let n = 0;
   $('#listes').innerHTML = cles.length > 1 || (cles.length === 1 && $('#table').hidden)
-    ? cles.map((k, i) => {
+    ? cles.map(k => {
         const l = T.listes[k];
         const faits = l.ids.filter(x => l.decisions[x]).length;
-        return `<button class="liste-pastille" data-cle="${esc(k)}" aria-pressed="${k === T.active}">Playlist ${i + 1} (${faits}/${l.ids.length}${l.complet ? '' : '+'})</button>`;
+        const nom = k === SITE ? 'Le site actuel' : `Playlist ${++n}`;
+        return `<button class="liste-pastille" data-cle="${esc(k)}" aria-pressed="${k === T.active}">${nom} (${faits}/${l.ids.length}${l.complet ? '' : '+'})</button>`;
       }).join('')
     : '';
 }
@@ -235,8 +322,24 @@ function rendreListes() {
 $('#bouton-charger').addEventListener('click', demarrer);
 $('#listes').addEventListener('click', e => {
   const b = e.target.closest('[data-cle]');
-  if (!b || !pret) return;
+  if (!b) return;
+  if (!pret) return toast('Le lecteur se prépare, une seconde.');
   T.active = b.dataset.cle; sauver(); ouvrirTable();
+});
+// trier aussi les morceaux déjà sur le site : vert = il reste, rouge = il sort
+$('#trier-site').addEventListener('click', () => {
+  if (!pret) return toast('Le lecteur se prépare, une seconde.');
+  const l = T.listes[SITE] = T.listes[SITE] || { nom: 'Le site actuel', list: null, ids: [], infos: {}, decisions: {}, historique: [], complet: true, cree: Date.now() };
+  MORC.forEach(m => {
+    const id = idDe(m.lien);
+    if (!id) return;
+    if (!l.ids.includes(id)) l.ids.push(id);
+    l.infos[id] = Object.assign(l.infos[id] || {}, { titre: m.titre, artiste: m.artiste });
+  });
+  // un morceau retiré de data.js n'a plus à être trié
+  l.ids = l.ids.filter(id => DEJA.has(id));
+  T.active = SITE; sauver(); ouvrirTable();
+  toast('Vert = il reste, rouge = il sort du site.');
 });
 $('#v-oui').addEventListener('click', () => decider('oui'));
 $('#v-non').addEventListener('click', () => decider('non'));
@@ -255,7 +358,7 @@ $('#copier').addEventListener('click', async () => {
 $('#telecharger').addEventListener('click', () => {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([texteExport()], { type: 'text/plain' }));
-  a.download = 'music-discovery-oui.txt';
+  a.download = T.active === SITE ? 'music-discovery-a-retirer.txt' : 'music-discovery-oui.txt';
   a.click();
 });
 $('#revoir-passes').addEventListener('click', () => {
@@ -283,16 +386,9 @@ fiche.addEventListener('touchend', e => {
   if (Math.abs(dx) > 90) decider(dx > 0 ? 'oui' : 'non');
 });
 
-// reprise : la dernière playlist est proposée
+// reprise : ce qui est déjà en mémoire
 rendreListes();
-if (T.active && T.listes[T.active]) $('#entree').placeholder = 'Colle une nouvelle playlist, ou reprends une des tiennes ci-dessous.';
+const nTries = Object.keys(dejaTries()).length;
+if (nTries) $('#memoire').textContent = `${nTries} morceau${nTries > 1 ? 'x' : ''} déjà trié${nTries > 1 ? 's' : ''} en mémoire dans ce navigateur, plus les ${DEJA.size} du site : ils ne te seront plus reproposés, même dans une autre playlist.`;
+if (T.active && T.listes[T.active]) $('#entree').placeholder = 'Colle une nouvelle playlist, ou la même pour la reprendre là où tu t\'es arrêté.';
 })();
-
-/* ─────────── trier aussi les morceaux déjà sur le site ─────────── */
-document.getElementById('trier-site').addEventListener('click', () => {
-  const ids = [...DEJA], infos = {};
-  (typeof MORCEAUX !== 'undefined' ? MORCEAUX : []).forEach(m => { const r = (m.lien || '').match(/[?&]v=([\w-]{11})/); if (r) infos[r[1]] = { titre: m.titre, artiste: m.artiste }; });
-  if (!T.listes.site) T.listes.site = { nom: 'Le site actuel', list: null, ids, infos, decisions: {}, historique: [], complet: true, cree: Date.now() };
-  T.active = 'site'; sauver(); ouvrirTable();
-  toast('Vert = il reste, rouge = il sort du site.');
-});

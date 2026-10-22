@@ -12,7 +12,9 @@
      titre    le nom du morceau
      artiste  le ou les artistes
      lien     le lien YouTube ou YouTube Music du morceau
-              (c'est lui qui permet de l'écouter directement sur le site)
+              (c'est lui qui permet de l'écouter directement sur le site).
+              Prends la version officielle : celle de YouTube Music (chaîne
+              « Artiste - Topic »), de l'artiste ou de son label.
 
    Champs facultatifs (tu peux les laisser vides ou les supprimer)
      album    l'album d'origine (aide à trouver la bonne pochette)
@@ -24,6 +26,9 @@
               (Les morceaux très énergiques sont déjà baissés tout seuls.)
      jour     une date "2026-12-25" pour en faire le morceau du jour ce jour-là.
               Sans ça, le morceau du jour est tiré au sort, le même pour tous.
+     bandcamp le lien Bandcamp du morceau, s'il y est. Il apparaît dans
+              « Écouter en entier sur » (sans pub, et l'artiste touche plus).
+              Ex : bandcamp: "https://artiste.bandcamp.com/track/morceau"
 
    Les réglages (de 0 à 10) servent au moteur de découverte.
    Ils ne sont jamais montrés aux visiteurs. Ajuste-les à l'instinct :

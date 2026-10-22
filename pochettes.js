@@ -3,14 +3,16 @@
    Va chercher tout seul, dans le navigateur du visiteur :
      • la pochette haute définition du morceau
      • un extrait de 30 secondes (pré-écoute au survol, et mode sans pub)
-   Deux catalogues publics sont interrogés : Apple Music, puis Deezer
-   (meilleur sur le rap français et les artistes moins connus).
+     • les liens directs du morceau sur Deezer et Apple Music
+   Deux catalogues publics sont interrogés : Apple Music et Deezer.
+   Les extraits sont promotionnels : on affiche toujours d'où ils viennent,
+   avec le lien pour écouter le morceau en entier chez eux.
    Rien à remplir à la main. Tout est mis en cache dans le navigateur.
    En attendant (ou si rien n'est trouvé), on montre l'image YouTube.
    ════════════════════════════════════════════════════════════════════ */
 
 const Pochettes = (() => {
-  const CLE = 'md-pochettes-v4';
+  const CLE = 'md-pochettes-v5';
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { cache = {}; }
 
@@ -18,6 +20,7 @@ const Pochettes = (() => {
   let enCours = 0;
   const MAX_SIMULTANE = 3;
   const abonnes = {};       // id -> [callbacks]
+  const retentes = new Set(); // morceaux dont Deezer n'a pas répondu (quota) : une nouvelle chance par visite
 
   function sauver() {
     try { localStorage.setItem(CLE, JSON.stringify(cache)); } catch (e) {}
@@ -92,6 +95,7 @@ const Pochettes = (() => {
     return {
       art: best.artworkUrl100 ? best.artworkUrl100.replace(/\/\d+x\d+bb/, '/600x600bb') : null,
       preview: best.previewUrl || null,
+      lien: best.trackViewUrl || null,
       album: best.collectionName || null,
       annee: best.releaseDate ? best.releaseDate.slice(0, 4) : null,
       genre: best.primaryGenreName || null,
@@ -102,6 +106,7 @@ const Pochettes = (() => {
   async function chercherDeezer(m) {
     const terme = encodeURIComponent(`${artistePrincipal(m.artiste)} ${m.titre}`);
     const data = await jsonp(`https://api.deezer.com/search?q=${terme}&limit=10&output=jsonp`);
+    if (data && data.error) throw new Error('quota');
     const res = ((data && data.data) || []).map(r => ({ r, s: correspond(m, r.artist && r.artist.name, r.title) })).filter(x => x.s > 0);
     res.sort((x, y) => y.s - x.s);
     const best = res[0] && res[0].r;
@@ -109,24 +114,34 @@ const Pochettes = (() => {
     return {
       art: best.album && (best.album.cover_xl || best.album.cover_big) || null,
       preview: best.preview || null,
+      lien: best.link || null,
       album: best.album && best.album.title || null,
       duree: best.duration || null,
     };
   }
 
   async function chercher(m) {
-    let apple = null, deezer = null;
+    let apple = null, deezer = null, dzErr = false;
     try { apple = await chercherApple(m); } catch (e) {}
-    if (!apple || !apple.preview || !apple.art) {
-      try { deezer = await chercherDeezer(m); } catch (e) {}
-    }
+    try { deezer = await chercherDeezer(m); } catch (e) { dzErr = true; }
     const pris = k => (apple && apple[k]) || (deezer && deezer[k]) || null;
+    // extrait : Deezer d'abord (ses règles autorisent l'écoute des extraits), Apple Music sinon
+    const source = deezer && deezer.preview ? 'deezer' : apple && apple.preview ? 'apple' : null;
     return {
-      art: pris('art'), preview: pris('preview'),
+      art: pris('art'),
+      preview: source === 'deezer' ? deezer.preview : source === 'apple' ? apple.preview : null,
+      source,
+      lienDeezer: deezer && deezer.lien || null,
+      lienApple: apple && apple.lien || null,
       album: pris('album'), annee: pris('annee'), genre: pris('genre'), duree: pris('duree'),
-      t: Date.now()
+      dzErr, t: Date.now()
     };
   }
+
+  // d'où vient l'extrait, et où écouter le morceau en entier
+  const NOMS = { deezer: 'Deezer', apple: 'Apple Music' };
+  function source(m) { const c = cache[m.id]; return c && c.source ? { cle: c.source, nom: NOMS[c.source], lien: c.source === 'deezer' ? c.lienDeezer : c.lienApple } : null; }
+  function liens(m) { const c = cache[m.id] || {}; return { deezer: c.lienDeezer || null, apple: c.lienApple || null }; }
 
   // la fiche du morceau (album, année, genre, durée), quand on l'a trouvée
   function meta(m) { return cache[m.id] || null; }
@@ -159,7 +174,9 @@ const Pochettes = (() => {
   function demander(m, cb) {
     const c = cache[m.id];
     const perime = c && !c.art && c.t && (Date.now() - c.t > 7 * 864e5);
-    if (c && !perime) { if (cb) cb(m); return; }
+    const aRetenter = c && c.dzErr && !retentes.has(m.id);
+    if (aRetenter) retentes.add(m.id);
+    if (c && !perime && !aRetenter) { if (cb) cb(m); return; }
     if (cb) (abonnes[m.id] = abonnes[m.id] || []).push(cb);
     if (!file.includes(m)) file.push(m);
     pomper();
@@ -167,7 +184,12 @@ const Pochettes = (() => {
 
   // remplace toutes les images d'un morceau déjà affichées à l'écran
   function majImages(m) {
-    document.querySelectorAll(`[data-extrait-pour="${m.id}"]`).forEach(b => { b.dataset.etat = etat(m); });
+    const src = source(m);
+    document.querySelectorAll(`[data-extrait-pour="${m.id}"]`).forEach(b => { b.dataset.etat = etat(m); if (src) b.dataset.source = src.nom; });
+    // le petit lien « en entier sur … » posé à côté de chaque extrait
+    document.querySelectorAll(`a[data-lien-pour="${m.id}"]`).forEach(a => {
+      if (src && src.lien) { a.href = src.lien; a.textContent = `En entier sur ${src.nom}`; a.hidden = false; }
+    });
     const im = image(m);
     if (im) {
       document.querySelectorAll(`img[data-pochette="${m.id}"]`).forEach(img => {
@@ -225,5 +247,5 @@ const Pochettes = (() => {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  return { html, image, extrait, etat, meta, demander, couleur, echapper, artistePrincipal, normaliser };
+  return { html, image, extrait, etat, meta, source, liens, demander, couleur, echapper, artistePrincipal, normaliser };
 })();

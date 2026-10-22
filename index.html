@@ -6,11 +6,16 @@
   <title>Music Discovery</title>
   <meta name="description" content="Quelqu'un a fouillé pendant des années. Allume, et écoute ce qu'il a trouvé.">
   <meta name="theme-color" content="#dcdbd8">
+  <script>
+    // la teinte est posée tout de suite (évite un flash de la mauvaise couleur) ; sans choix, on suit le mode sombre du téléphone
+    try { var t = JSON.parse(localStorage.getItem('md-teinte-v5')), anc = { ambre: 'nuit', signal: 'salon', vide: 'salon', fievre: 'salon' };
+      document.documentElement.dataset.teinte = t ? (anc[t] || t) : (matchMedia('(prefers-color-scheme: dark)').matches ? 'nuit' : 'salon'); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Archivo:wdth,wght@112..125,500;112..125,800&family=Doto:wght@700;900&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6">
-  <link rel="stylesheet" href="teintes.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="teintes.css?v=7">
 </head>
 <body>
 
@@ -138,6 +143,7 @@
                 <div class="vfd-infos"><span id="vfd-piste">Piste 01</span><span id="vfd-temps">00:00</span></div>
                 <div class="vfd-defile"><span id="vfd-texte">Appuie sur lecture.</span></div>
                 <div class="vfd-barre"><span id="vfd-progression"></span></div>
+                <div class="vfd-ensuite"><span id="vfd-ensuite"></span></div>
                 <div class="vfd-etat"><span id="vfd-reglage"></span><span id="vfd-etat">Stop</span></div>
               </div>
               <div class="emplacement-ecran emplacement-cd" data-emplacement="machine"></div>
@@ -201,6 +207,8 @@
           <span class="hp hp-petit"></span><span class="hp hp-petit"></span><span class="hp hp-grand"></span>
         </div>
       </div>
+      <p class="machine-source" id="machine-source" hidden></p>
+      <div class="avis-pub avis-machine" data-avis hidden></div>
     </section>
 
   </main>
@@ -212,9 +220,12 @@
       <span class="poste-titre" id="poste-titre"></span>
       <span class="poste-artiste" id="poste-artiste"></span>
     </button>
-    <button class="touche touche-mini" data-action="garder-joue" id="poste-garder" aria-label="Garder ce morceau" aria-pressed="false"><span class="icone-garder"></span></button>
-    <button class="touche touche-mini" data-action="lecture" aria-label="Lecture / pause"><span class="icone icone-lecture" id="poste-icone"></span></button>
-    <button class="touche touche-mini" data-action="suivant" aria-label="Morceau suivant"><span class="icone icone-suiv"></span></button>
+    <div class="poste-touches">
+      <button class="touche touche-mini" data-action="garder-joue" id="poste-garder" aria-label="Garder ce morceau" aria-pressed="false"><span class="icone-garder"></span></button>
+      <button class="touche touche-mini" data-action="lecture" aria-label="Lecture / pause"><span class="icone icone-lecture" id="poste-icone"></span></button>
+      <button class="touche touche-mini" data-action="suivant" aria-label="Morceau suivant"><span class="icone icone-suiv"></span></button>
+      <button class="touche touche-mini touche-reduire" data-action="reduire-poste" id="poste-reduire" aria-label="Réduire le lecteur (met en pause)" hidden><span class="icone-chevron"></span></button>
+    </div>
   </div>
 
   <div class="ecran-video" id="ecran-video" hidden><div id="yt-lecteur"></div></div>
@@ -252,11 +263,12 @@
     <div class="reglage-son" role="radiogroup" aria-label="Comment écouter">
       <p class="reglage-titre">Comment écouter</p>
       <button class="choix-son" role="radio" data-action="son" data-son="complet" aria-checked="true">
-        <strong>Morceaux complets</strong><span>Via YouTube. Des pubs possibles, sauf avec YouTube Premium ou un bloqueur de pub.</span>
+        <strong>Morceaux complets</strong><span>Par le lecteur officiel de YouTube. Ses pubs rémunèrent les artistes ; plus aucune pub avec YouTube Premium.</span>
       </button>
       <button class="choix-son" role="radio" data-action="son" data-son="extraits" aria-checked="false">
-        <strong>Extraits de 30 secondes</strong><span>Zéro pub, sans compte. Idéal pour découvrir vite.</span>
+        <strong>Extraits de 30 secondes</strong><span>Zéro pub, sans compte, fournis par Deezer et Apple Music. Idéal pour découvrir vite.</span>
       </button>
+      <p class="reglage-note">Tu as Deezer, Apple Music, Qobuz ou Bandcamp ? Chaque page de morceau a ses liens pour l'écouter en entier chez eux.</p>
     </div>
     <div class="reglage-teinte">
       <p class="reglage-titre">Teinte du site</p>
@@ -264,27 +276,12 @@
     </div>
   </aside>
 
-  <!-- ═════════════ ENCART PUBS (montré une fois) ═════════════ -->
-  <div class="encart" id="encart-pub" role="dialog" aria-labelledby="encart-pub-titre" hidden>
-    <p class="encart-titre" id="encart-pub-titre">Des pubs entre les morceaux ?</p>
-    <p>Les morceaux complets passent par YouTube, qui peut glisser des pubs. Trois façons de les éviter :</p>
-    <ul>
-      <li>Un bloqueur de pub : <a href="https://ublockorigin.com/" target="_blank" rel="noopener">uBlock Origin</a> (Firefox, Chrome, Edge) ou <a href="https://adguard.com/" target="_blank" rel="noopener">AdGuard</a> (Safari, iPhone).</li>
-      <li>YouTube Premium : connecté à ton compte, plus aucune pub ici non plus.</li>
-      <li>Le mode extraits : 30 secondes par morceau, zéro pub.</li>
-    </ul>
-    <div class="encart-actions">
-      <button class="gros-bouton gros-bouton-plein" data-action="encart-ok">Compris</button>
-      <button class="lien-bouton" data-action="encart-extraits">Passer en extraits sans pub</button>
-    </div>
-  </div>
-
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <audio id="extrait" preload="none" playsinline></audio>
 
-  <script src="data.js?v=6"></script>
-  <script src="pochettes.js?v=6"></script>
-  <script src="infos.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="data.js?v=7"></script>
+  <script src="pochettes.js?v=7"></script>
+  <script src="infos.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

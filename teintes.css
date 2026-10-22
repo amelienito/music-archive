@@ -3,9 +3,9 @@
    Une teinte change UNIQUEMENT l'apparence : couleurs, polices, reliefs.
    Le fonctionnement reste exactement le même.
 
-   Pour inventer ta propre teinte : copie un bloc, change le nom
-   (ex : [data-teinte="nuit"]), modifie les couleurs, puis ajoute-la
-   dans la liste TEINTES au milieu de app.js.
+   Trois teintes, pas plus : Salon (le jour), Nuit (le mode sombre), Papier.
+   Pour en changer une : modifie ses couleurs ici. Pour en remplacer une,
+   copie un bloc, change le nom, puis mets-la dans la liste TEINTES de app.js.
    ════════════════════════════════════════════════════════════════════ */
 
 /* ─── SALON (par défaut) : d'après la pochette « For A Good Time… » d'Odeal.
@@ -75,66 +75,76 @@
   --rayon-verre: 8px;
 }
 
-/* ─── AMBRE : la chaîne hi-fi des années 70, bakélite prune et verre ambré ─── */
-[data-teinte="ambre"] {
-  --noyer: linear-gradient(90deg, #3a2028, #4d2c36 40%, #3e232c);
-  --plexi: radial-gradient(120% 90% at 30% 10%, rgba(255,160,60,.35), rgba(30,14,18,.85));
-  --disque: conic-gradient(from 0deg, #d9dde2, #b8f0ff, #f6d1ff, #fff4c2, #c9ffd8, #d9dde2, #ffd4e8, #c7d3ff, #d9dde2);
-  --facade-cd: linear-gradient(180deg, #e4dfdc, #c4bcb9 60%, #b3aaa7), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
-  --encre-cd: #2a1d22;
-  --sur-encre-cd: #e4dfdc;
-  --touche-cd: linear-gradient(180deg, #f2eeec, #d3ccc9);
-  --fente-cd: #1b1216;
-  --vfd: #7cf3dc;
-  --vfd-fond: #0b1412;
-  --vfd-halo: rgba(124, 243, 220, .45);
+/* ─── NUIT : le même salon, lampe allumée. Mur sombre, noyer, velours bleu,
+   afficheur ambré. C'est le mode sombre du site. ─── */
+[data-teinte="nuit"] {
+  --facade-cd: linear-gradient(180deg, #2c2b32, #201f25 62%, #19181d), repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
+  --encre-cd: #ebe9e4;
+  --sur-encre-cd: #17161b;
+  --touche-cd: linear-gradient(180deg, #37363e, #27262d);
+  --fente-cd: #08080a;
+  --vfd: #ffb862;
+  --vfd-fond: #0c0906;
+  --vfd-halo: rgba(255, 170, 80, .5);
 
-  --dos-carte: repeating-linear-gradient(135deg, #3b2731 0 14px, #331f29 14px 28px);
-  --sur-dos: #ffb547;
-  --force-teinte: .32;
+  --noyer: linear-gradient(90deg, #3f2311, #6b4222 18%, #5a3519 36%, #77502c 58%, #5d371b 78%, #432614);
+  --noyer-grain: repeating-linear-gradient(88deg, rgba(0,0,0,.12) 0 2px, transparent 2px 7px, rgba(255,255,255,.04) 7px 8px, transparent 8px 13px);
+  --cone: #111113;
+  --cone-centre: #2a2a30;
+  --cone-bord: #1d1d21;
+  --plexi: radial-gradient(120% 90% at 30% 10%, rgba(130,85,45,.5), rgba(20,12,8,.9));
+  --disque: conic-gradient(from 20deg, #2440d8, #6a86ff, #2440d8 30%, #a9b9ff 42%, #2440d8 55%, #4864f0 75%, #2440d8);
 
-  --fond: #24161d;
-  --fond-2: #301f28;
-  --fond-3: #3b2731;
-  --fond-image: radial-gradient(90% 60% at 50% -10%, rgba(255, 176, 58, .10), transparent 70%);
-  --encre: #f1e4d8;
-  --encre-2: #b7a0a3;
-  --encre-3: rgba(241, 228, 216, .22);
-  --trait: rgba(241, 228, 216, .10);
+  --dos-carte: radial-gradient(130% 100% at 28% 18%, #3a57e6, #1b3cc4 48%, #0e2384);
+  --sur-dos: #ffffff;
+  --force-teinte: .3;
 
-  --verre: #ffb547;
-  --verre-fond: #150c10;
-  --verre-trait: rgba(255, 181, 71, .35);
-  --verre-eteint: #3a2a30;
-  --verre-halo: rgba(255, 160, 40, .35);
-  --aiguille: #ff4f7b;
-  --sur-aiguille: #24161d;
+  --fond: #141318;
+  --fond-2: #1d1c22;
+  --fond-3: #27262d;
+  --fond-image: radial-gradient(70% 55% at 12% -8%, rgba(255, 170, 90, .10), transparent 70%), radial-gradient(60% 50% at 100% 100%, rgba(40, 70, 220, .10), transparent 70%);
+  --encre: #ecebe6;
+  --encre-2: #a09ea9;
+  --encre-3: rgba(236, 235, 230, .2);
+  --trait: rgba(236, 235, 230, .1);
 
-  --metal: #d9cfd2;
-  --metal-sombre: #8d7f84;
-  --socle: linear-gradient(160deg, #3a2631, #2a1a22);
-  --plateau: radial-gradient(circle, #6d6266 0 60%, #a59a9e 61% 63%, #5a5054 64%);
-  --rainure: #140b0f;
-  --capuchon-haut: #e9dfe0;
-  --capuchon-bas: #a8999c;
+  --verre: #5470ff;
+  --verre-fond: #0d0d11;
+  --verre-trait: rgba(84, 112, 255, .35);
+  --verre-eteint: #2b2a33;
+  --verre-halo: rgba(84, 112, 255, .35);
+  --aiguille: #5470ff;
+  --sur-aiguille: #0b0d22;
 
-  --relief: 0 1px 0 rgba(255,255,255,.06) inset, 0 10px 24px rgba(0,0,0,.35);
-  --relief-fort: 0 1px 0 rgba(255,255,255,.08) inset, 0 24px 60px rgba(0,0,0,.5);
-  --relief-enfonce: inset 0 3px 10px rgba(0,0,0,.55);
-  --relief-plein: 0 10px 24px rgba(0,0,0,.4);
-  --ombre-pochette: 0 6px 16px rgba(0,0,0,.4);
-  --ombre-pochette-forte: 0 30px 60px -12px rgba(0,0,0,.7), 0 8px 18px rgba(0,0,0,.35);
+  --metal: #d9d7d2;
+  --metal-sombre: #7d7b77;
+  --socle: linear-gradient(160deg, #26252c, #1b1a20);
+  --plateau: radial-gradient(circle, #3a3940 0 60%, #7d7b77 61% 63%, #3a3940 64%);
+  --rainure: #0a0a0d;
+  --capuchon-haut: #e4e2dd;
+  --capuchon-bas: #8c8a85;
+
+  --relief: 0 1px 0 rgba(255,255,255,.05) inset, 0 10px 24px rgba(0,0,0,.45);
+  --relief-fort: 0 1px 0 rgba(255,255,255,.06) inset, 0 26px 60px rgba(0,0,0,.6), 0 4px 10px rgba(0,0,0,.3);
+  --relief-enfonce: inset 0 3px 10px rgba(0,0,0,.6);
+  --relief-plein: 0 10px 24px rgba(0,0,0,.45);
+  --ombre-pochette: 0 6px 16px rgba(0,0,0,.5);
+  --ombre-pochette-forte: 0 30px 60px -12px rgba(0,0,0,.75), 0 8px 18px rgba(0,0,0,.4);
 
   --display: "Unbounded", system-ui, sans-serif;
   --display-poids: 600;
   --display-interlettre: -0.035em;
   --texte: "Familjen Grotesk", system-ui, sans-serif;
 
-  --rayon-objet: 22px;
-  --rayon-pochette: 3px;
-  --rayon-ecran: 10px;
+  --rayon-objet: 18px;
+  --rayon-pochette: 2px;
+  --rayon-ecran: 8px;
   --rayon-verre: 8px;
 }
+/* la nuit, la platine et l'unité ne sont plus des blocs clairs : on garde un liseré */
+[data-teinte="nuit"] .unite, [data-teinte="nuit"] .platine-cd { box-shadow: var(--relief-fort), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(255,255,255,.04); }
+[data-teinte="nuit"] .unite-reglages { border-top-color: rgba(255,255,255,.08); }
+[data-teinte="nuit"] .source-radio { background: rgba(0,0,0,.3); }
 
 /* ─── PAPIER : une archive privée, papier vert-de-gris, encre bleue, tampon magenta ─── */
 [data-teinte="papier"] {
@@ -199,201 +209,3 @@
   --rayon-ecran: 0px;
   --rayon-verre: 0px;
 }
-
-/* ─── SIGNAL : tout en bleu électrique, comme un écran de veille de studio ─── */
-[data-teinte="signal"] {
-  --noyer: #0d1fd6;
-  --noyer-grain: none;
-  --cone: #1730ff; --cone-centre: #ffffff; --cone-bord: #3a51ff;
-  --plexi: #0d1fd6;
-  --disque: conic-gradient(#ffffff, #ffa3d4, #ffffff, #bcc5ff, #ffffff);
-  --facade-cd: #2a43ff;
-  --encre-cd: #f3f5ff;
-  --sur-encre-cd: #1730ff;
-  --touche-cd: #3a51ff;
-  --fente-cd: #0d1fd6;
-  --vfd: #ffffff;
-  --vfd-fond: #0d1fd6;
-  --vfd-halo: rgba(255,255,255,.5);
-
-  --dos-carte: #ffffff;
-  --sur-dos: #1730ff;
-  --force-teinte: 0;
-
-  --fond: #1730ff;
-  --fond-2: #2a43ff;
-  --fond-3: #3a51ff;
-  --fond-image: none;
-  --encre: #f3f5ff;
-  --encre-2: #bcc5ff;
-  --encre-3: rgba(243, 245, 255, .3);
-  --trait: rgba(243, 245, 255, .2);
-
-  --verre: #ffffff;
-  --verre-fond: #0d1fd6;
-  --verre-trait: rgba(255,255,255,.45);
-  --verre-eteint: rgba(255,255,255,.15);
-  --verre-halo: rgba(255,255,255,.35);
-  --aiguille: #ffa3d4;
-  --sur-aiguille: #1730ff;
-
-  --metal: #f3f5ff;
-  --metal-sombre: #9aa6ff;
-  --socle: #2a43ff;
-  --plateau: radial-gradient(circle, #4a5eff 0 60%, #f3f5ff 61% 62%, #4a5eff 63%);
-  --rainure: #0d1fd6;
-  --capuchon-haut: #ffffff;
-  --capuchon-bas: #c9d0ff;
-
-  --relief: 0 0 0 1.5px rgba(255,255,255,.35);
-  --relief-fort: 0 0 0 1.5px rgba(255,255,255,.4);
-  --relief-enfonce: 0 0 0 3px #fff;
-  --relief-plein: none;
-  --ombre-pochette: none;
-  --ombre-pochette-forte: 0 0 0 1.5px rgba(255,255,255,.5);
-
-  --display: "Archivo", system-ui, sans-serif;
-  --display-poids: 800;
-  --display-etirement: 125%;
-  --display-interlettre: -0.03em;
-  --texte: "Familjen Grotesk", system-ui, sans-serif;
-
-  --rayon-objet: 0px;
-  --rayon-pochette: 0px;
-  --rayon-ecran: 0px;
-  --rayon-verre: 0px;
-}
-
-/* ─── VIDE : presque rien. La pochette et le son, point. ─── */
-[data-teinte="vide"] {
-  --noyer: #f6f6f3;
-  --noyer-grain: none;
-  --cone: #000; --cone-centre: #333; --cone-bord: #111;
-  --plexi: #ebebe6;
-  --disque: conic-gradient(#000 0 25%, #fff 0 50%, #000 0 75%, #fff 0);
-  --facade-cd: #ffffff;
-  --encre-cd: #000000;
-  --sur-encre-cd: #ffffff;
-  --touche-cd: #f6f6f3;
-  --fente-cd: #000000;
-  --vfd: #f6f6f3;
-  --vfd-fond: #000000;
-  --vfd-halo: transparent;
-
-  --dos-carte: #000000;
-  --sur-dos: #f6f6f3;
-  --force-teinte: .2;
-
-  --fond: #f6f6f3;
-  --fond-2: #f6f6f3;
-  --fond-3: #ebebe6;
-  --fond-image: none;
-  --encre: #000000;
-  --encre-2: #77776f;
-  --encre-3: rgba(0,0,0,.12);
-  --trait: rgba(0,0,0,.08);
-
-  --verre: #000000;
-  --verre-fond: #f6f6f3;
-  --verre-trait: rgba(0,0,0,.25);
-  --verre-eteint: rgba(0,0,0,.1);
-  --verre-halo: transparent;
-  --aiguille: #000000;
-  --sur-aiguille: #f6f6f3;
-
-  --metal: #000;
-  --metal-sombre: #999;
-  --socle: transparent;
-  --plateau: #ebebe6;
-  --rainure: #e2e2dc;
-  --capuchon-haut: #000;
-  --capuchon-bas: #333;
-
-  --relief: none;
-  --relief-fort: none;
-  --relief-enfonce: 0 0 0 1px #000;
-  --relief-plein: none;
-  --ombre-pochette: none;
-  --ombre-pochette-forte: 0 40px 80px -30px rgba(0,0,0,.35);
-
-  --display: "Familjen Grotesk", system-ui, sans-serif;
-  --display-poids: 500;
-  --display-interlettre: -0.045em;
-  --texte: "Familjen Grotesk", system-ui, sans-serif;
-
-  --rayon-objet: 0px;
-  --rayon-pochette: 0px;
-  --rayon-ecran: 0px;
-  --rayon-verre: 0px;
-}
-[data-teinte="vide"] .table-de-mixage, [data-teinte="vide"] .chemins { border-top: 1px solid #000; }
-[data-teinte="vide"] .unite, [data-teinte="vide"] .platine-cd, [data-teinte="vide"] .enceinte { box-shadow: 0 0 0 1px #000; }
-[data-teinte="vide"] .porte-decouvrir::before, [data-teinte="vide"] .porte-decouvrir::after,
-[data-teinte="vide"] .porte-ecouter::before { opacity: 0; }
-[data-teinte="vide"] .cadran { border-bottom-color: transparent; }
-[data-teinte="vide"] .gros-bouton:not(.gros-bouton-plein), [data-teinte="vide"] .bouton-garder, [data-teinte="vide"] .touche:not(.touche-grosse), [data-teinte="vide"] .bouton-facade, [data-teinte="vide"] .bouton-lecture { box-shadow: 0 0 0 1px #000; }
-
-/* ─── FIÈVRE : teinte cachée, débloquée en explorant. Rose brûlant, vert profond. ─── */
-[data-teinte="fievre"] {
-  --noyer: #0e3b2c;
-  --noyer-grain: none;
-  --cone: #1d5442; --cone-centre: #fff35c; --cone-bord: #061f17;
-  --plexi: radial-gradient(circle at 30% 20%, #1d5442, #061f17);
-  --disque: conic-gradient(#ff6fae, #fff35c, #ff6fae, #ff9cc8, #ff6fae);
-  --facade-cd: #0e3b2c;
-  --encre-cd: #fff35c;
-  --sur-encre-cd: #0e3b2c;
-  --touche-cd: #1d5442;
-  --fente-cd: #061f17;
-  --vfd: #ff8cc0;
-  --vfd-fond: #061f17;
-  --vfd-halo: rgba(255, 140, 192, .5);
-
-  --dos-carte: #0e3b2c;
-  --sur-dos: #fff35c;
-  --force-teinte: 0;
-
-  --fond: #ff6fae;
-  --fond-2: #ff86bc;
-  --fond-3: #ff9cc8;
-  --fond-image: radial-gradient(70% 50% at 80% 100%, rgba(255, 243, 92, .35), transparent 70%);
-  --encre: #0e3b2c;
-  --encre-2: #2f6150;
-  --encre-3: rgba(14, 59, 44, .3);
-  --trait: rgba(14, 59, 44, .18);
-
-  --verre: #fff35c;
-  --verre-fond: #0e3b2c;
-  --verre-trait: rgba(255, 243, 92, .4);
-  --verre-eteint: #1d5442;
-  --verre-halo: rgba(255, 243, 92, .4);
-  --aiguille: #fff35c;
-  --sur-aiguille: #0e3b2c;
-
-  --metal: #0e3b2c;
-  --metal-sombre: #2f6150;
-  --socle: #0e3b2c;
-  --plateau: radial-gradient(circle, #1d5442 0 60%, #ff6fae 61% 63%, #1d5442 64%);
-  --rainure: #0e3b2c;
-  --capuchon-haut: #fff35c;
-  --capuchon-bas: #e6d63a;
-
-  --relief: 0 8px 0 #0e3b2c;
-  --relief-fort: 0 12px 0 #0a2a20;
-  --relief-enfonce: 0 2px 0 #0e3b2c;
-  --relief-plein: 0 8px 0 #0a2a20;
-  --ombre-pochette: 0 6px 0 #0e3b2c;
-  --ombre-pochette-forte: 14px 14px 0 #0e3b2c;
-
-  --display: "Bricolage Grotesque", system-ui, sans-serif;
-  --display-poids: 800;
-  --display-interlettre: -0.045em;
-  --texte: "Familjen Grotesk", system-ui, sans-serif;
-
-  --rayon-objet: 34px;
-  --rayon-pochette: 14px;
-  --rayon-ecran: 18px;
-  --rayon-verre: 999px;
-}
-[data-teinte="fievre"] .gros-bouton:active, [data-teinte="fievre"] .touche:active { transform: translateY(6px); }
-[data-teinte="fievre"] .afficheur { border-radius: 28px; }

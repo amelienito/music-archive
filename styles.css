@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   MUSIC DISCOVERY — la structure et les objets (v0.5)
+   MUSIC DISCOVERY — la structure et les objets (v0.6)
    Les couleurs et polices viennent de teintes.css (une teinte = un skin).
    ════════════════════════════════════════════════════════════════════ */
 
@@ -141,7 +141,7 @@ body[data-source="ecouter"] .selecteur-curseur { transform: translateX(100%); }
 
 #scene { padding-top: 76px; min-height: 100vh; }
 .ecran { min-height: calc(100vh - 76px); padding: clamp(20px, 4vw, 56px); padding-bottom: 120px; }
-body.avec-poste .ecran { padding-bottom: 170px; }
+body.avec-poste .ecran { padding-bottom: calc(var(--poste-h, 90px) + 48px); }
 
 /* ─────────────────────────────── ALLUMAGE ─────────────────────────────── */
 .ecran-allumage { display: grid; place-content: center; justify-items: center; gap: 34px; text-align: center; }
@@ -298,6 +298,8 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 .extrait-bouton[data-etat="absent"] .extrait-icone { display: none; }
 .extrait-bouton.en-cours .extrait-icone { animation: egaliseur .5s ease-in-out infinite alternate; }
 @keyframes egaliseur { to { background-size: 3px 90%, 3px 30%, 3px 100%; } }
+.extrait-lien { font-size: 13px; color: var(--encre-2); text-decoration: underline; text-underline-offset: 3px; }
+.extrait-lien:hover { color: var(--encre); }
 .duel-pied { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: center; }
 
 /* ─────────────────────────────── INTERLUDE ─────────────────────────────── */
@@ -340,7 +342,25 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 .bouton-suivant:hover { transform: translateX(4px); }
 .bouton-suivant-etiquette { font-size: 12px; font-weight: 600; opacity: .8; }
 .bouton-suivant-titre { min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.emplacement-rencontre { max-width: 440px; }
+.emplacement-rencontre { max-width: 440px; min-height: 200px; }
+/* le cadre vidéo n'apparaît que quand c'est bien ce morceau qui joue sur YouTube */
+body:not(.video-rencontre) .emplacement-rencontre { display: none; }
+.bouton-suivant-artiste { font-weight: 400; opacity: .85; }
+
+/* écouter en entier ailleurs, légalement */
+.ailleurs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+.ailleurs-titre { color: var(--encre-2); margin-right: 2px; }
+.ailleurs a { padding: 6px 12px; border-radius: 999px; background: var(--fond-2); box-shadow: var(--relief); color: var(--encre); font-weight: 600; text-decoration: none; transition: box-shadow .15s; }
+.ailleurs a:hover { box-shadow: var(--relief), 0 0 0 2px var(--aiguille); }
+
+/* pourquoi des pubs (affiché une fois, dans la page : jamais par-dessus la vidéo) */
+.avis-pub { display: grid; gap: 10px; max-width: 580px; padding: 18px 20px; border-radius: var(--rayon-objet); background: var(--fond-2); box-shadow: var(--relief), 0 0 0 1px var(--trait); font-size: 15px; animation: sortie .45s cubic-bezier(.2,.9,.3,1.1); }
+.avis-titre { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 1.2rem; line-height: 1.1; }
+.avis-pub ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--encre-2); }
+.avis-pub strong { color: var(--encre); }
+.avis-actions { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-top: 4px; }
+.avis-machine { width: 100%; max-width: 880px; margin-top: 30px; }
+.machine-source { margin-top: 26px; font-size: 14px; color: var(--encre-2); text-align: center; }
 
 /* plus d'infos : la fiche, l'artiste, les liens */
 .a-propos { display: grid; gap: 18px; margin-top: 8px; padding-top: 24px; border-top: 1px solid var(--trait); scroll-margin-top: 96px; }
@@ -473,9 +493,9 @@ body.cd-tourne .platine-led { background: var(--vfd); box-shadow: 0 0 8px 1px va
   background: var(--facade-cd); color: var(--encre-cd);
   box-shadow: var(--relief-fort), inset 0 1px 0 rgba(255,255,255,.6);
 }
-.unite-haut { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.unite-haut { display: flex; gap: 14px; align-items: stretch; min-width: 0; }
 .unite-haut .vfd { flex: 1 1 auto; }
-.emplacement-cd { flex: 0 0 clamp(170px, 30%, 240px); border-radius: 6px; }
+.emplacement-cd { flex: 0 0 200px; height: 200px; aspect-ratio: auto; border-radius: 6px; }
 body:not(.video-machine) .emplacement-cd { display: none; }
 
 /* l'afficheur fluorescent */
@@ -485,8 +505,9 @@ body:not(.video-machine) .emplacement-cd { display: none; }
   box-shadow: inset 0 3px 12px rgba(0,0,0,.7);
   color: var(--vfd); text-shadow: 0 0 8px var(--vfd-halo);
   font-family: "Doto", var(--texte); font-weight: 900; letter-spacing: .02em;
-  display: grid; gap: 6px; overflow: hidden;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; align-content: space-between; overflow: hidden;
 }
+.vfd-ensuite { font-size: 14px; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.3em; }
 .vfd-infos { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .vfd-defile { overflow: hidden; white-space: nowrap; font-size: 22px; line-height: 1.2; }
 .vfd-defile span { display: inline-block; padding-left: 100%; animation: defile 12s linear infinite; }
@@ -494,7 +515,7 @@ body:not(.video-machine) .emplacement-cd { display: none; }
 .vfd-barre { height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
 .vfd-barre span { display: block; height: 100%; width: 0; background: var(--vfd); box-shadow: 0 0 6px var(--vfd-halo); transition: width .5s linear; }
 .vfd-etat { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; opacity: .85; white-space: nowrap; }
-.vfd-etat span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.vfd-etat span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 .unite-touches { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
 .cd-transport { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -541,24 +562,37 @@ body[data-vue="machine"] .facade-droite [data-molette="volume"] { display: none;
 .icone-prec { transform: scaleX(-1); }
 .icone-prec::after, .icone-suiv::after { content: ""; position: absolute; left: 0; top: -7px; width: 3px; height: 14px; background: currentColor; }
 
-/* ─────────────────────────────── LE POSTE (lecteur en cours) ─────────────────────────────── */
+/* ─────────────────────────────── LE POSTE (lecteur en cours) ───────────────────────────────
+   Replié (extraits) : une vignette et les touches. Avec une vidéo YouTube, l'écran
+   fait au moins 200 px de haut, comme l'exigent les règles du lecteur YouTube. */
 .poste {
   position: fixed; z-index: 35; left: 16px; bottom: 16px;
-  width: min(520px, calc(100vw - 32px));
-  display: grid; grid-template-columns: 160px minmax(0, 1fr) auto auto auto; align-items: center; gap: 12px;
-  padding: 10px 14px 10px 10px; border-radius: calc(var(--rayon-objet) - 4px);
+  width: min(470px, calc(100vw - 32px));
+  display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  padding: 8px 10px 8px 8px; border-radius: calc(var(--rayon-objet) - 4px);
   background: var(--fond-2); box-shadow: var(--relief-fort), 0 0 0 1px var(--trait);
   animation: sortie .45s cubic-bezier(.2,.9,.3,1.1);
 }
-.emplacement-poste { border-radius: calc(var(--rayon-ecran) - 2px); }
+.emplacement-poste { width: 56px; aspect-ratio: 1 / 1; border-radius: calc(var(--rayon-ecran) - 2px); }
+.poste.avec-video {
+  width: min(660px, calc(100vw - 32px));
+  grid-template-columns: 356px minmax(0, 1fr); grid-template-rows: 1fr auto;
+  column-gap: 16px; row-gap: 12px; padding: 10px;
+}
+.poste.avec-video .emplacement-poste { grid-row: 1 / 3; width: 356px; height: 200px; aspect-ratio: auto; }
+.poste.avec-video .poste-infos { align-self: end; }
+.poste.avec-video .poste-touches { align-self: start; }
 .poste-infos { display: grid; text-align: left; min-width: 0; }
 .poste-titre { font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .poste-artiste { font-size: 14px; color: var(--encre-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.poste-touches { display: flex; gap: 6px; align-items: center; }
 .touche-mini { width: 44px; height: 44px; }
 .touche-mini .icone-suiv::after { top: -7px; }
 .icone-garder::before { content: "+"; display: block; font-size: 24px; line-height: 1; font-weight: 500; }
 #poste-garder.est-garde { background: var(--aiguille); color: var(--sur-aiguille); }
 #poste-garder.est-garde .icone-garder::before { content: "✓"; font-size: 17px; }
+.icone-chevron { display: block; width: 10px; height: 10px; border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+.touche-reduire.deplier .icone-chevron { transform: translateY(2px) rotate(-135deg); }
 
 /* ─────────────────────────────── L'ÉCRAN VIDÉO ─────────────────────────────── */
 .ecran-video {
@@ -607,24 +641,12 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 .bac-pied { padding: 16px 22px 18px; border-top: 1px solid var(--trait); display: grid; gap: 14px; }
 .bac-pied-liens { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 
-/* ─────────────────────────────── COMMENT ÉCOUTER + ENCART PUBS ─────────────────────────────── */
+/* ─────────────────────────────── COMMENT ÉCOUTER ─────────────────────────────── */
 .reglage-son { display: grid; gap: 8px; margin-bottom: 14px; }
 .choix-son { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--trait); }
 .choix-son span { font-size: 14px; color: var(--encre-2); }
 .choix-son[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--aiguille); background: var(--fond-2); }
-.encart {
-  position: fixed; z-index: 55; right: 16px; bottom: 16px; width: min(420px, calc(100vw - 32px));
-  padding: 22px; border-radius: var(--rayon-objet);
-  background: var(--fond-2); color: var(--encre);
-  box-shadow: var(--relief-fort), 0 0 0 1px var(--trait);
-  display: grid; gap: 10px; font-size: 15px;
-  animation: sortie .45s cubic-bezier(.2,.9,.3,1.1);
-}
-.encart-titre { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 1.3rem; line-height: 1.1; }
-.encart ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--encre-2); }
-.encart a { color: var(--encre); }
-.encart-actions { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-top: 6px; }
-@media (max-width: 640px) { .encart { left: 8px; right: 8px; width: auto; bottom: calc(118px + env(safe-area-inset-bottom)); } }
+.reglage-note { font-size: 14px; color: var(--encre-2); margin-top: 4px; }
 
 /* ─────────────────────────────── TOAST ─────────────────────────────── */
 .toast {
@@ -644,7 +666,7 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .chaine { grid-template-columns: 70px minmax(0, 1fr) 70px; }
   .pile { grid-template-columns: minmax(170px, 210px) minmax(0, 1fr); }
   .unite-haut { flex-direction: column; align-items: stretch; }
-  .emplacement-cd { flex-basis: auto; width: 100%; }
+  .emplacement-cd { flex-basis: auto; width: 100%; height: auto; aspect-ratio: 16 / 9; min-height: 200px; }
 }
 @media (max-width: 1200px) { #teintes-facade { display: none; } }
 @media (max-width: 760px) {
@@ -661,7 +683,7 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .marque { display: none; }
   #scene { padding-top: calc(64px + env(safe-area-inset-top)); }
   .ecran { min-height: calc(100vh - 64px); padding: 18px 16px 120px; }
-  body.avec-poste .ecran { padding-bottom: 150px; }
+  body.avec-poste .ecran { padding-bottom: calc(var(--poste-h, 70px) + 28px); }
   .marque { font-size: 10px; }
   .selecteur { justify-self: start; }
   .selecteur-pos { min-width: 0; height: 38px; padding: 0 13px; font-size: 14px; }
@@ -687,8 +709,9 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .carte-dos-texte { font-size: .95rem; }
 
   .rencontre-pochette { width: min(70vw, 300px); justify-self: center; }
-  /* sur téléphone la vidéo vit dans le poste en bas : pas de doublon ici */
-  .rencontre .emplacement-ecran { display: none; }
+  /* sur téléphone, quand la vidéo joue, elle prend la place de la grande pochette (pas de doublon) */
+  body.video-rencontre .rencontre-pochette { display: none; }
+  .emplacement-rencontre { max-width: none; }
   .chemins { padding: 16px; }
   .chemins-portes { grid-template-columns: minmax(0, 1fr); }
 
@@ -711,12 +734,17 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 
   .poste {
     left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto;
-    grid-template-columns: 96px minmax(0, 1fr) auto auto auto; gap: 8px; padding: 8px;
+    grid-template-columns: 48px minmax(0, 1fr) auto; gap: 8px; padding: 8px;
   }
+  .emplacement-poste { width: 48px; }
+  .poste.avec-video { width: auto; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 8px; row-gap: 8px; padding: 8px; }
+  .poste.avec-video .emplacement-poste { grid-row: auto; grid-column: 1 / -1; width: 100%; height: auto; aspect-ratio: 16 / 9; min-height: 200px; }
+  .poste.avec-video .poste-infos, .poste.avec-video .poste-touches { align-self: center; }
+  .poste-touches { gap: 4px; }
   .touche-mini { width: 40px; height: 40px; }
 
   .bac, .reglages { top: auto; width: 100vw; height: 86vh; border-radius: 18px 18px 0 0; transform: translateY(105%); }
-  .toast { top: auto; bottom: calc(110px + env(safe-area-inset-bottom)); }
+  .toast { top: calc(72px + env(safe-area-inset-top)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
