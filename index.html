@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Music Discovery</title>
-  <meta name="description" content="Quelqu'un a fouillé pendant des années. Commence, et écoute ce qu'il a trouvé.">
+  <meta name="description" content="J'ai fouillé pendant des années. Commence, et écoute ce que j'ai trouvé.">
   <meta name="theme-color" content="#dcdbd8">
   <script>
     // la teinte est posée tout de suite (évite un flash de la mauvaise couleur) ; sans choix, on suit le mode sombre du téléphone
@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=10">
-  <link rel="stylesheet" href="teintes.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="teintes.css?v=12">
 </head>
 <body>
 
@@ -51,8 +51,8 @@
     <!-- ═════════════ INTRODUCTION ═════════════ -->
     <section class="ecran ecran-allumage" data-ecran="allumage">
       <div class="allumage-texte">
-        <h1>Quelqu'un a fouillé pendant des années.</h1>
-        <p class="allumage-sous">Commence, et écoute ce qu'il a trouvé.</p>
+        <h1>J'ai fouillé pendant des années.</h1>
+        <p class="allumage-sous">Commence, et écoute ce que j'ai trouvé.</p>
       </div>
       <div class="panneau-allumage">
         <div class="bouton-rotatif bouton-rotatif-grand" data-molette="volume">
@@ -148,22 +148,15 @@
               </div>
             </div>
 
-            <!-- deux sélecteurs à trois positions : on touche une position, le bouton tourne -->
+            <!-- les touches de présélection : on choisit une envie, la radio s'occupe du reste -->
             <div class="unite-reglages">
-              <div class="selecteurs">
-                <div class="selecteur-rotatif" data-reglage="energie" role="radiogroup" aria-label="Énergie">
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="0" aria-checked="false"><span class="sel-led"></span>Détente</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="2" aria-checked="true"><span class="sel-led"></span>Entre deux</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="4" aria-checked="false"><span class="sel-led"></span>Énergique</button>
-                  <span class="sel-valeur" aria-live="polite"></span>
-                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="energie" tabindex="-1" aria-label="Tourner d'un cran"><span class="molette-repere"></span></button>
-                </div>
-                <div class="selecteur-rotatif" data-reglage="etrange" role="radiogroup" aria-label="Connu ou confidentiel">
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="0" aria-checked="false"><span class="sel-led"></span>Connu</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="2" aria-checked="true"><span class="sel-led"></span>Entre deux</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="4" aria-checked="false"><span class="sel-led"></span>Confidentiel</button>
-                  <span class="sel-valeur" aria-live="polite"></span>
-                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="etrange" tabindex="-1" aria-label="Tourner d'un cran"><span class="molette-repere"></span></button>
+              <div class="presets-ligne">
+                <div class="presets" role="radiogroup" aria-label="Ce qui passe">
+                  <button class="source-pos preset" role="radio" data-action="source-radio" data-source="energique" aria-checked="false"><span class="led" aria-hidden="true"></span><span class="preset-nom">Énergique</span><span class="preset-sous">pour bouger</span></button>
+                  <button class="source-pos preset" role="radio" data-action="source-radio" data-source="detente" aria-checked="false"><span class="led" aria-hidden="true"></span><span class="preset-nom">Détente</span><span class="preset-sous">pour se poser</span></button>
+                  <button class="source-pos preset" role="radio" data-action="source-radio" data-source="hasard" aria-checked="true"><span class="led" aria-hidden="true"></span><span class="preset-nom">Surprends-moi</span><span class="preset-sous">toute la sélection</span></button>
+                  <button class="source-pos preset" role="radio" data-action="source-radio" data-source="trouvailles" aria-checked="false"><span class="led" aria-hidden="true"></span><span class="preset-nom">Mes trouvailles</span><span class="preset-sous">ce que tu as gardé</span></button>
+                  <button class="source-pos preset" role="radio" data-action="source-radio" data-source="longs" aria-checked="false"><span class="led" aria-hidden="true"></span><span class="preset-nom">Longs moments</span><span class="preset-sous">20 minutes et plus</span></button>
                 </div>
                 <div class="bouton-rotatif bouton-rotatif-unite seulement-sans-ios" data-molette="volume">
                   <div class="molette" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100">
@@ -173,12 +166,7 @@
                   <span class="bouton-rotatif-nom">Volume</span>
                 </div>
               </div>
-              <div class="source-radio" role="radiogroup" aria-label="Ce qui passe">
-                <button class="source-pos" role="radio" data-action="source-radio" data-source="tout" aria-checked="true">Toute la sélection</button>
-                <button class="source-pos" role="radio" data-action="source-radio" data-source="trouvailles" aria-checked="false">Mes trouvailles</button>
-                <button class="source-pos" role="radio" data-action="source-radio" data-source="hasard" aria-checked="false">Au hasard</button>
-                <button class="source-pos" role="radio" data-action="source-radio" data-source="longs" aria-checked="false">Longs moments</button>
-              </div>
+              <p class="unite-legende">Choisis une envie : la radio enchaîne toute seule, d'un morceau proche à l'autre.</p>
             </div>
           </div>
         </div>
@@ -260,9 +248,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <audio id="extrait" preload="none" playsinline></audio>
 
-  <script src="data.js?v=11"></script>
-  <script src="pochettes.js?v=10"></script>
-  <script src="infos.js?v=10"></script>
-  <script src="app.js?v=10"></script>
+  <script src="data.js?v=12"></script>
+  <script src="pochettes.js?v=12"></script>
+  <script src="infos.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

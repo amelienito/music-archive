@@ -6,7 +6,7 @@ Site en ligne : https://amelienito.github.io/music-archive/
 
 ---
 
-## Ce que fait la v0.8
+## Ce que fait la v0.9
 
 - **L'intro** : on règle le volume (la molette se tourne comme une vraie, ou on touche l'anneau), puis **Commencer**. Les morceaux très énergiques sont baissés automatiquement.
 - **La façade** (en haut) : Découvrir / Écouter, les pastilles de teinte, le volume, **Réglages** (teinte + façon d'écouter) et **Mes trouvailles**.
@@ -16,7 +16,7 @@ Site en ligne : https://amelienito.github.io/music-archive/
 - **Le livret** (replié, sous la page) : l'album en une phrase (« Album sorti le 26 octobre 1992 chez Epic. 8 titres, 47 minutes. Au rayon soul. »), sa fiche Wikipédia quand elle existe, la liste des titres avec le morceau en cours surligné (chaque titre s'écoute 30 secondes d'un toucher, et ceux qui sont dans la sélection se lancent en entier), l'artiste, et les liens pour écouter le morceau en entier (YouTube Music, Deezer, Apple Music, Qobuz, Bandcamp) et lire les paroles.
 - **Clavier** : 1 ou 2 pour choisir la suite, G pour garder, Espace pour la pause.
 - **Mes trouvailles** : les morceaux gardés + l'historique de tout ce que tu as croisé, enregistré dans ton navigateur. On peut les écouter à la suite, les ouvrir en playlist YouTube ou copier la liste.
-- **Écouter** : une chaîne inspirée de la pochette *For A Good Time…* d'Odeal. Enceintes en noyer qui bougent avec la musique, magnétophone à bandes derrière un plexi fumé (les bobines tournent quand ça joue, appuie dessus = lecture/pause), afficheur fluorescent qui annonce la suite, **Garder** et **Plus d'infos** (le livret s'ouvre sous la chaîne). Deux sélecteurs à cinq crans règlent ce qui passe : **Détente → Énergique** et **Connu → Confidentiel**. On touche un mot, ou on tourne le bouton cran par cran. « Connu / Confidentiel » se mesure tout seul, d'après le nombre de fans de l'artiste sur Deezer. Interrupteur « Toute la sélection / Mes trouvailles / Au hasard / Longs moments » (les morceaux de 20 minutes et plus ont leur bouton à eux).
+- **Écouter** : une chaîne inspirée de la pochette *For A Good Time…* d'Odeal. Enceintes en noyer qui bougent avec la musique, magnétophone à bandes derrière un plexi fumé (les bobines tournent quand ça joue, appuie dessus = lecture/pause), afficheur fluorescent qui annonce la suite, **Garder** et **Plus d'infos** (le livret s'ouvre sous la chaîne). Cinq touches, comme les stations d'un vieux poste : **Énergique**, **Détente**, **Surprends-moi**, **Mes trouvailles**, **Longs moments** (20 minutes et plus). On appuie, la radio change de station tout de suite et enchaîne seule d'un morceau proche à l'autre. Dans Découvrir, « Connu / Confidentiel » se mesure tout seul d'après le nombre de fans de l'artiste principal sur Deezer ; on peut forcer avec `connu: true` dans data.js (Mozart, Zelda…).
 - **Une radio qui ne se bloque plus** : un morceau qui refuse de se lire (vidéo refusée, extrait périmé, vidéo qui ne démarre pas) est remplacé par son extrait ou sauté au bout de quelques secondes ; après trois ratés d'affilée, la radio s'arrête proprement et dit pourquoi.
 - **Réglages** : morceaux complets via YouTube, ou extraits de 30 secondes sans pub ; teinte du site.
 - **Trois teintes** : Salon (le jour), Nuit (le mode sombre, choisi tout seul si le téléphone est en mode sombre), Papier.
@@ -29,6 +29,8 @@ Site en ligne : https://amelienito.github.io/music-archive/
 2. Chaque morceau se lance (à 0:40 pour sauter l'intro, décochable). Bouton **vert = oui**, il entre sur le site. **Rouge = non**, il sort. « Pas sûr » le met de côté pour plus tard.
 3. Clavier : → oui, ← non, ↓ plus tard, Espace pause, ↑ +30 s, Z annuler. Sur téléphone : glisser la fiche à droite ou à gauche.
 4. Un morceau déjà sur le site, ou déjà trié dans n'importe quelle playlist, est sauté tout seul. Tes choix sont enregistrés au fur et à mesure : tu peux fermer et revenir. Recoller la même playlist la reprend là où tu t'étais arrêté (et ajoute les morceaux que tu y as mis depuis).
+5. **Ordre aléatoire** (case à cocher) : les morceaux arrivent dans le désordre, pour juger chacun sans être influencé par ceux d'à côté.
+6. **Plus de 200 morceaux** : le lecteur YouTube n'en donne que 200 d'un coup. La table redemande la suite toute seule ; si ça bloque quand même, inverse l'ordre de la playlist dans YouTube Music (ou coupe-la en deux) et recolle-la : tout ce qui est déjà trié est sauté.
 5. Sous chaque titre, la table dit si la vidéo vient d'une chaîne officielle (YouTube Music, l'artiste, le label). Si elle doute, cherche la version officielle avant de dire oui.
 6. **Trier aussi les morceaux déjà sur le site** : repasse la sélection actuelle. Vert, il reste ; rouge, il sort.
 7. Mode sombre par défaut, bouton « Mode clair » en haut.

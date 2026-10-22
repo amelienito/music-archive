@@ -26,6 +26,8 @@
               (Les morceaux très énergiques sont déjà baissés tout seuls.)
      jour     une date "2026-12-25" pour en faire le morceau du jour ce jour-là.
               Sans ça, le morceau du jour est tiré au sort, le même pour tous.
+     connu    true pour un morceau connu de tous même si ses interprètes
+              ne le sont pas (Mozart, Zelda…) : il ira côté « connu ».
      long     true pour un long moment (un morceau de 20 minutes et plus) :
               il a son bouton à lui sur la radio, « Longs moments ».
      bandcamp le lien Bandcamp du morceau, s'il y est. Il apparaît dans
@@ -160,16 +162,16 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=09hEFrUZrXA", note: "",
     energie: 4, etrange: 7, danse: 3 },
 
-  { titre: "Scheherazade, Op. 35: III. The Young Prince and The Young Princess", artiste: "New York Philharmonic", album: "",
-    lien: "https://music.youtube.com/watch?v=07pZtrFkfWo", note: "",
+  { titre: "Scheherazade, Op. 35: III. The Young Prince and The Young Princess", artiste: "Rimsky-Korsakov, New York Philharmonic", album: "",
+    lien: "https://music.youtube.com/watch?v=07pZtrFkfWo", note: "", connu: true,
     energie: 2, etrange: 3, danse: 1 },
 
   { titre: "Piano Concerto No. 2: I. Moderato", artiste: "Rachmaninoff, Krystian Zimerman", album: "",
-    lien: "https://music.youtube.com/watch?v=caR7C2SHdFI", note: "",
+    lien: "https://music.youtube.com/watch?v=caR7C2SHdFI", note: "", connu: true,
     energie: 5, etrange: 2, danse: 1 },
 
   { titre: "Serenata D.957", artiste: "Schubert, The Royal Schubert Orchestra", album: "",
-    lien: "https://music.youtube.com/watch?v=Huy791G17Ak", note: "",
+    lien: "https://music.youtube.com/watch?v=Huy791G17Ak", note: "", connu: true,
     energie: 2, etrange: 2, danse: 1 },
 
   { titre: "Ma Tfel", artiste: "Ziad Rahbani", album: "",
@@ -205,7 +207,7 @@ const MORCEAUX = [
     energie: 2, etrange: 5, danse: 3 },
 
   { titre: "Zelda's Lullaby (Skyward Sword)", artiste: "The Legend of Zelda", album: "",
-    lien: "https://music.youtube.com/watch?v=YHO6EDIbGlk", note: "",
+    lien: "https://music.youtube.com/watch?v=YHO6EDIbGlk", note: "", connu: true,
     energie: 1, etrange: 4, danse: 0 },
 
   { titre: "Great Fairy's Fountain", artiste: "Sleeping Phoenix", album: "",
@@ -213,7 +215,7 @@ const MORCEAUX = [
     energie: 1, etrange: 5, danse: 1 },
 
   { titre: "The Flight of the Bumble-bee", artiste: "Rimsky-Korsakov, Neeme Järvi", album: "",
-    lien: "https://music.youtube.com/watch?v=kh6gSLInIXo", note: "",
+    lien: "https://music.youtube.com/watch?v=kh6gSLInIXo", note: "", connu: true,
     energie: 8, etrange: 4, danse: 3 },
 
   { titre: "Tócame (feat. Dillom)", artiste: "Six Sex", album: "",
@@ -253,7 +255,7 @@ const MORCEAUX = [
     energie: 4, etrange: 2, danse: 5 },
 
   { titre: "Clair de Lune", artiste: "Claude Debussy", album: "",
-    lien: "https://music.youtube.com/watch?v=WKU8DJzipW4", note: "",
+    lien: "https://music.youtube.com/watch?v=WKU8DJzipW4", note: "", connu: true,
     energie: 1, etrange: 2, danse: 0 },
 
   { titre: "Bobby", artiste: "Phoebe Bridgers", album: "",
@@ -293,11 +295,11 @@ const MORCEAUX = [
     energie: 2, etrange: 6, danse: 1 },
 
   { titre: "Symphonie n° 6 : I. Allegro energico, ma non troppo", artiste: "Mahler, Berliner Philharmoniker", album: "",
-    lien: "https://music.youtube.com/watch?v=hoVnIDmuwLw", note: "",
+    lien: "https://music.youtube.com/watch?v=hoVnIDmuwLw", note: "", connu: true,
     energie: 7, etrange: 4, danse: 2 },
 
   { titre: "Symphonie n° 2 : IV. Finale (Allegro moderato)", artiste: "Sibelius, Berliner Philharmoniker", album: "",
-    lien: "https://music.youtube.com/watch?v=-10jYSvWYeI", note: "",
+    lien: "https://music.youtube.com/watch?v=-10jYSvWYeI", note: "", connu: true,
     energie: 6, etrange: 3, danse: 1 },
 
   { titre: "Resurrections", artiste: "Lena Raine", album: "",
@@ -325,7 +327,7 @@ const MORCEAUX = [
     energie: 2, etrange: 2, danse: 2 },
 
   { titre: "Concerto pour piano n° 21 : II. Andante", artiste: "Mozart, London Mozart Players", album: "",
-    lien: "https://music.youtube.com/watch?v=sgqtFZ9S5sA", note: "",
+    lien: "https://music.youtube.com/watch?v=sgqtFZ9S5sA", note: "", connu: true,
     energie: 1, etrange: 2, danse: 0 },
 
   { titre: "My Cherie Amour", artiste: "Stevie Wonder", album: "",
@@ -356,10 +358,6 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=CA1ZmK3DC8o", note: "",
     energie: 5, etrange: 8, danse: 5 },
 
-  { titre: "The Weekend (Original 12 Inch Mix)", artiste: "Michael Gray", album: "",
-    lien: "https://music.youtube.com/watch?v=beO3qViOUiQ", note: "",
-    energie: 7, etrange: 3, danse: 9 },
-
   { titre: "I Miss You (Part 1)", artiste: "David Ruffin", album: "",
     lien: "https://music.youtube.com/watch?v=sbNioahCQlA", note: "",
     energie: 3, etrange: 3, danse: 3 },
@@ -381,7 +379,7 @@ const MORCEAUX = [
     energie: 4, etrange: 5, danse: 5 },
 
   { titre: "Symphonie n° 1 : I. Allegro (molto moderato)", artiste: "Bruckner, Orchestre Métropolitain", album: "",
-    lien: "https://music.youtube.com/watch?v=_Ak0zpy-ICU", note: "",
+    lien: "https://music.youtube.com/watch?v=_Ak0zpy-ICU", note: "", connu: true,
     energie: 6, etrange: 4, danse: 1 },
 
   { titre: "Mermaid", artiste: "Sade Adu", album: "",

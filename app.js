@@ -66,7 +66,7 @@ const parTitre = t => BANQUE.find(m => m.titre.toLowerCase() === String(t).toLow
 // Découvrir mesure trois choses (énergie, côté barré, envie de danser) ; la radio, deux
 // connu (0) ou confidentiel (10) : mesuré d'après le nombre de fans de l'artiste sur Deezer,
 // et, tant qu'on ne sait pas, d'après la note « etrange » de data.js
-const conf = m => { const c = m.id ? Pochettes.confidentiel(m) : null; return c === null ? m.etrange : c; };
+const conf = m => { if (m.connu) return 1; const c = m.id ? Pochettes.confidentiel(m) : null; return c === null ? m.etrange : c; };
 const val = (m, cle) => cle === 'etrange' ? conf(m) : m[cle];
 const distance = (a, b) => Math.hypot(a.energie - b.energie, conf(a) - conf(b), (a.danse - b.danse) * 0.8);
 const distanceRadio = (a, b) => Math.hypot(a.energie - b.energie, conf(a) - conf(b));
@@ -109,7 +109,7 @@ const S = {
   mode: 'decouvrir',      // ou 'radio'
   // Écouter
   tonPos: tonDeDepart(),
-  sourceRadio: memoire.lire('md-source-radio', 'tout'),
+  sourceRadio: (s => ['energique', 'detente', 'hasard', 'trouvailles', 'longs'].includes(s) ? s : 'hasard')(memoire.lire('md-source-radio', 'hasard')),
   file: [], pos: 0, recents: [], echecs: 0,
   // le reste
   volume: borner(memoire.lire('md-volume', 60), 0, 100),
@@ -124,7 +124,7 @@ const S = {
 const retrouver = ids => [...new Set(ids.map(id => parId[id] ? id : parId[String(id).replace(/-\d+$/, '')] ? String(id).replace(/-\d+$/, '') : null).filter(Boolean))];
 S.croises = retrouver(S.croises); memoire.ecrire('md-croises', S.croises);
 S.gardes  = retrouver(S.gardes);  memoire.ecrire('md-gardes', S.gardes);
-if (!S.gardes.length && S.sourceRadio === 'trouvailles') S.sourceRadio = 'tout';
+if (!S.gardes.length && S.sourceRadio === 'trouvailles') S.sourceRadio = 'hasard';
 const ton = () => ({ energie: REGLAGES.energie.valeurs[S.tonPos.energie], etrange: REGLAGES.etrange.valeurs[S.tonPos.etrange] });
 
 let apiEnPanne = false;
@@ -1155,61 +1155,8 @@ setInterval(() => {
 }, 500);
 
 /* ─────────────────────────────── ÉCOUTER : la chaîne ───────────────────────────────
-   Deux sélecteurs à trois positions règlent ce qui passe : détente, entre deux
-   ou énergique ; accessible, de travers ou barré. Le morceau en cours continue,
-   c'est la suite qui change. */
-function descriptionTon() {
-  return `${REGLAGES.energie.noms[S.tonPos.energie]}, ${REGLAGES.etrange.noms[S.tonPos.etrange].toLowerCase()}`;
-}
-function majSelecteurs() {
-  $$('.selecteur-rotatif').forEach(el => {
-    const cle = el.dataset.reglage, pos = S.tonPos[cle];
-    el.style.setProperty('--rot', `${(pos - 2) * 31}deg`);
-    const nom = $('.sel-valeur', el);
-    if (nom) nom.textContent = REGLAGES[cle].noms[pos];
-    $$('.sel-etiquette', el).forEach(b => {
-      const p = +b.dataset.pos, ok = p === pos;
-      b.setAttribute('aria-checked', ok);
-      b.classList.toggle('proche', !ok && Math.abs(p - pos) === 1);
-      b.tabIndex = ok || (pos % 2 === 1 && p === pos - 1) ? 0 : -1;
-    });
-  });
-}
-// on peut aussi attraper le bouton et le tourner, cran par cran
-$$('.sel-bouton').forEach(bt => {
-  let g = null;
-  bt.addEventListener('pointerdown', e => { g = { x: e.clientX, y: e.clientY, bouge: false, pos: S.tonPos[bt.dataset.reglage] }; try { bt.setPointerCapture(e.pointerId); } catch (er) {} e.preventDefault(); });
-  bt.addEventListener('pointermove', e => {
-    if (!g) return;
-    const d = (g.y - e.clientY) + (e.clientX - g.x);
-    if (Math.abs(d) > 6) g.bouge = true;
-    if (g.bouge) regler(bt.dataset.reglage, g.pos + Math.round(d / 24), true);
-  });
-  // après avoir tourné le bouton, le « clic » qui suit ne doit pas avancer d'un cran de plus
-  const fin = () => { if (!g) return; const bouge = g.bouge; g = null; if (bouge) { bt.dataset.saisi = '1'; setTimeout(() => delete bt.dataset.saisi, 50); tonChange(); } };
-  bt.addEventListener('pointerup', fin);
-  bt.addEventListener('pointercancel', fin);
-});
-function regler(cle, pos, enDirect) {
-  if (!REGLAGES[cle]) return;
-  pos = borner(pos, 0, CRANS - 1);
-  if (S.tonPos[cle] === pos) return;
-  S.tonPos[cle] = pos;
-  memoire.ecrire('md-ton-v3', S.tonPos);
-  majSelecteurs();
-  clic(1500 + pos * 200, 0.03, 0.07);
-  if (!enDirect) tonChange();
-}
-// au clavier : les flèches déplacent le sélecteur
-$$('.selecteur-rotatif').forEach(el => el.addEventListener('keydown', e => {
-  const pas = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
-  if (!pas) return;
-  e.preventDefault();
-  const cle = el.dataset.reglage;
-  regler(cle, S.tonPos[cle] + pas);
-  const b = $(`.sel-etiquette[tabindex="0"]`, el);
-  if (b) b.focus();
-}));
+   Cinq touches, comme les stations d'un vieux poste : on choisit une envie,
+   la radio enchaîne toute seule d'un morceau proche à l'autre. */
 // la file : les morceaux les plus proches du réglage, enchaînés avec un fil
 function construireFil(exclure = []) {
   // au hasard : toute la sélection mélangée, sélecteurs ignorés
@@ -1220,16 +1167,20 @@ function construireFil(exclure = []) {
     if (p.length < 3) p = BANQUE.filter(m => !m.long && !exclure.includes(m.id));
     return melanger(p).map(m => m.id);
   }
-  const cible = ton();
+  // énergique ou détente : on part des morceaux les plus proches de l'envie, puis on se laisse porter
+  const cible = S.sourceRadio === 'energique' ? { energie: 8.5, etrange: 5, danse: 7 }
+    : S.sourceRadio === 'detente' ? { energie: 1.5, etrange: 5, danse: 2 } : ton();
+  const proximite = (a, c) => S.sourceRadio === 'energique' || S.sourceRadio === 'detente'
+    ? Math.abs(a.energie - c.energie) + 0.3 * Math.abs(a.danse - c.danse) : distanceRadio(a, c);
   const base = (S.sourceRadio === 'trouvailles' && S.gardes.length ? S.gardes.map(id => parId[id]) : BANQUE)
     .filter(m => m && !exclure.includes(m.id) && (S.sourceRadio === 'trouvailles' || !m.long));
   let pool = base.filter(ecoutable);
   if (pool.length < 3) pool = base;
-  pool.sort((a, b) => distanceRadio(a, cible) - distanceRadio(b, cible));
-  const garde = S.sourceRadio === 'trouvailles' ? pool.length : Math.min(pool.length, 14);
+  pool.sort((a, b) => proximite(a, cible) - proximite(b, cible));
+  const garde = S.sourceRadio === 'trouvailles' ? pool.length : Math.min(pool.length, 18);
   const reste = melanger(pool.slice(0, garde));
   if (!reste.length) return [];
-  reste.sort((a, b) => distanceRadio(a, cible) - distanceRadio(b, cible));
+  reste.sort((a, b) => proximite(a, cible) - proximite(b, cible));
   const fil = [reste.shift()];
   while (reste.length) {
     const der = fil[fil.length - 1];
@@ -1245,29 +1196,21 @@ function reconstruireSuite() {
   S.file = actuel ? [actuel, ...nouveau] : nouveau;
   S.pos = 0;
 }
-function tonChange() {
-  if (S.sourceRadio === 'hasard' || S.sourceRadio === 'longs') {
-    S.sourceRadio = 'tout'; memoire.ecrire('md-source-radio', 'tout');
-    $$('.source-pos').forEach(b => b.setAttribute('aria-checked', b.dataset.source === 'tout'));
-  }
-  reconstruireSuite();
-  majMachine();
-  const prochain = parId[S.file[S.mode === 'radio' && S.joue ? 1 : 0]];
-  toast(prochain ? `Réglé : ${descriptionTon().toLowerCase()}. Ensuite : ${prochain.affiche}` : `Réglé : ${descriptionTon().toLowerCase()}`);
-}
 function choisirSourceRadio(src) {
   if (src === 'trouvailles' && !S.gardes.length) { toast('Garde des morceaux en découvrant : ils formeront ta sélection.'); return; }
   S.sourceRadio = src;
   memoire.ecrire('md-source-radio', src);
   $$('.source-pos').forEach(b => b.setAttribute('aria-checked', b.dataset.source === src));
-  reconstruireSuite();
+  // comme sur un vrai poste : appuyer sur une touche change de station tout de suite
+  S.file = construireFil(S.recents.slice(-8));
+  S.pos = 0;
   majMachine();
   clic(1500, 0.03, 0.06);
+  radioJouerCourant();
 }
 function entrerMachine() {
   if (!S.file.length) reconstruireSuite();
   $$('.source-pos').forEach(b => b.setAttribute('aria-checked', b.dataset.source === S.sourceRadio));
-  majSelecteurs();
   aller('machine');
   majMachine();
 }
@@ -1287,7 +1230,7 @@ function majAfficheur() {
   const texte = m ? `${m.affiche}, ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'Rien à jouer.';
   const t = $('#vfd-texte');
   if (t.textContent !== texte) { t.textContent = texte; t.style.animationDuration = `${Math.max(8, texte.length * 0.28)}s`; }
-  $('#vfd-reglage').textContent = S.sourceRadio === 'trouvailles' ? 'Mes trouvailles' : S.sourceRadio === 'hasard' ? 'Au hasard' : S.sourceRadio === 'longs' ? 'Longs moments' : descriptionTon();
+  $('#vfd-reglage').textContent = { energique: 'Énergique', detente: 'Détente', hasard: 'Surprends-moi', trouvailles: 'Mes trouvailles', longs: 'Longs moments' }[S.sourceRadio] || '';
   $('#vfd-etat').textContent = !active ? 'Stop' : S.bloque ? 'Bloqué' : S.enLecture ? 'Lecture' : S.aJoue ? 'Pause' : 'Chargement';
   const ensuite = parId[S.file[S.pos + 1]];
   $('#vfd-ensuite').textContent = ensuite ? `Ensuite : ${ensuite.affiche}` : '';
@@ -1542,8 +1485,6 @@ const ACTIONS = {
   'radio-stop': radioStop,
   'radio-garder': () => basculerGarde(S.file[S.pos]),
   'radio-raconte': () => { const m = parId[S.file[S.pos]]; if (m) ouvrirLivret('machine', m); },
-  'regler': b => regler(b.dataset.reglage, +b.dataset.pos),
-  'regler-suivant': b => { if (b.dataset.saisi) return; const c = b.dataset.reglage; regler(c, (S.tonPos[c] + 1) % CRANS); },
   'source-radio': b => choisirSourceRadio(b.dataset.source),
   'ouvrir-bac': () => ouvrirPanneau('bac'),
   'ouvrir-reglages': () => ouvrirPanneau('reglages'),
@@ -1590,7 +1531,6 @@ document.addEventListener('keydown', e => {
 /* ─────────────────────────────── démarrage ─────────────────────────────── */
 appliquerTeinte(teinteActive, false);
 majMolettes();
-majSelecteurs();
 majSon();
 majGarde();
 chargerAPI();

@@ -131,10 +131,12 @@ function fusionner(l, ids) {
   ids.forEach(id => { if (!l.ids.includes(id)) l.ids.push(id); });
   return l.ids.length - avant;
 }
+// le lecteur YouTube ne donne que 200 morceaux à la fois : on lui redemande la suite à partir du dernier
 async function chargerSuite() {
   const l = L();
   if (!l.list || l.complet) return false;
-  const nouveaux = await cuePlaylist(l.list, l.ids.length);
+  let nouveaux = await cuePlaylist(l.list, l.ids.length - 1);
+  if (!nouveaux || !nouveaux.some(id => !l.ids.includes(id))) nouveaux = await cuePlaylist(l.list, l.ids.length);
   if (!nouveaux || !nouveaux.length) { l.complet = true; sauver(); return false; }
   const ajoutes = fusionner(l, nouveaux);
   if (!ajoutes) l.complet = true;
@@ -184,15 +186,18 @@ function ouvrirTable() {
 function prochain() {
   const l = L();
   const vus = T.active === SITE ? {} : dejaTries();
+  const restants = [];
   for (const id of l.ids) {
     if (l.decisions[id]) continue;
     if (T.active !== SITE) {
       if (DEJA.has(id)) { l.decisions[id] = 'deja'; continue; }
       if (vus[id]) { l.decisions[id] = 'vu'; continue; }
     }
-    return id;
+    restants.push(id);
   }
-  return null;
+  if (!restants.length) return null;
+  // ordre aléatoire : pour ne pas juger un morceau selon ceux qui l'entourent dans la playlist
+  return $('#opt-hasard').checked ? restants[Math.floor(Math.random() * restants.length)] : restants[0];
 }
 async function suivant() {
   let id = prochain();
@@ -388,6 +393,11 @@ fiche.addEventListener('touchend', e => {
 
 // sur iPhone, Safari bloque les cookies YouTube dans les vidéos intégrées : Premium n'y est pas reconnu
 if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) $('#avis-ios').hidden = false;
+// l'option « ordre aléatoire » est retenue
+try { $('#opt-hasard').checked = localStorage.getItem('md-tri-hasard') === '1'; } catch (e) {}
+$('#opt-hasard').addEventListener('change', () => { try { localStorage.setItem('md-tri-hasard', $('#opt-hasard').checked ? '1' : '0'); } catch (e) {} });
+// une playlist marquée « finie » à 200 morceaux : on retente la suite à la prochaine reprise
+Object.values(T.listes).forEach(l => { if (l.list && l.ids.length >= 199 && l.complet) l.complet = false; });
 // reprise : ce qui est déjà en mémoire
 rendreListes();
 const nTries = Object.keys(dejaTries()).length;

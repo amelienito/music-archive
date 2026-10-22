@@ -14,7 +14,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const Pochettes = (() => {
-  const CLE = 'md-pochettes-v7';
+  const CLE = 'md-pochettes-v8';
   const CLE_ALBUMS = 'md-albums-v2';
   const lire = cle => { try { return JSON.parse(localStorage.getItem(cle)) || {}; } catch (e) { return {}; } };
   let cache = lire(CLE);
@@ -125,6 +125,14 @@ const Pochettes = (() => {
     };
   }
   // combien de fans l'artiste a sur Deezer : c'est ce qui dit s'il est connu ou confidentiel
+  async function fansParNom(nom) {
+    const n = normaliser(nom);
+    if (!n) return null;
+    const d = await jsonp(`https://api.deezer.com/search/artist?q=${encodeURIComponent(nom)}&limit=8&output=jsonp`);
+    if (!d || d.error) return null;
+    const ok = (d.data || []).filter(a => { const an = normaliser(a.name); return an === n || an.endsWith(' ' + n) || an.startsWith(n + ' '); });
+    return ok.length ? Math.max(...ok.map(a => a.nb_fan || 0)) : null;
+  }
   async function fansDeezer(id) {
     const d = await jsonp(`https://api.deezer.com/artist/${id}?output=jsonp`);
     return d && !d.error && typeof d.nb_fan === 'number' ? d.nb_fan : null;
@@ -134,8 +142,10 @@ const Pochettes = (() => {
     let apple = null, deezer = null, dzErr = false;
     try { apple = await chercherApple(m); } catch (e) {}
     try { deezer = await chercherDeezer(m); } catch (e) { dzErr = true; }
+    // la popularité se mesure sur l'artiste principal (le compositeur pour le classique), pas sur l'interprète trouvé
     let fans = null;
-    if (deezer && deezer.idArtiste) { try { fans = await fansDeezer(deezer.idArtiste); } catch (e) {} }
+    try { fans = await fansParNom(artistePrincipal(m.artiste)); } catch (e) {}
+    if (fans === null && deezer && deezer.idArtiste) { try { fans = await fansDeezer(deezer.idArtiste); } catch (e) {} }
     const pris = k => (apple && apple[k]) || (deezer && deezer[k]) || null;
     // l'album : celui qui correspond à data.js d'abord, sinon Apple, sinon Deezer
     const voulu = m.album ? normaliser(m.album) : '';
