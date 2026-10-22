@@ -233,10 +233,10 @@ const MORCEAUX = [
 
 
 /* ════════════════════════════════════════════════════════════════════
-   LES STATIONS DE LA RADIO (page Écouter)
-   Chaque morceau va automatiquement dans la station qui lui ressemble
+   LES DISQUES DU LECTEUR CD (page Écouter)
+   Chaque morceau va automatiquement sur le disque qui lui ressemble
    le plus, d'après ses réglages energie / etrange / danse.
-   Tu peux renommer les stations, en ajouter, en enlever.
+   Tu peux renommer les disques, en ajouter, en enlever.
    ════════════════════════════════════════════════════════════════════ */
 
 const STATIONS = [

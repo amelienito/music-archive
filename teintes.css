@@ -10,6 +10,15 @@
 
 /* ─── AMBRE : la chaîne hi-fi des années 70, bakélite prune et verre ambré ─── */
 :root, [data-teinte="ambre"] {
+  --facade-cd: linear-gradient(180deg, #e4dfdc, #c4bcb9 60%, #b3aaa7), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
+  --encre-cd: #2a1d22;
+  --sur-encre-cd: #e4dfdc;
+  --touche-cd: linear-gradient(180deg, #f2eeec, #d3ccc9);
+  --fente-cd: #1b1216;
+  --vfd: #7cf3dc;
+  --vfd-fond: #0b1412;
+  --vfd-halo: rgba(124, 243, 220, .45);
+
   --dos-carte: repeating-linear-gradient(135deg, #3b2731 0 14px, #331f29 14px 28px);
   --sur-dos: #ffb547;
   --force-teinte: .32;
@@ -59,6 +68,15 @@
 
 /* ─── PAPIER : une archive privée, papier vert-de-gris, encre bleue, tampon magenta ─── */
 [data-teinte="papier"] {
+  --facade-cd: #eef1e8;
+  --encre-cd: #1d2a4d;
+  --sur-encre-cd: #eef1e8;
+  --touche-cd: #f6f7f1;
+  --fente-cd: #1d2a4d;
+  --vfd: #f6f7f1;
+  --vfd-fond: #1d2a4d;
+  --vfd-halo: transparent;
+
   --dos-carte: #1d2a4d;
   --sur-dos: #eef1e8;
   --force-teinte: .28;
@@ -106,10 +124,18 @@
   --rayon-ecran: 0px;
   --rayon-verre: 0px;
 }
-[data-teinte="papier"] .sillons { filter: grayscale(1) contrast(.9); }
 
 /* ─── SIGNAL : tout en bleu électrique, comme un écran de veille de studio ─── */
 [data-teinte="signal"] {
+  --facade-cd: #2a43ff;
+  --encre-cd: #f3f5ff;
+  --sur-encre-cd: #1730ff;
+  --touche-cd: #3a51ff;
+  --fente-cd: #0d1fd6;
+  --vfd: #ffffff;
+  --vfd-fond: #0d1fd6;
+  --vfd-halo: rgba(255,255,255,.5);
+
   --dos-carte: #ffffff;
   --sur-dos: #1730ff;
   --force-teinte: 0;
@@ -160,6 +186,15 @@
 
 /* ─── VIDE : presque rien. La pochette et le son, point. ─── */
 [data-teinte="vide"] {
+  --facade-cd: #ffffff;
+  --encre-cd: #000000;
+  --sur-encre-cd: #ffffff;
+  --touche-cd: #f6f6f3;
+  --fente-cd: #000000;
+  --vfd: #f6f6f3;
+  --vfd-fond: #000000;
+  --vfd-halo: transparent;
+
   --dos-carte: #000000;
   --sur-dos: #f6f6f3;
   --force-teinte: .2;
@@ -206,7 +241,8 @@
   --rayon-ecran: 0px;
   --rayon-verre: 0px;
 }
-[data-teinte="vide"] .porte, [data-teinte="vide"] .table-de-mixage, [data-teinte="vide"] .terrier { border-top: 1px solid #000; }
+[data-teinte="vide"] .table-de-mixage, [data-teinte="vide"] .chemins { border-top: 1px solid #000; }
+[data-teinte="vide"] .lecteur-cd { box-shadow: 0 0 0 1px #000; }
 [data-teinte="vide"] .porte-decouvrir::before, [data-teinte="vide"] .porte-decouvrir::after,
 [data-teinte="vide"] .porte-ecouter::before { opacity: 0; }
 [data-teinte="vide"] .cadran { border-bottom-color: transparent; }
@@ -214,6 +250,15 @@
 
 /* ─── FIÈVRE : teinte cachée, débloquée en explorant. Rose brûlant, vert profond. ─── */
 [data-teinte="fievre"] {
+  --facade-cd: #0e3b2c;
+  --encre-cd: #fff35c;
+  --sur-encre-cd: #0e3b2c;
+  --touche-cd: #1d5442;
+  --fente-cd: #061f17;
+  --vfd: #ff8cc0;
+  --vfd-fond: #061f17;
+  --vfd-halo: rgba(255, 140, 192, .5);
+
   --dos-carte: #0e3b2c;
   --sur-dos: #fff35c;
   --force-teinte: 0;

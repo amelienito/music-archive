@@ -1,14 +1,16 @@
 /* ════════════════════════════════════════════════════════════════════
    POCHETTES & EXTRAITS
    Va chercher tout seul, dans le navigateur du visiteur :
-     • la pochette haute définition du morceau (catalogue Apple Music)
-     • un extrait de 30 secondes (pour la pré-écoute au survol)
+     • la pochette haute définition du morceau
+     • un extrait de 30 secondes (pré-écoute au survol, et mode sans pub)
+   Deux catalogues publics sont interrogés : Apple Music, puis Deezer
+   (meilleur sur le rap français et les artistes moins connus).
    Rien à remplir à la main. Tout est mis en cache dans le navigateur.
    En attendant (ou si rien n'est trouvé), on montre l'image YouTube.
    ════════════════════════════════════════════════════════════════════ */
 
 const Pochettes = (() => {
-  const CLE = 'md-pochettes-v2';
+  const CLE = 'md-pochettes-v3';
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { cache = {}; }
 
@@ -65,34 +67,65 @@ const Pochettes = (() => {
     });
   }
 
-  async function chercher(m) {
-    const principal = artistePrincipal(m.artiste);
-    const terme = encodeURIComponent(`${principal} ${m.titre}`);
-    const data = await jsonp(`https://itunes.apple.com/search?term=${terme}&entity=song&limit=8&country=FR`);
-    const res = (data && data.results) || [];
-    const a = normaliser(principal);
+  // est-ce que ce résultat correspond bien au morceau ? (sinon mauvaise pochette)
+  function correspond(m, artisteRes, titreRes) {
+    const a = normaliser(artistePrincipal(m.artiste));
+    const ra = normaliser(artisteRes);
     const t = normaliser(m.titre);
-    const alb = normaliser(m.album);
-    // on n'accepte un résultat que si l'artiste correspond (sinon mauvaise pochette)
-    const candidats = res.filter(r => {
-      const ra = normaliser(r.artistName);
-      return a && (ra.includes(a) || a.includes(ra));
-    });
-    const score = r => {
-      let s = 0;
-      const rt = normaliser(r.trackName);
-      if (rt === t) s += 3; else if (rt.includes(t) || t.includes(rt)) s += 2;
-      if (alb && normaliser(r.collectionName).includes(alb)) s += 1;
-      return s;
-    };
-    candidats.sort((x, y) => score(y) - score(x));
-    const best = candidats[0];
-    if (!best) return { art: null, preview: null, t: Date.now() };
+    const rt = normaliser(titreRes);
+    const memeArtiste = a && ra && (ra.includes(a) || a.includes(ra));
+    const memeTitre = t && rt && (rt === t || rt.includes(t) || t.includes(rt));
+    const motCommun = a.split(' ').some(w => w.length > 2 && ra.split(' ').includes(w));
+    if (memeArtiste && memeTitre) return 3;
+    if (memeArtiste) return 2;
+    if (memeTitre && motCommun) return 1;
+    return 0;
+  }
+
+  async function chercherApple(m) {
+    const terme = encodeURIComponent(`${artistePrincipal(m.artiste)} ${m.titre}`);
+    const data = await jsonp(`https://itunes.apple.com/search?term=${terme}&entity=song&limit=10&country=FR`);
+    const res = ((data && data.results) || []).map(r => ({ r, s: correspond(m, r.artistName, r.trackName) })).filter(x => x.s > 0);
+    res.sort((x, y) => y.s - x.s);
+    const best = res[0] && res[0].r;
+    if (!best) return null;
     return {
       art: best.artworkUrl100 ? best.artworkUrl100.replace(/\/\d+x\d+bb/, '/600x600bb') : null,
       preview: best.previewUrl || null,
+    };
+  }
+
+  async function chercherDeezer(m) {
+    const terme = encodeURIComponent(`${artistePrincipal(m.artiste)} ${m.titre}`);
+    const data = await jsonp(`https://api.deezer.com/search?q=${terme}&limit=10&output=jsonp`);
+    const res = ((data && data.data) || []).map(r => ({ r, s: correspond(m, r.artist && r.artist.name, r.title) })).filter(x => x.s > 0);
+    res.sort((x, y) => y.s - x.s);
+    const best = res[0] && res[0].r;
+    if (!best) return null;
+    return {
+      art: best.album && (best.album.cover_xl || best.album.cover_big) || null,
+      preview: best.preview || null,
+    };
+  }
+
+  async function chercher(m) {
+    let apple = null, deezer = null;
+    try { apple = await chercherApple(m); } catch (e) {}
+    if (!apple || !apple.preview || !apple.art) {
+      try { deezer = await chercherDeezer(m); } catch (e) {}
+    }
+    return {
+      art: (apple && apple.art) || (deezer && deezer.art) || null,
+      preview: (apple && apple.preview) || (deezer && deezer.preview) || null,
       t: Date.now()
     };
+  }
+
+  // 'inconnu' (recherche pas encore faite), 'ok' (extrait dispo) ou 'absent'
+  function etat(m) {
+    const c = cache[m.id];
+    if (!c) return 'inconnu';
+    return c.preview ? 'ok' : 'absent';
   }
 
   function pomper() {
@@ -124,18 +157,15 @@ const Pochettes = (() => {
 
   // remplace toutes les images d'un morceau déjà affichées à l'écran
   function majImages(m) {
+    document.querySelectorAll(`[data-extrait-pour="${m.id}"]`).forEach(b => { b.dataset.etat = etat(m); });
     const im = image(m);
-    if (!im) return;
-    document.querySelectorAll(`img[data-pochette="${m.id}"]`).forEach(img => {
-      if (img.getAttribute('src') !== im.src) {
-        img.classList.add('se-revele');
-        img.src = im.src;
-      }
-      img.classList.toggle('est-yt', im.yt);
-    });
-    document.querySelectorAll(`[data-extrait-pour="${m.id}"]`).forEach(b => {
-      b.hidden = !extrait(m);
-    });
+    if (im) {
+      document.querySelectorAll(`img[data-pochette="${m.id}"]`).forEach(img => {
+        if (img.getAttribute('src') !== im.src) { img.classList.add('se-revele'); img.src = im.src; }
+        img.classList.toggle('est-yt', im.yt);
+      });
+    }
+    document.dispatchEvent(new CustomEvent('pochette-prete', { detail: m.id }));
   }
 
   // HTML d'une pochette (image + repli typographique)
@@ -185,5 +215,5 @@ const Pochettes = (() => {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  return { html, image, extrait, demander, couleur, echapper };
+  return { html, image, extrait, etat, demander, couleur, echapper };
 })();

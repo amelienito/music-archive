@@ -271,6 +271,10 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
   linear-gradient(currentColor, currentColor) 50% 100%/3px 100% no-repeat,
   linear-gradient(currentColor, currentColor) 100% 80%/3px 60% no-repeat; }
 .extrait-bouton.en-cours { color: var(--aiguille); }
+.extrait-bouton .extrait-ok, .extrait-bouton .extrait-inconnu, .extrait-bouton .extrait-absent { display: none; }
+.extrait-bouton[data-etat="ok"] .extrait-ok, .extrait-bouton[data-etat="inconnu"] .extrait-inconnu, .extrait-bouton[data-etat="absent"] .extrait-absent { display: inline; }
+.extrait-bouton[data-etat="inconnu"], .extrait-bouton[data-etat="absent"] { pointer-events: none; opacity: .7; }
+.extrait-bouton[data-etat="absent"] .extrait-icone { display: none; }
 .extrait-bouton.en-cours .extrait-icone { animation: egaliseur .5s ease-in-out infinite alternate; }
 @keyframes egaliseur { to { background-size: 3px 90%, 3px 30%, 3px 100%; } }
 .duel-pied { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: center; }
@@ -348,100 +352,123 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 .suite-annonce .lien-bouton { font-size: 14px; margin-left: 6px; }
 .chemins-bas { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; }
 
-/* ─────────────────────────────── ÉCOUTER : le tuner ─────────────────────────────── */
-.ecran-machine { display: grid; align-content: start; gap: clamp(20px, 3vw, 36px); max-width: 1240px; margin: 0 auto; }
-.tuner { display: grid; gap: 8px; }
-.tuner-verre {
-  --marge: 44px;
-  position: relative; height: 92px;
-  border-radius: var(--rayon-verre, 10px);
-  background: var(--verre-fond);
-  box-shadow: inset 0 3px 10px rgba(0,0,0,.45), 0 0 0 1px var(--trait);
-  cursor: ew-resize; touch-action: none; user-select: none; -webkit-user-select: none;
+/* ─────────────────────────────── ÉCOUTER : la chaîne hi-fi ─────────────────────────────── */
+.ecran-machine { display: grid; align-content: start; justify-items: center; gap: 22px; }
+.chaine { display: grid; grid-template-columns: auto minmax(0, 780px); gap: clamp(20px, 4vw, 56px); align-items: center; width: 100%; max-width: 1180px; justify-content: center; }
+
+/* le boîtier CD posé à côté : la pochette du morceau en cours */
+.boitier {
+  position: relative; display: block; width: clamp(200px, 24vw, 320px); aspect-ratio: 1 / .9;
+  border-radius: 4px; overflow: hidden;
+  background: rgba(255,255,255,.12);
+  box-shadow: var(--ombre-pochette-forte), inset 0 0 0 1px rgba(255,255,255,.25);
+  transform: rotate(-3deg);
+  transition: transform .4s cubic-bezier(.2,.9,.3,1.2);
+}
+.boitier:hover { transform: rotate(0) translateY(-4px); }
+.boitier-pochette { position: absolute; top: 4%; bottom: 4%; left: 11%; right: 3%; }
+.boitier-pochette .pochette { height: 100%; aspect-ratio: auto; box-shadow: none; border-radius: 1px; }
+.boitier-charniere {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 9%;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.35) 0 2px, rgba(0,0,0,.25) 2px 5px), rgba(30,30,30,.55);
+}
+.boitier-reflet { position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,.28) 0 18%, transparent 30% 70%, rgba(255,255,255,.12) 85%); pointer-events: none; }
+
+/* le lecteur CD */
+.lecteur-cd {
+  display: grid; gap: 18px; min-width: 0;
+  padding: clamp(16px, 2.4vw, 28px);
+  border-radius: calc(var(--rayon-objet) - 6px);
+  background: var(--facade-cd);
+  color: var(--encre-cd);
+  box-shadow: var(--relief-fort), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.cd-haut { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+.cd-marque { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 14px; letter-spacing: 0; display: grid; line-height: 1.15; }
+.cd-marque span { font-family: var(--texte); font-weight: 500; font-size: 12px; opacity: .7; }
+.tiroir {
+  position: relative; flex: 1; max-width: 420px; height: 26px; border-radius: 4px;
+  background: var(--fente-cd); box-shadow: inset 0 2px 4px rgba(0,0,0,.5);
+}
+.tiroir-fente {
+  position: absolute; left: 4%; right: 4%; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px;
+  background: rgba(0,0,0,.6);
+  transition: transform .4s cubic-bezier(.3,.8,.3,1), background .4s;
+}
+.tiroir.ouvert .tiroir-fente { transform: translateY(9px) scaleY(4); background: var(--metal-sombre); }
+
+.cd-milieu { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(150px, 220px); gap: 16px; align-items: center; }
+.hublot {
+  display: grid; place-items: center; width: 116px; aspect-ratio: 1 / 1; border-radius: 50%;
+  background: var(--fente-cd); box-shadow: inset 0 3px 10px rgba(0,0,0,.6), 0 0 0 3px rgba(255,255,255,.25);
   overflow: hidden;
 }
-.tuner-verre::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(100% 140% at 50% 130%, var(--verre-halo), transparent 60%);
-}
-.tuner-echelle { position: absolute; left: var(--marge); right: var(--marge); top: 0; bottom: 0; }
-.graduation { position: absolute; bottom: 12px; width: 1px; height: 10px; margin-left: -.5px; background: var(--verre-trait); }
-.graduation-station { height: 20px; background: var(--verre); box-shadow: 0 0 6px var(--verre-halo); }
-.station {
-  position: absolute; top: 14px; transform: translateX(-50%);
-  padding: 4px 8px; border-radius: 6px; white-space: nowrap;
-  font-size: 14px; font-weight: 600; color: var(--verre); opacity: .55;
-  text-shadow: 0 0 8px var(--verre-halo);
-  transition: opacity .2s;
-}
-.station:hover { opacity: .85; }
-.station.active { opacity: 1; }
-.tuner-aiguille {
-  position: absolute; top: 8px; bottom: 8px; width: 3px; margin-left: -1.5px;
-  background: var(--aiguille); box-shadow: 0 0 10px var(--aiguille);
-  border-radius: 2px;
-  transition: left .45s cubic-bezier(.25,1.45,.45,1);
-}
-.tuner-aiguille.saisie { transition: none; }
-.tuner-aide { font-size: 14px; color: var(--encre-2); }
-
-/* ─────────────────────────────── ÉCOUTER : la machine ─────────────────────────────── */
-.machine { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(22px, 4vw, 56px); align-items: center; }
-.platine {
-  position: relative; width: 100%; aspect-ratio: 1 / .92;
-  border-radius: var(--rayon-objet);
-  background: var(--socle); box-shadow: var(--relief-fort);
-  display: grid; place-items: center;
-}
-@supports not (aspect-ratio: 1 / 1) { .platine { height: 0; padding-top: 92%; } }
-.plateau {
-  display: grid; place-items: center;
-  width: 82%; aspect-ratio: 1 / 1; border-radius: 50%; margin-right: 10%;
-  background: var(--plateau);
-  box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 0 0 6px rgba(255,255,255,.05);
-}
-.disque {
-  position: relative; display: grid; place-items: center;
-  width: 94%; aspect-ratio: 1 / 1; border-radius: 50%;
-  background: #121011;
-  animation: tourne 1.8s linear infinite;
-  animation-play-state: paused;
-}
-@keyframes tourne { to { transform: rotate(360deg); } }
-body.en-lecture[data-vue="machine"] .disque { animation-play-state: running; }
-.sillons {
-  position: absolute; inset: 0; border-radius: 50%;
+.cd {
+  position: relative; display: grid; place-items: center; width: 92%; aspect-ratio: 1 / 1; border-radius: 50%;
   background:
-    conic-gradient(from 30deg, transparent 0 20%, rgba(255,255,255,.07) 25%, transparent 30% 70%, rgba(255,255,255,.05) 75%, transparent 80%),
-    repeating-radial-gradient(circle, #141213 0 2px, #1c1a1b 2px 3px);
+    radial-gradient(circle, transparent 0 13%, rgba(255,255,255,.65) 13.5% 15%, transparent 15.5%),
+    conic-gradient(from 0deg, #d9dde2, #b8f0ff, #f6d1ff, #fff4c2, #c9ffd8, #d9dde2, #ffd4e8, #c7d3ff, #d9dde2);
+  animation: tourne 1.4s linear infinite; animation-play-state: paused;
 }
-.macaron { position: relative; z-index: 1; display: block; width: 38%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 4px #0b0a0a; background: var(--aiguille); }
-.macaron .pochette { border-radius: 50%; box-shadow: none; height: 100%; }
-.macaron::after { content: ""; position: absolute; z-index: 2; left: 50%; top: 50%; width: 9%; height: 9%; border-radius: 50%; transform: translate(-50%, -50%); background: #ccc; }
-.bras {
-  position: absolute; top: 4%; right: 4%; width: 22%; height: auto; overflow: visible;
-  transform-origin: 75% 10%; transform: rotate(-24deg);
-  transition: transform 1.2s cubic-bezier(.3,.8,.3,1);
-  filter: drop-shadow(0 8px 10px rgba(0,0,0,.35));
-}
-body.en-lecture[data-vue="machine"] .bras { transform: rotate(4deg); }
-.bras-socle { fill: var(--metal-sombre); }
-.bras-pivot { fill: var(--metal); }
-.bras-tige { fill: none; stroke: var(--metal); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
-.bras-tete { fill: var(--metal-sombre); }
+body.cd-tourne .cd { animation-play-state: running; }
+@keyframes tourne { to { transform: rotate(360deg); } }
+.cd-etiquette { position: relative; display: block; width: 62%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden; }
+.cd-etiquette .pochette { height: 100%; border-radius: 50%; box-shadow: none; }
+.cd-etiquette::after { content: ""; position: absolute; left: 50%; top: 50%; width: 22%; height: 22%; border-radius: 50%; transform: translate(-50%, -50%); background: var(--fente-cd); box-shadow: 0 0 0 2px rgba(255,255,255,.6); }
 
-.facade-radio { display: grid; gap: 16px; }
-.afficheur {
-  padding: 16px 20px; border-radius: var(--rayon-verre, 6px);
-  background: var(--verre-fond);
-  box-shadow: inset 0 2px 8px rgba(0,0,0,.45), 0 0 0 1px var(--trait);
-  color: var(--verre); text-shadow: 0 0 10px var(--verre-halo);
-  display: grid; gap: 4px; min-height: 112px; align-content: center;
+/* l'afficheur fluorescent */
+.vfd {
+  min-width: 0; padding: 12px 16px; border-radius: 6px;
+  background: var(--vfd-fond);
+  box-shadow: inset 0 3px 12px rgba(0,0,0,.7);
+  color: var(--vfd); text-shadow: 0 0 8px var(--vfd-halo);
+  font-family: "Doto", var(--texte); font-weight: 900; letter-spacing: .02em;
+  display: grid; gap: 6px; overflow: hidden;
 }
-.afficheur-statut { font-size: 13px; opacity: .85; }
-.afficheur-titre { font-size: clamp(1.3rem, 2.4vw, 2rem); overflow-wrap: anywhere; }
-.afficheur-artiste { font-size: 15px; opacity: .85; }
-.commandes { display: flex; gap: 14px; align-items: center; }
+.vfd-infos { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vfd-defile { overflow: hidden; white-space: nowrap; font-size: 22px; line-height: 1.2; }
+.vfd-defile span { display: inline-block; padding-left: 100%; animation: defile 12s linear infinite; }
+@keyframes defile { to { transform: translateX(-100%); } }
+.vfd-barre { height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
+.vfd-barre span { display: block; height: 100%; width: 0; background: var(--vfd); box-shadow: 0 0 6px var(--vfd-halo); transition: width .5s linear; }
+.vfd-etat { font-size: 13px; opacity: .8; }
+.emplacement-cd { border-radius: 6px; }
+
+/* les boutons de disques du changeur */
+.cd-disques { display: flex; flex-wrap: wrap; gap: 8px; }
+.cd-disque {
+  display: grid; grid-template-columns: auto auto; column-gap: 8px; align-items: center; justify-items: start;
+  padding: 8px 12px 8px 10px; border-radius: 6px; text-align: left;
+  background: var(--touche-cd); color: var(--encre-cd);
+  box-shadow: 0 2px 0 rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.5);
+  transition: transform .08s, box-shadow .08s;
+}
+.cd-disque:active { transform: translateY(2px); box-shadow: inset 0 1px 3px rgba(0,0,0,.3); }
+.led { grid-row: 1 / 3; width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,.3); box-shadow: inset 0 1px 2px rgba(0,0,0,.4); }
+.cd-disque[aria-pressed="true"] .led { background: var(--aiguille); box-shadow: 0 0 8px 1px var(--aiguille); }
+.cd-disque-num { font-size: 11px; opacity: .65; font-variant-numeric: tabular-nums; }
+.cd-disque-nom { font-weight: 600; font-size: 14px; grid-column: 2; }
+
+.cd-bas { display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap; }
+.cd-transport { display: flex; gap: 8px; flex-wrap: wrap; }
+.cd-touche {
+  width: 58px; height: 42px; border-radius: 6px; display: grid; place-items: center;
+  background: var(--touche-cd); color: var(--encre-cd);
+  box-shadow: 0 3px 0 rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.5);
+  transition: transform .08s, box-shadow .08s;
+}
+.cd-touche:active { transform: translateY(3px); box-shadow: inset 0 1px 3px rgba(0,0,0,.3); }
+.cd-touche-lecture { width: 76px; background: var(--encre-cd); color: var(--sur-encre-cd); }
+.icone-stop { width: 12px; height: 12px; background: currentColor; border-radius: 1px; }
+.icone-ejecter { position: relative; width: 14px; height: 14px; }
+.icone-ejecter::before { content: ""; position: absolute; left: 0; top: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 8px solid currentColor; }
+.icone-ejecter::after { content: ""; position: absolute; left: 0; bottom: 0; width: 14px; height: 3px; background: currentColor; }
+.bouton-rotatif-cd .molette { width: 54px; height: 54px; }
+.bouton-rotatif-cd .bouton-rotatif-nom { color: var(--encre-cd); opacity: .75; }
+body[data-vue="machine"] .facade-droite [data-molette="volume"] { display: none; }
+.commandes-texte { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: center; }
+
+/* ─────────────────────────────── touches rondes (poste) ─────────────────────────────── */
 .touche {
   width: 62px; height: 62px; border-radius: 50%; flex: none;
   background: var(--fond-2); box-shadow: var(--relief);
@@ -458,8 +485,6 @@ body.en-lecture[data-vue="machine"] .bras { transform: rotate(4deg); }
 .icone-prec, .icone-suiv { position: relative; border-left-width: 10px; }
 .icone-prec { transform: scaleX(-1); }
 .icone-prec::after, .icone-suiv::after { content: ""; position: absolute; left: 0; top: -7px; width: 3px; height: 14px; background: currentColor; }
-.commandes-texte { display: flex; flex-wrap: wrap; gap: 10px 24px; }
-#radio-garder.est-garde { color: var(--aiguille); }
 
 /* ─────────────────────────────── LE POSTE (lecteur en cours) ─────────────────────────────── */
 .poste {
@@ -523,6 +548,26 @@ body.bac-ouvert .bac { transform: none; }
 .bac-pied-liens { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 .bac-reglages { padding: 12px 22px 22px; border-top: 1px solid var(--trait); }
 
+/* ─────────────────────────────── COMMENT ÉCOUTER + ENCART PUBS ─────────────────────────────── */
+.reglage-son { display: grid; gap: 8px; margin-bottom: 14px; }
+.reglage-son-titre { font-weight: 600; }
+.choix-son { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--trait); }
+.choix-son span { font-size: 14px; color: var(--encre-2); }
+.choix-son[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--aiguille); background: var(--fond-2); }
+.encart {
+  position: fixed; z-index: 55; right: 16px; bottom: 16px; width: min(420px, calc(100vw - 32px));
+  padding: 22px; border-radius: var(--rayon-objet);
+  background: var(--fond-2); color: var(--encre);
+  box-shadow: var(--relief-fort), 0 0 0 1px var(--trait);
+  display: grid; gap: 10px; font-size: 15px;
+  animation: sortie .45s cubic-bezier(.2,.9,.3,1.1);
+}
+.encart-titre { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 1.3rem; line-height: 1.1; }
+.encart ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--encre-2); }
+.encart a { color: var(--encre); }
+.encart-actions { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-top: 6px; }
+@media (max-width: 640px) { .encart { left: 8px; right: 8px; width: auto; bottom: calc(118px + env(safe-area-inset-bottom)); } }
+
 /* ─────────────────────────────── TOAST ─────────────────────────────── */
 .toast {
   position: fixed; left: 50%; top: 92px; z-index: 60;
@@ -540,7 +585,9 @@ body.bac-ouvert .bac { transform: none; }
   .rencontre-pochette { position: static; width: min(100%, 420px); }
   .rencontre-lecture { grid-template-columns: minmax(0, 1fr); }
   .rencontre-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
-  .platine { width: min(100%, 460px); justify-self: center; }
+  .chaine { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .boitier { width: min(56vw, 240px); }
+  .lecteur-cd { width: 100%; }
 }
 
 /* ─────────────────────────────── TÉLÉPHONE ─────────────────────────────── */
@@ -577,8 +624,17 @@ body.bac-ouvert .bac { transform: none; }
   .chemins { padding: 16px; }
   .chemins-portes { grid-template-columns: minmax(0, 1fr); }
 
-  .tuner-verre { height: 84px; --marge: 30px; }
-  .station { font-size: 11px; padding: 4px 2px; }
+  .cd-milieu { grid-template-columns: auto minmax(0, 1fr); }
+  .emplacement-cd { grid-column: 1 / -1; }
+  .hublot { width: 86px; }
+  .vfd-defile { font-size: 18px; }
+  .vfd { padding: 10px 12px; }
+  .vfd-infos { font-size: 12px; gap: 6px; }
+  .cd-disques { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .cd-disque { flex: none; }
+  .cd-touche { width: 50px; }
+  .cd-touche-lecture { width: 64px; }
+  .cd-haut .tiroir { display: none; }
   .touche { width: 56px; height: 56px; }
   .touche-grosse { width: 74px; height: 74px; }
 
@@ -592,10 +648,6 @@ body.bac-ouvert .bac { transform: none; }
 
   .bac { top: auto; width: 100vw; height: 86vh; border-radius: 18px 18px 0 0; transform: translateY(105%); }
   .toast { top: auto; bottom: calc(110px + env(safe-area-inset-bottom)); }
-}
-/* les noms de stations se chevauchent sur les petits écrans : un sur deux en bas */
-@media (max-width: 640px) {
-  .station:nth-of-type(even) { top: auto; bottom: 34px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
