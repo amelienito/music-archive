@@ -1,214 +1,196 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-teinte="ambre">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Music Discovery</title>
+  <meta name="description" content="Quelqu'un a fouillé pendant des années. Allume, et écoute ce qu'il a trouvé.">
+  <meta name="theme-color" content="#24161d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Archivo:wdth,wght@112..125,500;112..125,800&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="teintes.css">
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════
-       INTRO — disclaimer & entry
-       ═══════════════════════════════════════════ -->
-  <section id="screen-intro" class="screen">
-    <div class="screen-inner screen-intro-inner">
-      <p class="intro-eyebrow">MUSIC DISCOVERY</p>
-      <h1>Mets tes écouteurs.</h1>
-      <p class="intro-sub">J'ai quelque chose à te faire écouter.</p>
-      <div class="intro-warning">
-        <span>♪</span>
-        <span>Baisse le volume si nécessaire avant de lancer.</span>
-      </div>
-      <button class="btn-primary" data-action="enter">Entrer</button>
+  <!-- ═════════════ LE CADRAN (barre du haut) ═════════════ -->
+  <header class="cadran" id="cadran" aria-label="Cadran">
+    <button class="marque" data-action="accueil" aria-label="Revenir au choix">Music<br>Discovery</button>
+
+    <div class="cadran-verre" aria-hidden="true">
+      <div class="graduations" id="graduations"></div>
+      <div class="aiguille" id="aiguille"></div>
+      <div class="en-cours" id="en-cours"></div>
     </div>
-  </section>
 
-
-  <!-- ═══════════════════════════════════════════
-       CHOIX — Découvrir / Écouter / Jouer
-       ═══════════════════════════════════════════ -->
-  <section id="screen-choix" class="screen hidden">
-    <div class="screen-inner">
-      <p class="screen-label">MUSIC DISCOVERY</p>
-      <h2 class="screen-title">Qu'est-ce que tu veux faire ?</h2>
-      <div class="choix-grid">
-        <button class="choix-card" data-action="choix-découvrir">
-          <span class="choix-icon">◎</span>
-          <span class="choix-name">Découvrir</span>
-          <span class="choix-desc">Trouver des morceaux que je ne connais pas encore.</span>
-        </button>
-        <button class="choix-card" data-action="choix-écouter">
-          <span class="choix-icon">▶</span>
-          <span class="choix-name">Écouter</span>
-          <span class="choix-desc">Lancer la radio et laisser la sélection défiler.</span>
-        </button>
-        <button class="choix-card" data-action="choix-jouer" disabled>
-          <span class="choix-icon">◈</span>
-          <span class="choix-name">Jouer</span>
-          <span class="choix-desc">Mini-jeux — plus tard.</span>
-        </button>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════
-       DISCOVER TYPE — Confiance ou Personnaliser
-       ═══════════════════════════════════════════ -->
-  <section id="screen-discover-type" class="screen hidden">
-    <div class="screen-inner">
-      <p class="screen-label">DÉCOUVRIR</p>
-      <h2 class="screen-title">Comment veux-tu procéder ?</h2>
-      <div class="choix-grid">
-        <button class="choix-card" data-action="discover-trust">
-          <span class="choix-icon">✜</span>
-          <span class="choix-name">Je te fais confiance</span>
-          <span class="choix-desc">Pas de questions. On commence directement.</span>
-        </button>
-        <button class="choix-card" data-action="discover-personalize">
-          <span class="choix-icon">◎</span>
-          <span class="choix-name">Personnaliser</span>
-          <span class="choix-desc">Quelques questions rapides pour orienter la sélection.</span>
-        </button>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════
-       QUESTIONNAIRE — sliders de sensations
-       ═══════════════════════════════════════════ -->
-  <section id="screen-questionnaire" class="screen hidden">
-    <div class="screen-inner">
-      <p class="screen-label">QUELQUES QUESTIONS</p>
-      <h2 class="screen-title">Règle ton expérience.</h2>
-      <div class="sliders">
-        <div class="slider-row">
-          <label>Je veux quelque chose de…</label>
-          <div class="slider-wrap">
-            <span>Calme</span>
-            <input type="range" id="s-energy" min="0" max="100" value="50">
-            <span>Agressif</span>
-          </div>
-        </div>
-        <div class="slider-row">
-          <label>Je veux que ça…</label>
-          <div class="slider-wrap">
-            <span>Danse</span>
-            <input type="range" id="s-surprise" min="0" max="100" value="50">
-            <span>Surprenne</span>
-          </div>
-        </div>
-        <div class="slider-row">
-          <label>Aujourd'hui, je cherche plutôt…</label>
-          <div class="slider-wrap">
-            <span>Me poser</span>
-            <input type="range" id="s-energy2" min="0" max="100" value="50">
-            <span>Prendre une claque</span>
-          </div>
-        </div>
-        <div class="slider-row">
-          <label>Je veux quelque chose de…</label>
-          <div class="slider-wrap">
-            <span>Familier</span>
-            <input type="range" id="s-fam" min="0" max="100" value="50">
-            <span>Étrange</span>
-          </div>
-        </div>
-      </div>
-      <button class="btn-primary" data-action="start-selection">Valider</button>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════
-       SELECTION — 3 morceaux
-       ═══════════════════════════════════════════ -->
-  <section id="screen-selection" class="screen hidden">
-    <div class="screen-inner">
-      <p class="screen-label">3 MORCEAUX</p>
-      <div id="cards-container" class="cards-container"></div>
-      <div class="selection-actions">
-        <button class="btn-ghost" data-action="more-cards">Trois autres</button>
-        <button class="btn-ghost" data-action="back-to-choix">← Retour</button>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════
-       LISTEN — un morceau au centre
-       ═══════════════════════════════════════════ -->
-  <section id="screen-listen" class="screen hidden">
-    <div class="screen-inner">
-      <div id="listen-cover" class="listen-cover"></div>
-      <div id="listen-info" class="listen-info">
-        <h2 id="listen-title"></h2>
-        <p id="listen-artist"></p>
-        <p id="listen-note" class="listen-note"></p>
-      </div>
-      <div class="listen-actions">
-        <a id="listen-link" href="#" target="_blank" class="btn-primary">Écouter</a>
-        <button class="btn-ghost" data-action="keep-track">Garder</button>
-        <button class="btn-ghost" data-action="back-to-selection">← Retour</button>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════
-       HISTORY PANEL — encountered + kept
-       ═══════════════════════════════════════════ -->
-  <aside id="panel-history" class="history-panel hidden">
-    <div class="panel-header">
-      <h3>Ta session</h3>
-      <button data-action="close-history">×</button>
-    </div>
-    <div class="panel-section">
-      <h4>Rencontrés</h4>
-      <ul id="list-encountered" class="track-list"></ul>
-    </div>
-    <div class="panel-section">
-      <h4>Gardés</h4>
-      <ul id="list-kept" class="track-list"></ul>
-    </div>
-  </aside>
-
-
-  <!-- ═══════════════════════════════════════════
-       RADIO MODE
-       ═══════════════════════════════════════════ -->
-  <section id="screen-radio" class="screen hidden">
-    <div class="screen-inner screen-radio-inner">
-      <p class="screen-label">RADIO</p>
-      <div id="radio-now" class="radio-now">
-        <div id="radio-cover" class="radio-cover"></div>
-        <h2 id="radio-title"></h2>
-        <p id="radio-artist"></p>
-      </div>
-      <div class="radio-controls">
-        <button class="btn-ghost" data-action="radio-prev">◀</button>
-        <a id="radio-link" href="#" target="_blank" class="btn-primary">Écouter</a>
-        <button class="btn-ghost" data-action="radio-next">▶</button>
-      </div>
-      <button class="btn-ghost" data-action="back-to-choix">← Retour</button>
-    </div>
-  </section>
-
-
-  <!-- GLOBAL TOPBAR -->
-  <header class="topbar hidden" id="topbar">
-    <div class="topbar-brand">● Music Discovery</div>
-    <div class="topbar-actions">
-      <button class="text-btn" data-action="open-history">Rencontrés</button>
-      <button class="text-btn" data-action="open-radio">Radio</button>
+    <div class="cadran-droite">
+      <button class="bouton-lecture" id="bouton-lecture" data-action="lecture" aria-label="Lecture / pause" hidden>
+        <span class="icone-lecture"></span>
+      </button>
+      <button class="bouton-bac" data-action="ouvrir-bac" aria-label="Ouvrir ton bac">
+        Bac <span class="compteur" id="compteur-bac">0</span>
+      </button>
     </div>
   </header>
 
+  <main id="scene">
+
+    <!-- ═════════════ ALLUMAGE ═════════════ -->
+    <section class="ecran ecran-allumage" data-ecran="allumage">
+      <div class="allumage-texte">
+        <h1>Quelqu'un a fouillé pendant des années.</h1>
+        <p class="allumage-sous">Allume, et écoute ce qu'il a trouvé.</p>
+      </div>
+      <button class="interrupteur" data-action="allumer" aria-label="Allumer">
+        <span class="interrupteur-led"></span>
+        <span class="interrupteur-label">Allumer</span>
+      </button>
+      <p class="allumage-conseil">Un casque, c'est mieux. Monte un peu le son.</p>
+      <p class="allumage-retour" id="allumage-retour" hidden></p>
+    </section>
+
+    <!-- ═════════════ CHOIX ═════════════ -->
+    <section class="ecran ecran-choix" data-ecran="choix" hidden>
+      <button class="porte porte-decouvrir" data-action="vers-reglage">
+        <span class="porte-titre">Découvrir</span>
+        <span class="porte-texte">Deux morceaux à la fois. Tu choisis, on creuse.</span>
+      </button>
+      <button class="porte porte-ecouter" data-action="vers-radio">
+        <span class="porte-titre">Écouter</span>
+        <span class="porte-texte">Tu appuies, ça joue. Tu n'as plus rien à décider.</span>
+      </button>
+      <p class="porte-bientot">Jouer arrive bientôt.</p>
+    </section>
+
+    <!-- ═════════════ RÉGLAGE ═════════════ -->
+    <section class="ecran ecran-reglage" data-ecran="reglage" hidden>
+      <div class="reglage-tete">
+        <h2>Comment tu veux t'y prendre ?</h2>
+        <button class="gros-bouton" data-action="confiance">Je te fais confiance</button>
+        <p class="reglage-ou">ou règle la machine :</p>
+      </div>
+
+      <div class="table-de-mixage">
+        <label class="fader">
+          <span class="fader-question">Ce soir, plutôt</span>
+          <input type="range" min="0" max="10" step="1" value="5" id="f-energie">
+          <span class="fader-bornes"><span>calme</span><span>agressif</span></span>
+        </label>
+        <label class="fader">
+          <span class="fader-question">Tu veux que ça soit</span>
+          <input type="range" min="0" max="10" step="1" value="5" id="f-etrange">
+          <span class="fader-bornes"><span>familier</span><span>étrange</span></span>
+        </label>
+        <label class="fader">
+          <span class="fader-question">Ton corps a envie de</span>
+          <input type="range" min="0" max="10" step="1" value="5" id="f-danse">
+          <span class="fader-bornes"><span>se poser</span><span>bouger</span></span>
+        </label>
+        <button class="gros-bouton gros-bouton-plein" data-action="regle">C'est réglé</button>
+      </div>
+    </section>
+
+    <!-- ═════════════ DUEL ═════════════ -->
+    <section class="ecran ecran-duel" data-ecran="duel" hidden>
+      <p class="duel-phrase" id="duel-phrase"></p>
+      <div class="duel" id="duel"></div>
+      <div class="duel-pied">
+        <button class="lien-bouton" data-action="autre-duel">Aucun des deux, deux autres</button>
+      </div>
+    </section>
+
+    <!-- ═════════════ INTERLUDE (ruptures de rythme) ═════════════ -->
+    <section class="ecran ecran-interlude" data-ecran="interlude" hidden>
+      <div class="interlude" id="interlude"></div>
+    </section>
+
+    <!-- ═════════════ RENCONTRE (le morceau devient le centre) ═════════════ -->
+    <section class="ecran ecran-rencontre" data-ecran="rencontre" hidden>
+      <div class="rencontre" id="rencontre"></div>
+    </section>
+
+    <!-- ═════════════ LA MACHINE (radio) ═════════════ -->
+    <section class="ecran ecran-machine" data-ecran="machine" hidden>
+      <div class="machine">
+        <div class="platine" id="platine">
+          <div class="plateau">
+            <div class="disque" id="disque">
+              <div class="sillons"></div>
+              <div class="macaron" id="macaron"></div>
+            </div>
+          </div>
+          <svg class="bras" id="bras" viewBox="0 0 120 300" aria-hidden="true">
+            <circle cx="90" cy="30" r="22" class="bras-socle"/>
+            <circle cx="90" cy="30" r="8" class="bras-pivot"/>
+            <path d="M90 30 L90 210 L70 250" class="bras-tige"/>
+            <rect x="56" y="244" width="26" height="36" rx="4" class="bras-tete" transform="rotate(28 70 260)"/>
+          </svg>
+        </div>
+
+        <div class="facade">
+          <div class="afficheur">
+            <p class="afficheur-statut" id="radio-statut">En attente</p>
+            <p class="afficheur-titre" id="radio-titre">Appuie sur lecture.</p>
+            <p class="afficheur-artiste" id="radio-artiste"></p>
+          </div>
+          <div class="emplacement-ecran" data-emplacement></div>
+          <div class="commandes">
+            <button class="touche" data-action="radio-precedent" aria-label="Morceau précédent"><span class="icone icone-prec"></span></button>
+            <button class="touche touche-grosse" data-action="radio-lecture" aria-label="Lecture / pause"><span class="icone icone-lecture" id="radio-icone"></span></button>
+            <button class="touche" data-action="radio-suivant" aria-label="Morceau suivant"><span class="icone icone-suiv"></span></button>
+          </div>
+          <div class="commandes-texte">
+            <button class="lien-bouton" data-action="radio-garder" id="radio-garder">Garder ce morceau</button>
+            <button class="lien-bouton" data-action="radio-raconte">C'est quoi, ce morceau ?</button>
+          </div>
+          <p class="machine-source" id="machine-source">Toute la sélection, mélangée avec un fil.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═════════════ L'ÉCRAN VIDÉO (lecteur YouTube, se déplace d'un emplacement à l'autre) ═════════════ -->
+  <div class="ecran-video" id="ecran-video" hidden>
+    <div id="yt-lecteur"></div>
+    <button class="ecran-video-retour" data-action="retour-morceau" aria-label="Revenir au morceau en cours">Revenir au morceau</button>
+  </div>
+
+  <!-- ═════════════ LE BAC (ce que tu as croisé et gardé) ═════════════ -->
+  <div class="voile" id="voile" data-action="fermer-bac" hidden></div>
+  <aside class="bac" id="bac" aria-label="Ton bac" hidden>
+    <div class="bac-tete">
+      <h2>Ton bac</h2>
+      <button class="lien-bouton" data-action="fermer-bac">Fermer</button>
+    </div>
+    <div class="onglets" role="tablist">
+      <button class="onglet" role="tab" data-action="onglet" data-onglet="gardes" aria-selected="true">Gardés <span id="n-gardes">0</span></button>
+      <button class="onglet" role="tab" data-action="onglet" data-onglet="croises" aria-selected="false">Croisés <span id="n-croises">0</span></button>
+    </div>
+    <ul class="bac-liste" id="bac-liste"></ul>
+    <div class="bac-pied" id="bac-pied">
+      <button class="gros-bouton gros-bouton-plein" data-action="ecouter-gardes">Écouter mes gardés à la suite</button>
+      <div class="bac-pied-liens">
+        <a class="lien-bouton" id="lien-playlist" target="_blank" rel="noopener">Ouvrir en playlist YouTube</a>
+        <button class="lien-bouton" data-action="copier-liste">Copier la liste</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═════════════ LE BOUTON DE TEINTE ═════════════ -->
+  <div class="teinte">
+    <span class="teinte-nom" id="teinte-nom" aria-live="polite"></span>
+    <button class="molette" data-action="teinte" aria-label="Changer la teinte du site" title="Changer la teinte">
+      <span class="molette-repere"></span>
+    </button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <audio id="extrait" preload="none"></audio>
 
   <script src="data.js"></script>
-  <script src="controller.js"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5"}' crossorigin="anonymous"></script>
+  <script src="pochettes.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

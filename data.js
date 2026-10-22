@@ -1,517 +1,228 @@
-// ── Chaque entrée = un titre que tu aimes ─────────────────────────────────────
-// Champs :
-//   title   → nom du morceau
-//   artist  → artiste(s)
-//   album   → album d'origine (pour la pochette auto + contexte)
-//   cover   → URL pochette (laisse "" pour la récupération automatique)
-//   group   → ta catégorie perso
-//   note    → ton commentaire (peut rester vide)
-//   link    → lien YouTube Music / Spotify
+/* ════════════════════════════════════════════════════════════════════
+   MUSIC DISCOVERY — ta banque musicale
+   ════════════════════════════════════════════════════════════════════
 
-const tracks = [
+   C'est le SEUL fichier que tu as besoin de toucher pour faire vivre
+   le site. Tout le reste se construit tout seul à partir d'ici.
 
-  // ── US rap ──────────────────────────────────────────────────────────────────
-  {
-    title: "Losin' Weight",
-    artist: "Cam'ron feat. Prodigy",
-    album: "S.D.E.",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=RQxJfDU66rw"
-  },
-  {
-    title: "King Back",
-    artist: "T.I.",
-    album: "King",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=Q7KuF4aImt8"
-  },
-  {
-    title: "What We Do",
-    artist: "Freeway feat. JAY-Z & Beanie Sigel",
-    album: "Philadelphia Freeway",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=ITSVEXkuadk"
-  },
-  {
-    title: "The Watcher 2",
-    artist: "JAY-Z feat. Dr. Dre, Rakim & Truth Hurts",
-    album: "The Blueprint 2: The Gift & The Curse",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=HXsRd2BI1Dc"
-  },
-  {
-    title: "Exhibit C",
-    artist: "Jay Electronica",
-    album: "Exhibit C",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=b0c9A74BmcU"
-  },
-  {
-    title: "Larry Bird",
-    artist: "Roc Marciano feat. Knowledge the Pirate & GREA8GAWD",
-    album: "Marciology",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=KZ8Xu74Ysrk"
-  },
-  {
-    title: "Flashback",
-    artist: "Boldy James & ChanHays",
-    album: "Prisoner of Circumstance",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=vhAFirTDTSM"
-  },
-  {
-    title: "Summer's Eve",
-    artist: "Nicholas Craven & Boldy James",
-    album: "Summer's Eve",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=J-7XkIQcPUQ"
-  },
-  {
-    title: "Banded Up",
-    artist: "Chief Keef feat. Tierra Whack",
-    album: "Almighty So 2",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=PtDaNAL1gOg"
-  },
-  {
-    title: "I'm the Devil",
-    artist: "Lil B",
-    album: "6 Kiss",
-    cover: "",
-    group: "US rap",
-    note: "",
-    link: "https://music.youtube.com/watch?v=jMbTbVF0u2A"
-  },
+   ➜ Pour ajouter un morceau : copie un bloc { ... }, colle-le à la fin
+     de la liste (avant le ];), remplis, n'oublie pas la virgule.
 
-  // ── rap FR ───────────────────────────────────────────────────────────────────
-  {
-    title: "BIBERON",
-    artist: "Skefre",
-    album: "CAPITALISTE 2",
-    cover: "",
-    group: "rap FR",
-    note: "",
-    link: "https://music.youtube.com/watch?v=ucIYVFy6S-c"
-  },
-  {
-    title: "ATL",
-    artist: "La Mano 1.9, Gazo & La Rvfleuze",
-    album: "ATL",
-    cover: "",
-    group: "rap FR",
-    note: "",
-    link: "https://music.youtube.com/watch?v=VtgP0eGO4DI"
-  },
-  {
-    title: "MERCI AU REVOIR",
-    artist: "Le Rat Luciano & GRÜNT",
-    album: "GRÜNT #74",
-    cover: "",
-    group: "rap FR",
-    note: "",
-    link: "https://music.youtube.com/watch?v=2b5hcyJPFAQ"
-  },
-  {
-    title: "Faune marine",
-    artist: "JeanJass",
-    album: "Les champs de sacs plastique",
-    cover: "",
-    group: "rap FR",
-    note: "",
-    link: "https://music.youtube.com/watch?v=LSM1EwVm_7c"
-  },
-  {
-    title: "OCARINA THEME",
-    artist: "LEDOUBLE & GAL",
-    album: "FCK LABEL MACHINE",
-    cover: "",
-    group: "rap FR",
-    note: "",
-    link: "https://music.youtube.com/watch?v=Nrz1YGx5-_Q"
-  },
+   Champs obligatoires
+     titre    le nom du morceau
+     artiste  le ou les artistes
+     lien     le lien YouTube ou YouTube Music du morceau
+              (c'est lui qui permet de l'écouter directement sur le site)
 
-  // ── soul ─────────────────────────────────────────────────────────────────────
-  {
-    title: "Got to Be Real",
-    artist: "Cheryl Lynn",
-    album: "In the Night",
-    cover: "",
-    group: "soul",
-    note: "",
-    link: "https://music.youtube.com/watch?v=SxW1I0diFqI"
-  },
-  {
-    title: "Judy",
-    artist: "Al Green",
-    album: "Let's Stay Together",
-    cover: "",
-    group: "soul",
-    note: "",
-    link: "https://music.youtube.com/watch?v=lcwGFZQLD9Q"
-  },
-  {
-    title: "The Pride, Pts. 1 & 2",
-    artist: "The Isley Brothers",
-    album: "Go for Your Guns",
-    cover: "",
-    group: "soul",
-    note: "",
-    link: "https://music.youtube.com/watch?v=7GZ-6HAdv7w"
-  },
-  {
-    title: "Pearls",
-    artist: "Sade",
-    album: "Love Deluxe",
-    cover: "",
-    group: "soul",
-    note: "",
-    link: "https://music.youtube.com/watch?v=JcljzvUgoAQ"
-  },
-  {
-    title: "Quiet Storm",
-    artist: "Smokey Robinson",
-    album: "A Quiet Storm",
-    cover: "",
-    group: "soul",
-    note: "",
-    link: "https://music.youtube.com/watch?v=c52DagmSTdI"
-  },
-  {
-    title: "Can't Get Enough",
-    artist: "Alissia & Anderson .Paak",
-    album: "K-POPS!",
-    cover: "",
-    group: "soul",
-    note: "",
-    link: "https://music.youtube.com/watch?v=Jbz_1TH69Q0"
-  },
+   Champs facultatifs (tu peux les laisser vides ou les supprimer)
+     album    l'album d'origine (aide à trouver la bonne pochette)
+     note     TON texte. Trois mots, un pavé, ou rien du tout.
+              Rien du tout, c'est très bien aussi : le morceau parle seul.
+     liens    titres d'autres morceaux de la banque vers lesquels
+              celui-ci doit mener. Ex : liens: ["Pearls", "Judy"]
 
-  // ── club ─────────────────────────────────────────────────────────────────────
-  {
-    title: "YOU HAVE TO LEAVE!!!",
-    artist: "Hyas et Tactic 24",
-    album: "LOUDER!!!",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=yM_KeoOHVy8"
-  },
-  {
-    title: "Feisty",
-    artist: "Smerz",
-    album: "Feisty",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=0_KGch347UI"
-  },
-  {
-    title: "Cassius 1999",
-    artist: "Cassius",
-    album: "1999",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=J8fMAXnDocs"
-  },
-  {
-    title: "MUSIC",
-    artist: "LinLin",
-    album: "DISCO INFERNO",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=QAla_ISKiyo"
-  },
-  {
-    title: "SWING",
-    artist: "Angie",
-    album: "SWING",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=guDSFndnX_M"
-  },
-  {
-    title: "Sexy Nana",
-    artist: "Aya Nakamura & La Rvfleuze",
-    album: "Sexy Nana",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=ygyno6J_AyQ"
-  },
-  {
-    title: "Sing Good",
-    artist: "Ninajirachi",
-    album: "I Love My Computer",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=tCj86Ij-tA0"
-  },
-  {
-    title: "CSIRAC",
-    artist: "Ninajirachi",
-    album: "I Love My Computer",
-    cover: "",
-    group: "club",
-    note: "",
-    link: "https://music.youtube.com/watch?v=L_rc7qJyFOQ"
-  },
+   Les réglages (de 0 à 10) servent au moteur de découverte.
+   Ils ne sont jamais montrés aux visiteurs. Ajuste-les à l'instinct :
+     energie  0 = immobile, 10 = ça cogne
+     etrange  0 = familier, 10 = d'où ça sort ?
+     danse    0 = on se pose, 10 = impossible de rester assis
 
-  // ── indie ────────────────────────────────────────────────────────────────────
-  {
-    title: "Nomad",
-    artist: "Clairo",
-    album: "Charm",
-    cover: "",
-    group: "indie",
-    note: "",
-    link: "https://music.youtube.com/watch?v=RdRD80xT2mc"
-  },
-  {
-    title: "Heaven is a Home",
-    artist: "Kali Uchis",
-    album: "Sincerely",
-    cover: "",
-    group: "indie",
-    note: "",
-    link: "https://music.youtube.com/watch?v=3CsPC9C8Oa4"
-  },
-  {
-    title: "Where I Sit",
-    artist: "Men I Trust",
-    album: "Equus Caballus",
-    cover: "",
-    group: "indie",
-    note: "",
-    link: "https://music.youtube.com/watch?v=IGrobvR8WtA"
-  },
-  {
-    title: "The Field",
-    artist: "Blood Orange feat. Caroline Polachek & Daniel Caesar",
-    album: "Essex Honey",
-    cover: "",
-    group: "indie",
-    note: "",
-    link: "https://music.youtube.com/watch?v=Brt_wrBrSqQ"
-  },
-  {
-    title: "Sin",
-    artist: "070 Shake",
-    album: "Petrichor",
-    cover: "",
-    group: "indie",
-    note: "",
-    link: "https://music.youtube.com/watch?v=R9Y6Hb7UjsQ"
-  },
-  {
-    title: "how long will it take to walk a mile?",
-    artist: "Lola Young",
-    album: "I'm Only F**king Myself",
-    cover: "",
-    group: "indie",
-    note: "",
-    link: "https://music.youtube.com/watch?v=lM133qamEhM"
-  },
-  {
-    title: "Dark",
-    artist: "Maddie Ashman",
-    album: "Dark",
-    cover: "",
-    group: "indie",
-    note: "",
-    link: "https://music.youtube.com/watch?v=9PJYdRVq9Ik"
-  },
+   ⚠ Les valeurs actuelles sont une première estimation faite par Claude.
+     Corrige-les comme tu le sens, c'est ta sélection, pas la sienne.
+   ════════════════════════════════════════════════════════════════════ */
 
-  // ── ambient ──────────────────────────────────────────────────────────────────
-  {
-    title: "Six Songs for Invisible Gardens",
-    artist: "Green-House",
-    album: "Six Songs for Invisible Gardens",
-    cover: "",
-    group: "ambient",
-    note: "",
-    link: "https://music.youtube.com/watch?v=nqCTPxdW9tQ"
-  },
-  {
-    title: "Plume Valley",
-    artist: "Windows96",
-    album: "Plume Valley",
-    cover: "",
-    group: "ambient",
-    note: "",
-    link: "https://music.youtube.com/watch?v=MFBOtWq7dsE"
-  },
-  {
-    title: "\u3164\u3164\u3164",
-    artist: "Emma Vansen",
-    album: "\u3164",
-    cover: "",
-    group: "ambient",
-    note: "",
-    link: "https://music.youtube.com/watch?v=3MsW-OuXiIo"
-  },
+const MORCEAUX = [
 
-  // ── Japan ────────────────────────────────────────────────────────────────────
-  {
-    title: "Fly-day Chinatown",
-    artist: "Yasuha",
-    album: "Transit",
-    cover: "",
-    group: "Japan",
-    note: "",
-    link: "https://music.youtube.com/watch?v=hci81q8Q49Q"
-  },
-  {
-    title: "\u3055\u3088\u306a\u3089\u7802\u5c71",
-    artist: "Takeo Yamashita",
-    album: "\u3055\u3088\u306a\u3089\u7802\u5c71",
-    cover: "",
-    group: "Japan",
-    note: "",
-    link: "https://music.youtube.com/watch?v=t0XXkZaC25o"
-  },
-  {
-    title: "\u79c1\u306e\u3059\u3079\u3066",
-    artist: "Pizzicato Five",
-    album: "The Band of 20th Century",
-    cover: "",
-    group: "Japan",
-    note: "",
-    link: "https://music.youtube.com/watch?v=SD_Hk_O5YFA"
-  },
-  {
-    title: "Euryale",
-    artist: "Serge Bulot",
-    album: "Euryale",
-    cover: "",
-    group: "Japan",
-    note: "",
-    link: "https://music.youtube.com/watch?v=5P2hiU8J5QE"
-  },
+  { titre: "Losin' Weight", artiste: "Cam'ron feat. Prodigy", album: "S.D.E.",
+    lien: "https://music.youtube.com/watch?v=RQxJfDU66rw", note: "",
+    energie: 6, etrange: 3, danse: 4 },
 
-  // ── sans étiquette ───────────────────────────────────────────────────────────
-  {
-    title: "Big city life",
-    artist: "Mattafix",
-    album: "Signs of a Struggle",
-    cover: "",
-    group: "sans \u00e9tiquette",
-    note: "",
-    link: "https://music.youtube.com/browse/MPREb_JvDDGFtLBYc"
-  },
-  {
-    title: "Not Much 2 Say",
-    artist: "Jadasea",
-    album: "Not Much 2 Say",
-    cover: "",
-    group: "sans \u00e9tiquette",
-    note: "",
-    link: "https://music.youtube.com/watch?v=qQb4ZDpS74Q"
-  },
-  {
-    title: "good girl, lassie.",
-    artist: "is it sunday?",
-    album: "good girl, give them reason to stare.",
-    cover: "",
-    group: "sans \u00e9tiquette",
-    note: "",
-    link: "https://music.youtube.com/watch?v=09hEFrUZrXA"
-  },
-  {
-    title: "je fais pleurer les hommes",
-    artist: "ar\u00f8ne",
-    album: "je fais pleurer les hommes",
-    cover: "",
-    group: "sans \u00e9tiquette",
-    note: "",
-    link: "https://music.youtube.com/watch?v=inHes0rZVtM"
-  },
-  {
-    title: "50cl",
-    artist: "ABSOLEM",
-    album: "Champagne en canette",
-    cover: "",
-    group: "sans \u00e9tiquette",
-    note: "",
-    link: "https://music.youtube.com/watch?v=OOQ4wWMoYjw"
-  },
+  { titre: "King Back", artiste: "T.I.", album: "King",
+    lien: "https://music.youtube.com/watch?v=Q7KuF4aImt8", note: "",
+    energie: 8, etrange: 2, danse: 5 },
 
-];
+  { titre: "What We Do", artiste: "Freeway feat. JAY-Z & Beanie Sigel", album: "Philadelphia Freeway",
+    lien: "https://music.youtube.com/watch?v=ITSVEXkuadk", note: "",
+    energie: 6, etrange: 2, danse: 4 },
 
-// ── Playlist radio ────────────────────────────────────────────────────────────
-// Liste ordonnée des titres pour le mode radio.
-// Tu peux la réorganiser à ta guise — c'est juste les noms des morceaux.
-// Si tu laisses ce tableau vide [], tous les titres seront utilisés dans l'ordre.
+  { titre: "The Watcher 2", artiste: "JAY-Z feat. Dr. Dre, Rakim & Truth Hurts", album: "The Blueprint 2: The Gift & The Curse",
+    lien: "https://music.youtube.com/watch?v=HXsRd2BI1Dc", note: "",
+    energie: 5, etrange: 3, danse: 3 },
 
-const playlist = [
-  "Quiet Storm",
-  "Pearls",
-  "Got to Be Real",
-  "Judy",
-  "The Pride, Pts. 1 & 2",
-  "Can't Get Enough",
-  "Fly-day Chinatown",
-  "さよなら砂山",
-  "私のすべて",
-  "Euryale",
-  "Six Songs for Invisible Gardens",
-  "Plume Valley",
-  "ㅤㅤㅤ",
-  "Exhibit C",
-  "Losin' Weight",
-  "Larry Bird",
-  "Summer's Eve",
-  "Flashback",
-  "Nomad",
-  "Heaven is a Home",
-  "Where I Sit",
-  "Sin",
-  "Dark",
-  "YOU HAVE TO LEAVE!!!",
-  "Feisty",
-  "Cassius 1999",
-  "MUSIC",
-  "SWING",
-  "Sing Good",
-  "CSIRAC",
-  "BIBERON",
-  "ATL",
-  "MERCI AU REVOIR",
-  "Faune marine",
-  "OCARINA THEME",
-  "King Back",
-  "What We Do",
-  "The Watcher 2",
-  "Banded Up",
-  "I'm the Devil",
-  "The Field",
-  "how long will it take to walk a mile?",
-  "Sexy Nana",
-  "Big city life",
-  "Not Much 2 Say",
-  "good girl, lassie.",
-  "je fais pleurer les hommes",
-  "50cl",
+  { titre: "Exhibit C", artiste: "Jay Electronica", album: "Exhibit C",
+    lien: "https://music.youtube.com/watch?v=b0c9A74BmcU", note: "",
+    energie: 8, etrange: 4, danse: 3 },
+
+  { titre: "Larry Bird", artiste: "Roc Marciano feat. Knowledge the Pirate & GREA8GAWD", album: "Marciology",
+    lien: "https://music.youtube.com/watch?v=KZ8Xu74Ysrk", note: "",
+    energie: 4, etrange: 6, danse: 2 },
+
+  { titre: "Flashback", artiste: "Boldy James & ChanHays", album: "Prisoner of Circumstance",
+    lien: "https://music.youtube.com/watch?v=vhAFirTDTSM", note: "",
+    energie: 4, etrange: 5, danse: 2 },
+
+  { titre: "Summer's Eve", artiste: "Nicholas Craven & Boldy James", album: "Summer's Eve",
+    lien: "https://music.youtube.com/watch?v=J-7XkIQcPUQ", note: "",
+    energie: 3, etrange: 5, danse: 2 },
+
+  { titre: "Banded Up", artiste: "Chief Keef feat. Tierra Whack", album: "Almighty So 2",
+    lien: "https://music.youtube.com/watch?v=PtDaNAL1gOg", note: "",
+    energie: 7, etrange: 6, danse: 5 },
+
+  { titre: "I'm the Devil", artiste: "Lil B", album: "6 Kiss",
+    lien: "https://music.youtube.com/watch?v=jMbTbVF0u2A", note: "",
+    energie: 6, etrange: 8, danse: 3 },
+
+  { titre: "BIBERON", artiste: "Skefre", album: "CAPITALISTE 2",
+    lien: "https://music.youtube.com/watch?v=ucIYVFy6S-c", note: "",
+    energie: 7, etrange: 6, danse: 5 },
+
+  { titre: "ATL", artiste: "La Mano 1.9, Gazo & La Rvfleuze", album: "ATL",
+    lien: "https://music.youtube.com/watch?v=VtgP0eGO4DI", note: "",
+    energie: 8, etrange: 4, danse: 7 },
+
+  { titre: "MERCI AU REVOIR", artiste: "Le Rat Luciano & GRÜNT", album: "GRÜNT #74",
+    lien: "https://music.youtube.com/watch?v=2b5hcyJPFAQ", note: "",
+    energie: 6, etrange: 5, danse: 4 },
+
+  { titre: "Faune marine", artiste: "JeanJass", album: "Les champs de sacs plastique",
+    lien: "https://music.youtube.com/watch?v=LSM1EwVm_7c", note: "",
+    energie: 4, etrange: 5, danse: 3 },
+
+  { titre: "OCARINA THEME", artiste: "LEDOUBLE & GAL", album: "FCK LABEL MACHINE",
+    lien: "https://music.youtube.com/watch?v=Nrz1YGx5-_Q", note: "",
+    energie: 6, etrange: 6, danse: 5 },
+
+  { titre: "Got to Be Real", artiste: "Cheryl Lynn", album: "Cheryl Lynn",
+    lien: "https://music.youtube.com/watch?v=SxW1I0diFqI", note: "",
+    energie: 8, etrange: 2, danse: 10 },
+
+  { titre: "Judy", artiste: "Al Green", album: "Let's Stay Together",
+    lien: "https://music.youtube.com/watch?v=lcwGFZQLD9Q", note: "",
+    energie: 3, etrange: 3, danse: 5 },
+
+  { titre: "The Pride, Pts. 1 & 2", artiste: "The Isley Brothers", album: "Go for Your Guns",
+    lien: "https://music.youtube.com/watch?v=7GZ-6HAdv7w", note: "",
+    energie: 7, etrange: 2, danse: 9 },
+
+  { titre: "Pearls", artiste: "Sade", album: "Love Deluxe",
+    lien: "https://music.youtube.com/watch?v=JcljzvUgoAQ", note: "",
+    energie: 2, etrange: 4, danse: 1 },
+
+  { titre: "Quiet Storm", artiste: "Smokey Robinson", album: "A Quiet Storm",
+    lien: "https://music.youtube.com/watch?v=c52DagmSTdI", note: "",
+    energie: 2, etrange: 3, danse: 3 },
+
+  { titre: "Can't Get Enough", artiste: "Alissia & Anderson .Paak", album: "K-POPS!",
+    lien: "https://music.youtube.com/watch?v=Jbz_1TH69Q0", note: "",
+    energie: 5, etrange: 4, danse: 7 },
+
+  { titre: "YOU HAVE TO LEAVE!!!", artiste: "Hyas et Tactic 24", album: "LOUDER!!!",
+    lien: "https://music.youtube.com/watch?v=yM_KeoOHVy8", note: "",
+    energie: 10, etrange: 8, danse: 9 },
+
+  { titre: "Feisty", artiste: "Smerz", album: "Feisty",
+    lien: "https://music.youtube.com/watch?v=0_KGch347UI", note: "",
+    energie: 6, etrange: 7, danse: 7 },
+
+  { titre: "Cassius 1999", artiste: "Cassius", album: "1999",
+    lien: "https://music.youtube.com/watch?v=J8fMAXnDocs", note: "",
+    energie: 8, etrange: 3, danse: 10 },
+
+  { titre: "MUSIC", artiste: "LinLin", album: "DISCO INFERNO",
+    lien: "https://music.youtube.com/watch?v=QAla_ISKiyo", note: "",
+    energie: 8, etrange: 6, danse: 9 },
+
+  { titre: "SWING", artiste: "Angie", album: "SWING",
+    lien: "https://music.youtube.com/watch?v=guDSFndnX_M", note: "",
+    energie: 7, etrange: 5, danse: 8 },
+
+  { titre: "Sexy Nana", artiste: "Aya Nakamura & La Rvfleuze", album: "Sexy Nana",
+    lien: "https://music.youtube.com/watch?v=ygyno6J_AyQ", note: "",
+    energie: 7, etrange: 4, danse: 9 },
+
+  { titre: "Sing Good", artiste: "Ninajirachi", album: "I Love My Computer",
+    lien: "https://music.youtube.com/watch?v=tCj86Ij-tA0", note: "",
+    energie: 8, etrange: 6, danse: 8 },
+
+  { titre: "CSIRAC", artiste: "Ninajirachi", album: "I Love My Computer",
+    lien: "https://music.youtube.com/watch?v=L_rc7qJyFOQ", note: "",
+    energie: 9, etrange: 8, danse: 8 },
+
+  { titre: "Nomad", artiste: "Clairo", album: "Charm",
+    lien: "https://music.youtube.com/watch?v=RdRD80xT2mc", note: "",
+    energie: 3, etrange: 3, danse: 3 },
+
+  { titre: "Heaven is a Home", artiste: "Kali Uchis", album: "Sincerely",
+    lien: "https://music.youtube.com/watch?v=3CsPC9C8Oa4", note: "",
+    energie: 3, etrange: 5, danse: 3 },
+
+  { titre: "Where I Sit", artiste: "Men I Trust", album: "Equus Caballus",
+    lien: "https://music.youtube.com/watch?v=IGrobvR8WtA", note: "",
+    energie: 3, etrange: 4, danse: 4 },
+
+  { titre: "The Field", artiste: "Blood Orange feat. Caroline Polachek & Daniel Caesar", album: "Essex Honey",
+    lien: "https://music.youtube.com/watch?v=Brt_wrBrSqQ", note: "",
+    energie: 3, etrange: 6, danse: 2 },
+
+  { titre: "Sin", artiste: "070 Shake", album: "Petrichor",
+    lien: "https://music.youtube.com/watch?v=R9Y6Hb7UjsQ", note: "",
+    energie: 6, etrange: 6, danse: 4 },
+
+  { titre: "how long will it take to walk a mile?", artiste: "Lola Young", album: "I'm Only F**king Myself",
+    lien: "https://music.youtube.com/watch?v=lM133qamEhM", note: "",
+    energie: 4, etrange: 3, danse: 2 },
+
+  { titre: "Dark", artiste: "Maddie Ashman", album: "Dark",
+    lien: "https://music.youtube.com/watch?v=9PJYdRVq9Ik", note: "",
+    energie: 4, etrange: 6, danse: 3 },
+
+  { titre: "Six Songs for Invisible Gardens", artiste: "Green-House", album: "Six Songs for Invisible Gardens",
+    lien: "https://music.youtube.com/watch?v=nqCTPxdW9tQ", note: "",
+    energie: 1, etrange: 7, danse: 0 },
+
+  { titre: "Plume Valley", artiste: "Windows96", album: "Plume Valley",
+    lien: "https://music.youtube.com/watch?v=MFBOtWq7dsE", note: "",
+    energie: 1, etrange: 8, danse: 0 },
+
+  { titre: "ㅤㅤㅤ", artiste: "Emma Vansen", album: "ㅤ",
+    lien: "https://music.youtube.com/watch?v=3MsW-OuXiIo", note: "",
+    energie: 1, etrange: 9, danse: 0 },
+
+  { titre: "Fly-day Chinatown", artiste: "Yasuha", album: "Transit",
+    lien: "https://music.youtube.com/watch?v=hci81q8Q49Q", note: "",
+    energie: 6, etrange: 4, danse: 8 },
+
+  { titre: "さよなら砂山", artiste: "Takeo Yamashita", album: "さよなら砂山",
+    lien: "https://music.youtube.com/watch?v=t0XXkZaC25o", note: "",
+    energie: 3, etrange: 6, danse: 1 },
+
+  { titre: "私のすべて", artiste: "Pizzicato Five", album: "The Band of 20th Century",
+    lien: "https://music.youtube.com/watch?v=SD_Hk_O5YFA", note: "",
+    energie: 5, etrange: 6, danse: 6 },
+
+  { titre: "Euryale", artiste: "Serge Bulot", album: "Euryale",
+    lien: "https://music.youtube.com/watch?v=5P2hiU8J5QE", note: "",
+    energie: 3, etrange: 7, danse: 3 },
+
+  { titre: "Big City Life", artiste: "Mattafix", album: "Signs of a Struggle",
+    lien: "https://music.youtube.com/browse/MPREb_JvDDGFtLBYc", note: "",
+    energie: 5, etrange: 2, danse: 6 },
+
+  { titre: "Not Much 2 Say", artiste: "Jadasea", album: "Not Much 2 Say",
+    lien: "https://music.youtube.com/watch?v=qQb4ZDpS74Q", note: "",
+    energie: 3, etrange: 6, danse: 2 },
+
+  { titre: "good girl, lassie.", artiste: "is it sunday?", album: "good girl, give them reason to stare.",
+    lien: "https://music.youtube.com/watch?v=09hEFrUZrXA", note: "",
+    energie: 4, etrange: 7, danse: 3 },
+
+  { titre: "je fais pleurer les hommes", artiste: "arøne", album: "je fais pleurer les hommes",
+    lien: "https://music.youtube.com/watch?v=inHes0rZVtM", note: "",
+    energie: 5, etrange: 7, danse: 5 },
+
+  { titre: "50cl", artiste: "ABSOLEM", album: "Champagne en canette",
+    lien: "https://music.youtube.com/watch?v=OOQ4wWMoYjw", note: "",
+    energie: 6, etrange: 6, danse: 4 },
+
 ];

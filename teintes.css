@@ -1,0 +1,244 @@
+/* ════════════════════════════════════════════════════════════════════
+   LES TEINTES (skins)
+   Une teinte change UNIQUEMENT l'apparence : couleurs, polices, reliefs.
+   Le fonctionnement reste exactement le même.
+
+   Pour inventer ta propre teinte : copie un bloc, change le nom
+   (ex : [data-teinte="nuit"]), modifie les couleurs, puis ajoute-la
+   dans la liste TEINTES au milieu de app.js.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ─── AMBRE : la chaîne hi-fi des années 70, bakélite prune et verre ambré ─── */
+:root, [data-teinte="ambre"] {
+  --fond: #24161d;
+  --fond-2: #301f28;
+  --fond-3: #3b2731;
+  --fond-image: radial-gradient(90% 60% at 50% -10%, rgba(255, 176, 58, .10), transparent 70%);
+  --encre: #f1e4d8;
+  --encre-2: #b7a0a3;
+  --encre-3: rgba(241, 228, 216, .22);
+  --trait: rgba(241, 228, 216, .10);
+
+  --verre: #ffb547;
+  --verre-fond: #150c10;
+  --verre-trait: rgba(255, 181, 71, .35);
+  --verre-eteint: #3a2a30;
+  --verre-halo: rgba(255, 160, 40, .35);
+  --aiguille: #ff4f7b;
+  --sur-aiguille: #24161d;
+
+  --metal: #d9cfd2;
+  --metal-sombre: #8d7f84;
+  --socle: linear-gradient(160deg, #3a2631, #2a1a22);
+  --plateau: radial-gradient(circle, #6d6266 0 60%, #a59a9e 61% 63%, #5a5054 64%);
+  --rainure: #140b0f;
+  --capuchon-haut: #e9dfe0;
+  --capuchon-bas: #a8999c;
+
+  --relief: 0 1px 0 rgba(255,255,255,.06) inset, 0 10px 24px rgba(0,0,0,.35);
+  --relief-fort: 0 1px 0 rgba(255,255,255,.08) inset, 0 24px 60px rgba(0,0,0,.5);
+  --relief-enfonce: inset 0 3px 10px rgba(0,0,0,.55);
+  --relief-plein: 0 10px 24px rgba(0,0,0,.4);
+  --ombre-pochette: 0 6px 16px rgba(0,0,0,.4);
+  --ombre-pochette-forte: 0 30px 60px -12px rgba(0,0,0,.7), 0 8px 18px rgba(0,0,0,.35);
+
+  --display: "Unbounded", system-ui, sans-serif;
+  --display-poids: 600;
+  --display-interlettre: -0.035em;
+  --texte: "Familjen Grotesk", system-ui, sans-serif;
+
+  --rayon-objet: 22px;
+  --rayon-pochette: 3px;
+  --rayon-ecran: 10px;
+  --rayon-verre: 8px;
+}
+
+/* ─── PAPIER : une archive privée, papier vert-de-gris, encre bleue, tampon magenta ─── */
+[data-teinte="papier"] {
+  --fond: #dfe4d7;
+  --fond-2: #eef1e8;
+  --fond-3: #d3dacb;
+  --fond-image: none;
+  --encre: #1d2a4d;
+  --encre-2: #5a6680;
+  --encre-3: rgba(29, 42, 77, .25);
+  --trait: rgba(29, 42, 77, .14);
+
+  --verre: #1d2a4d;
+  --verre-fond: #f6f7f1;
+  --verre-trait: rgba(29, 42, 77, .3);
+  --verre-eteint: rgba(29, 42, 77, .15);
+  --verre-halo: transparent;
+  --aiguille: #d01e6a;
+  --sur-aiguille: #f6f7f1;
+
+  --metal: #1d2a4d;
+  --metal-sombre: #5a6680;
+  --socle: #eef1e8;
+  --plateau: radial-gradient(circle, #c9d0bf 0 60%, #1d2a4d 61% 62%, #c9d0bf 63%);
+  --rainure: #c3cbb8;
+  --capuchon-haut: #1d2a4d;
+  --capuchon-bas: #2c3c66;
+
+  --relief: 0 0 0 1px rgba(29,42,77,.18);
+  --relief-fort: 0 0 0 1px rgba(29,42,77,.22), 6px 6px 0 rgba(29,42,77,.12);
+  --relief-enfonce: 0 0 0 2px var(--aiguille);
+  --relief-plein: none;
+  --ombre-pochette: 0 0 0 1px rgba(29,42,77,.2);
+  --ombre-pochette-forte: 8px 8px 0 rgba(29,42,77,.16), 0 0 0 1px rgba(29,42,77,.2);
+
+  --display: "Newsreader", Georgia, serif;
+  --display-poids: 400;
+  --display-interlettre: -0.025em;
+  --texte: "Familjen Grotesk", system-ui, sans-serif;
+  --note: "Newsreader", Georgia, serif;
+
+  --rayon-objet: 2px;
+  --rayon-pochette: 0px;
+  --rayon-ecran: 0px;
+  --rayon-verre: 0px;
+}
+[data-teinte="papier"] .sillons { filter: grayscale(1) contrast(.9); }
+
+/* ─── SIGNAL : tout en bleu électrique, comme un écran de veille de studio ─── */
+[data-teinte="signal"] {
+  --fond: #1730ff;
+  --fond-2: #2a43ff;
+  --fond-3: #3a51ff;
+  --fond-image: none;
+  --encre: #f3f5ff;
+  --encre-2: #bcc5ff;
+  --encre-3: rgba(243, 245, 255, .3);
+  --trait: rgba(243, 245, 255, .2);
+
+  --verre: #ffffff;
+  --verre-fond: #0d1fd6;
+  --verre-trait: rgba(255,255,255,.45);
+  --verre-eteint: rgba(255,255,255,.15);
+  --verre-halo: rgba(255,255,255,.35);
+  --aiguille: #ffa3d4;
+  --sur-aiguille: #1730ff;
+
+  --metal: #f3f5ff;
+  --metal-sombre: #9aa6ff;
+  --socle: #2a43ff;
+  --plateau: radial-gradient(circle, #4a5eff 0 60%, #f3f5ff 61% 62%, #4a5eff 63%);
+  --rainure: #0d1fd6;
+  --capuchon-haut: #ffffff;
+  --capuchon-bas: #c9d0ff;
+
+  --relief: 0 0 0 1.5px rgba(255,255,255,.35);
+  --relief-fort: 0 0 0 1.5px rgba(255,255,255,.4);
+  --relief-enfonce: 0 0 0 3px #fff;
+  --relief-plein: none;
+  --ombre-pochette: none;
+  --ombre-pochette-forte: 0 0 0 1.5px rgba(255,255,255,.5);
+
+  --display: "Archivo", system-ui, sans-serif;
+  --display-poids: 800;
+  --display-etirement: 125%;
+  --display-interlettre: -0.03em;
+  --texte: "Familjen Grotesk", system-ui, sans-serif;
+
+  --rayon-objet: 0px;
+  --rayon-pochette: 0px;
+  --rayon-ecran: 0px;
+  --rayon-verre: 0px;
+}
+
+/* ─── VIDE : presque rien. La pochette et le son, point. ─── */
+[data-teinte="vide"] {
+  --fond: #f6f6f3;
+  --fond-2: #f6f6f3;
+  --fond-3: #ebebe6;
+  --fond-image: none;
+  --encre: #000000;
+  --encre-2: #77776f;
+  --encre-3: rgba(0,0,0,.12);
+  --trait: rgba(0,0,0,.08);
+
+  --verre: #000000;
+  --verre-fond: #f6f6f3;
+  --verre-trait: rgba(0,0,0,.25);
+  --verre-eteint: rgba(0,0,0,.1);
+  --verre-halo: transparent;
+  --aiguille: #000000;
+  --sur-aiguille: #f6f6f3;
+
+  --metal: #000;
+  --metal-sombre: #999;
+  --socle: transparent;
+  --plateau: #ebebe6;
+  --rainure: #e2e2dc;
+  --capuchon-haut: #000;
+  --capuchon-bas: #333;
+
+  --relief: none;
+  --relief-fort: none;
+  --relief-enfonce: 0 0 0 1px #000;
+  --relief-plein: none;
+  --ombre-pochette: none;
+  --ombre-pochette-forte: 0 40px 80px -30px rgba(0,0,0,.35);
+
+  --display: "Familjen Grotesk", system-ui, sans-serif;
+  --display-poids: 500;
+  --display-interlettre: -0.045em;
+  --texte: "Familjen Grotesk", system-ui, sans-serif;
+
+  --rayon-objet: 0px;
+  --rayon-pochette: 0px;
+  --rayon-ecran: 0px;
+  --rayon-verre: 0px;
+}
+[data-teinte="vide"] .porte, [data-teinte="vide"] .table-de-mixage, [data-teinte="vide"] .terrier { border-top: 1px solid #000; }
+[data-teinte="vide"] .porte-decouvrir::before, [data-teinte="vide"] .porte-decouvrir::after,
+[data-teinte="vide"] .porte-ecouter::before { opacity: 0; }
+[data-teinte="vide"] .cadran { border-bottom-color: transparent; }
+[data-teinte="vide"] .gros-bouton:not(.gros-bouton-plein), [data-teinte="vide"] .bouton-garder, [data-teinte="vide"] .touche:not(.touche-grosse), [data-teinte="vide"] .bouton-bac, [data-teinte="vide"] .bouton-lecture { box-shadow: 0 0 0 1px #000; }
+
+/* ─── FIÈVRE : teinte cachée, débloquée en explorant. Rose brûlant, vert profond. ─── */
+[data-teinte="fievre"] {
+  --fond: #ff6fae;
+  --fond-2: #ff86bc;
+  --fond-3: #ff9cc8;
+  --fond-image: radial-gradient(70% 50% at 80% 100%, rgba(255, 243, 92, .35), transparent 70%);
+  --encre: #0e3b2c;
+  --encre-2: #2f6150;
+  --encre-3: rgba(14, 59, 44, .3);
+  --trait: rgba(14, 59, 44, .18);
+
+  --verre: #fff35c;
+  --verre-fond: #0e3b2c;
+  --verre-trait: rgba(255, 243, 92, .4);
+  --verre-eteint: #1d5442;
+  --verre-halo: rgba(255, 243, 92, .4);
+  --aiguille: #fff35c;
+  --sur-aiguille: #0e3b2c;
+
+  --metal: #0e3b2c;
+  --metal-sombre: #2f6150;
+  --socle: #0e3b2c;
+  --plateau: radial-gradient(circle, #1d5442 0 60%, #ff6fae 61% 63%, #1d5442 64%);
+  --rainure: #0e3b2c;
+  --capuchon-haut: #fff35c;
+  --capuchon-bas: #e6d63a;
+
+  --relief: 0 8px 0 #0e3b2c;
+  --relief-fort: 0 12px 0 #0a2a20;
+  --relief-enfonce: 0 2px 0 #0e3b2c;
+  --relief-plein: 0 8px 0 #0a2a20;
+  --ombre-pochette: 0 6px 0 #0e3b2c;
+  --ombre-pochette-forte: 14px 14px 0 #0e3b2c;
+
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --display-poids: 800;
+  --display-interlettre: -0.045em;
+  --texte: "Familjen Grotesk", system-ui, sans-serif;
+
+  --rayon-objet: 34px;
+  --rayon-pochette: 14px;
+  --rayon-ecran: 18px;
+  --rayon-verre: 999px;
+}
+[data-teinte="fievre"] .gros-bouton:active, [data-teinte="fievre"] .touche:active { transform: translateY(6px); }
+[data-teinte="fievre"] .afficheur { border-radius: 28px; }
