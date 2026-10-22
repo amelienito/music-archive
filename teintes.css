@@ -10,6 +10,10 @@
 
 /* ─── AMBRE : la chaîne hi-fi des années 70, bakélite prune et verre ambré ─── */
 :root, [data-teinte="ambre"] {
+  --dos-carte: repeating-linear-gradient(135deg, #3b2731 0 14px, #331f29 14px 28px);
+  --sur-dos: #ffb547;
+  --force-teinte: .32;
+
   --fond: #24161d;
   --fond-2: #301f28;
   --fond-3: #3b2731;
@@ -55,6 +59,10 @@
 
 /* ─── PAPIER : une archive privée, papier vert-de-gris, encre bleue, tampon magenta ─── */
 [data-teinte="papier"] {
+  --dos-carte: #1d2a4d;
+  --sur-dos: #eef1e8;
+  --force-teinte: .28;
+
   --fond: #dfe4d7;
   --fond-2: #eef1e8;
   --fond-3: #d3dacb;
@@ -102,6 +110,10 @@
 
 /* ─── SIGNAL : tout en bleu électrique, comme un écran de veille de studio ─── */
 [data-teinte="signal"] {
+  --dos-carte: #ffffff;
+  --sur-dos: #1730ff;
+  --force-teinte: 0;
+
   --fond: #1730ff;
   --fond-2: #2a43ff;
   --fond-3: #3a51ff;
@@ -148,6 +160,10 @@
 
 /* ─── VIDE : presque rien. La pochette et le son, point. ─── */
 [data-teinte="vide"] {
+  --dos-carte: #000000;
+  --sur-dos: #f6f6f3;
+  --force-teinte: .2;
+
   --fond: #f6f6f3;
   --fond-2: #f6f6f3;
   --fond-3: #ebebe6;
@@ -198,6 +214,10 @@
 
 /* ─── FIÈVRE : teinte cachée, débloquée en explorant. Rose brûlant, vert profond. ─── */
 [data-teinte="fievre"] {
+  --dos-carte: #0e3b2c;
+  --sur-dos: #fff35c;
+  --force-teinte: 0;
+
   --fond: #ff6fae;
   --fond-2: #ff86bc;
   --fond-3: #ff9cc8;

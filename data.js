@@ -20,6 +20,10 @@
               Rien du tout, c'est très bien aussi : le morceau parle seul.
      liens    titres d'autres morceaux de la banque vers lesquels
               celui-ci doit mener. Ex : liens: ["Pearls", "Judy"]
+     volume   de 0.1 à 1, si un morceau est enregistré trop fort.
+              (Les morceaux très énergiques sont déjà baissés tout seuls.)
+     jour     une date "2026-12-25" pour en faire le morceau du jour ce jour-là.
+              Sans ça, le morceau du jour est tiré au sort, le même pour tous.
 
    Les réglages (de 0 à 10) servent au moteur de découverte.
    Ils ne sont jamais montrés aux visiteurs. Ajuste-les à l'instinct :
@@ -225,4 +229,20 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=OOQ4wWMoYjw", note: "",
     energie: 6, etrange: 6, danse: 4 },
 
+];
+
+
+/* ════════════════════════════════════════════════════════════════════
+   LES STATIONS DE LA RADIO (page Écouter)
+   Chaque morceau va automatiquement dans la station qui lui ressemble
+   le plus, d'après ses réglages energie / etrange / danse.
+   Tu peux renommer les stations, en ajouter, en enlever.
+   ════════════════════════════════════════════════════════════════════ */
+
+const STATIONS = [
+  { nom: "Brume",        energie: 1, etrange: 8, danse: 1 },
+  { nom: "Velours",      energie: 3, etrange: 3, danse: 4 },
+  { nom: "Bitume",       energie: 6, etrange: 4, danse: 3 },
+  { nom: "Groove",       energie: 6, etrange: 3, danse: 9 },
+  { nom: "Déflagration", energie: 9, etrange: 7, danse: 8 },
 ];

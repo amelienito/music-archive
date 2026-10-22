@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vérificateur, Music Discovery</title>
+  <meta name="robots" content="noindex">
+  <style>
+    body { margin: 0; padding: 28px 20px 80px; background: #24161d; color: #f1e4d8; font: 16px/1.5 system-ui, sans-serif; }
+    main { max-width: 900px; margin: 0 auto; display: grid; gap: 18px; }
+    h1 { font-size: 1.8rem; margin: 0; }
+    p { margin: 0; color: #b7a0a3; max-width: 62ch; }
+    button { font: inherit; font-weight: 600; padding: 12px 22px; border-radius: 999px; border: 0; background: #f1e4d8; color: #24161d; cursor: pointer; justify-self: start; }
+    button:disabled { opacity: .5; cursor: default; }
+    #bilan { color: #ffb547; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    td { padding: 8px 6px; border-top: 1px solid rgba(241,228,216,.12); vertical-align: top; }
+    td:first-child { width: 28px; text-align: center; }
+    .ok { color: #7fdc9a; } .ko { color: #ff4f7b; } .attente { color: #b7a0a3; }
+    a { color: #ffb547; }
+    #ecran { width: 320px; height: 180px; position: fixed; right: 12px; bottom: 12px; border-radius: 8px; overflow: hidden; opacity: .9; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Vérificateur de morceaux</h1>
+  <p>Cette page teste chaque morceau de data.js dans le lecteur intégré, comme le verra un visiteur. Elle te dit lesquels refusent d'être lus en dehors de YouTube. Pour ceux-là, cherche une autre version (souvent le clip officiel ou l'« Official Audio » de la chaîne de l'artiste), copie son lien et remplace-le dans data.js.</p>
+  <p>Ça prend environ 5 secondes par morceau. Le son est coupé pendant le test.</p>
+  <button id="lancer" disabled>Préparation du lecteur…</button>
+  <p id="bilan"></p>
+  <table><tbody id="liste"></tbody></table>
+</main>
+<div id="ecran"><div id="yt"></div></div>
+
+<script src="data.js"></script>
+<script>
+const liste = document.getElementById('liste');
+const bilan = document.getElementById('bilan');
+const bouton = document.getElementById('lancer');
+const id = l => { const m = (l || '').match(/[?&]v=([\w-]{11})/) || (l || '').match(/youtu\.be\/([\w-]{11})/); return m ? m[1] : null; };
+const echap = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const lignes = MORCEAUX.map((m, i) => {
+  const tr = document.createElement('tr');
+  const recherche = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(m.artiste + ' ' + m.titre);
+  tr.innerHTML = `<td class="attente">·</td><td><strong>${echap(m.titre)}</strong>, ${echap(m.artiste)}<br><span class="etat attente">pas encore testé</span></td><td><a href="${recherche}" target="_blank" rel="noopener">Chercher une autre version</a></td>`;
+  liste.appendChild(tr);
+  return { m, tr, yt: id(m.lien) };
+});
+let lecteur, attente = null;
+window.onYouTubeIframeAPIReady = () => {
+  lecteur = new YT.Player('yt', {
+    width: '320', height: '180', host: 'https://www.youtube-nocookie.com',
+    playerVars: { playsinline: 1, mute: 1, rel: 0, origin: location.origin.startsWith('http') ? location.origin : undefined },
+    events: {
+      onReady: () => { bouton.disabled = false; bouton.textContent = 'Lancer la vérification'; },
+      onStateChange: e => { if (e.data === 1 && attente) attente('ok'); },
+      onError: e => { if (attente) attente('erreur ' + e.data); }
+    }
+  });
+};
+const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+
+function tester(yt) {
+  return new Promise(res => {
+    const fin = r => { clearTimeout(t); attente = null; res(r); };
+    const t = setTimeout(() => fin('délai dépassé'), 12000);
+    attente = fin;
+    lecteur.mute();
+    lecteur.loadVideoById(yt);
+  });
+}
+const RAISONS = { 'erreur 2': 'lien invalide', 'erreur 5': 'lecture impossible', 'erreur 100': 'vidéo supprimée ou privée', 'erreur 101': 'l\'auteur interdit la lecture sur d\'autres sites', 'erreur 150': 'l\'auteur interdit la lecture sur d\'autres sites', 'délai dépassé': 'ne démarre pas (à revérifier)' };
+bouton.addEventListener('click', async () => {
+  bouton.disabled = true; bouton.textContent = 'Vérification en cours…';
+  const problemes = [];
+  for (const l of lignes) {
+    const [icone, , ] = l.tr.children;
+    const etat = l.tr.querySelector('.etat');
+    l.tr.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (!l.yt) { icone.textContent = '✗'; icone.className = 'ko'; etat.textContent = 'pas de lien vidéo (lien d\'album ?)'; etat.className = 'etat ko'; problemes.push(l); continue; }
+    etat.textContent = 'test en cours…';
+    const r = await tester(l.yt);
+    try { lecteur.stopVideo(); } catch (e) {}
+    if (r === 'ok') { icone.textContent = '✓'; icone.className = 'ok'; etat.textContent = 'se lit sur le site'; etat.className = 'etat ok'; }
+    else { icone.textContent = '✗'; icone.className = 'ko'; etat.textContent = RAISONS[r] || r; etat.className = 'etat ko'; problemes.push(l); }
+    bilan.textContent = `${problemes.length} problème${problemes.length > 1 ? 's' : ''} sur ${lignes.indexOf(l) + 1} testés`;
+  }
+  bilan.textContent = problemes.length
+    ? `Terminé : ${problemes.length} morceau${problemes.length > 1 ? 'x' : ''} sur ${lignes.length} à remplacer. Les autres se lisent sur le site.`
+    : `Terminé : les ${lignes.length} morceaux se lisent sur le site.`;
+  bouton.disabled = false; bouton.textContent = 'Relancer la vérification';
+});
+</script>
+</body>
+</html>

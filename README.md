@@ -6,16 +6,19 @@ Site en ligne : https://amelienito.github.io/music-archive/
 
 ---
 
-## Ce que fait la v0.2
+## Ce que fait la v0.3
 
-- **Allumage** : on allume la machine, le cadran s'éclaire.
+- **Allumage** : on règle le volume avec la molette, puis on allume. Les morceaux très énergiques sont baissés automatiquement.
+- **La façade** (en haut) : le sélecteur Découvrir / Écouter, la molette Volume, la molette Teinte, le Bac.
+- **Le morceau du jour** : une carte à retourner, la même pour tout le monde, elle change chaque jour.
 - **Découvrir** : « Je te fais confiance » ou trois faders (calme ↔ agressif, familier ↔ étrange, se poser ↔ bouger).
 - **Duels** : deux morceaux à la fois, l'un proche de ce que tu cherches, l'autre un pas de côté. Survol (ou bouton « Extrait » sur téléphone) = 30 secondes de pré-écoute.
+- **Cartes mystère** : parfois une des deux pochettes est cachée, avec juste un indice. On la retourne, elle se lance.
 - **Ruptures de rythme** : tous les 3 duels, il se passe autre chose (un écart, un morceau mis de côté pour toi, une question).
-- **Rencontre** : le morceau choisi joue directement sur le site. On y reste. « Et après ? » propose un morceau dans la même pièce et un complètement ailleurs.
+- **Rencontre** : le morceau choisi joue directement sur le site. On y reste. « Et après ? » propose des directions (plus calme, plus étrange, plus dansant, complètement ailleurs). À la fin du morceau, ça enchaîne tout seul.
 - **Le bac** : tout ce que tu croises et tout ce que tu gardes reste en mémoire dans ton navigateur, même des mois plus tard. On peut écouter ses gardés à la suite, les ouvrir en playlist YouTube ou copier la liste.
-- **La machine** (Écouter) : une platine, un afficheur, trois touches. La radio enchaîne les morceaux avec un fil (chaque morceau est proche du précédent, avec un écart de temps en temps).
-- **La molette** (en bas à droite, en haut sur téléphone) : change la teinte du site. Ambre, Papier, Signal, Vide. Une cinquième se débloque en explorant.
+- **Écouter** : un tuner dont on fait glisser l'aiguille pour changer de station (Brume, Velours, Bitume, Groove, Déflagration, Toutes, Ton bac), une platine qu'on touche pour lancer ou couper.
+- **Les teintes** : Ambre, Papier, Signal, Vide. Une cinquième se débloque en explorant.
 
 ## Les fichiers
 
@@ -43,9 +46,15 @@ Dans `data.js`, copie un bloc, colle-le avant le `];` final, remplis :
 - La **note** est facultative. Un morceau sans texte, c'est très bien aussi.
 - `liens: ["Judy", "Quiet Storm"]` force les morceaux proposés dans « Et après ? ».
 
+## Vérifier que tous les morceaux se lisent
+
+Ouvre **https://amelienito.github.io/music-archive/verif.html** et clique sur « Lancer la vérification ». La page teste chaque morceau et te dit lesquels refusent d'être lus sur un autre site, avec un lien pour chercher une autre version. Remplace le lien dans `data.js`, c'est tout.
+
 ## Ce qu'il faut savoir
 
 - La lecture passe par le lecteur YouTube intégré : gratuit, complet, pour tout le monde, sans compte.
-- Certains clips refusent d'être lus hors de YouTube. Le site le détecte : il propose le lien, et la radio passe au suivant.
+- Certains morceaux refusent d'être lus hors de YouTube. Le site le détecte et joue à la place l'extrait de 30 secondes, avec le lien vers la version complète. Le vérificateur te dit lesquels remplacer.
+- Le lecteur n'utilise pas le compte YouTube du visiteur : pas de message « trop d'appareils » lié à un abonnement.
+- Sur iPhone, une page web ne peut pas régler le volume : ce sont les boutons du téléphone qui comptent.
 - Les pochettes HD et les extraits viennent du catalogue public d'Apple Music. Si un morceau n'y est pas, l'image YouTube prend le relais.
 - Tout est gratuit : aucun serveur, aucune base de données, hébergé par GitHub Pages.
