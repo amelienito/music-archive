@@ -800,6 +800,12 @@ function descriptionTon() {
 }
 // la file : les morceaux les plus proches du réglage, enchaînés avec un fil
 function construireFil(exclure = []) {
+  // mode aléatoire : toute la sélection mélangée, molettes ignorées
+  if (S.sourceRadio === 'hasard') {
+    let p = BANQUE.filter(m => !exclure.includes(m.id) && ecoutable(m));
+    if (p.length < 3) p = BANQUE.filter(m => !exclure.includes(m.id));
+    return melanger(p).map(m => m.id);
+  }
   const base = (S.sourceRadio === 'trouvailles' && S.gardes.length ? S.gardes.map(id => parId[id]) : BANQUE)
     .filter(m => m && !exclure.includes(m.id));
   let pool = base.filter(ecoutable);
@@ -826,6 +832,7 @@ function reconstruireSuite() {
 }
 function tonChange() {
   memoire.ecrire('md-ton', S.ton);
+  if (S.sourceRadio === 'hasard') { S.sourceRadio = 'tout'; memoire.ecrire('md-source-radio', 'tout'); $$('.source-pos').forEach(b => b.setAttribute('aria-checked', b.dataset.source === 'tout')); }
   reconstruireSuite();
   majMachine();
   const prochain = parId[S.file[S.mode === 'radio' && S.joue ? 1 : 0]];
@@ -861,7 +868,7 @@ function majAfficheur() {
   const texte = m ? `${m.titre}, ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'Rien à jouer.';
   const t = $('#vfd-texte');
   if (t.textContent !== texte) { t.textContent = texte; t.style.animationDuration = `${Math.max(8, texte.length * 0.28)}s`; }
-  $('#vfd-reglage').textContent = S.sourceRadio === 'trouvailles' ? 'Mes trouvailles' : descriptionTon();
+  $('#vfd-reglage').textContent = S.sourceRadio === 'trouvailles' ? 'Mes trouvailles' : S.sourceRadio === 'hasard' ? 'Au hasard' : descriptionTon();
   $('#vfd-etat').textContent = !active ? 'Stop' : S.enLecture ? 'Lecture' : 'Pause';
   document.body.classList.toggle('cd-tourne', active && S.enLecture);
 }

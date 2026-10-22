@@ -229,4 +229,149 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=OOQ4wWMoYjw", note: "",
     energie: 6, etrange: 6, danse: 4 },
 
+
+  { titre: "Scheherazade, Op. 35: III. The Young Prince and The Young Princess", artiste: "New York Philharmonic", album: "",
+    lien: "https://music.youtube.com/watch?v=07pZtrFkfWo", note: "",
+    energie: 2, etrange: 3, danse: 1 },
+
+  { titre: "Piano Concerto No. 2: I. Moderato", artiste: "Rachmaninoff, Krystian Zimerman", album: "",
+    lien: "https://music.youtube.com/watch?v=caR7C2SHdFI", note: "",
+    energie: 5, etrange: 2, danse: 1 },
+
+  { titre: "Piano Concerto in G: II. Adagio assai", artiste: "Ravel, Krystian Zimerman", album: "",
+    lien: "https://music.youtube.com/watch?v=W1hyEjZros8", note: "",
+    energie: 1, etrange: 3, danse: 0 },
+
+  { titre: "Serenata D.957", artiste: "Schubert, The Royal Schubert Orchestra", album: "",
+    lien: "https://music.youtube.com/watch?v=Huy791G17Ak", note: "",
+    energie: 2, etrange: 2, danse: 1 },
+
+  { titre: "Le Sable", artiste: "Alpha Wann", album: "",
+    lien: "https://music.youtube.com/watch?v=U-GdqWtYspU", note: "",
+    energie: 6, etrange: 4, danse: 4 },
+
+  { titre: "Ma Tfel", artiste: "Ziad Rahbani", album: "",
+    lien: "https://music.youtube.com/watch?v=NLurnvYk0aI", note: "",
+    energie: 4, etrange: 6, danse: 5 },
+
+  { titre: "Close the Door", artiste: "Teddy Pendergrass", album: "",
+    lien: "https://music.youtube.com/watch?v=QEbyvA9srrE", note: "",
+    energie: 3, etrange: 2, danse: 5 },
+
+  { titre: "Motherless Child", artiste: "Marvin Holmes and Justice", album: "",
+    lien: "https://music.youtube.com/watch?v=JXwSLmHlu_U", note: "",
+    energie: 5, etrange: 5, danse: 6 },
+
+  { titre: "You Ought To Know Me", artiste: "David Ruffin", album: "",
+    lien: "https://music.youtube.com/watch?v=q7LXyZse14I", note: "",
+    energie: 4, etrange: 3, danse: 5 },
+
+  { titre: "Les matins d'hiver", artiste: "Gérard Lenorman", album: "",
+    lien: "https://music.youtube.com/watch?v=ELF91NCD_-I", note: "",
+    energie: 3, etrange: 3, danse: 2 },
+
+  { titre: "(v)oOOOOOOooo", artiste: "⣎⡇ꉺლ༽இ•̛)ྀ◞ ༎ຶ ༽ৣৢ؞ৢ؞ؖ ꉺლ", album: "",
+    lien: "https://music.youtube.com/watch?v=29Sh3yEaBP8", note: "",
+    energie: 3, etrange: 9, danse: 2 },
+
+  { titre: "err:log", artiste: "cast heal", album: "",
+    lien: "https://music.youtube.com/watch?v=DCcAlLqOM8E", note: "",
+    energie: 4, etrange: 8, danse: 3 },
+
+  { titre: "I Thought I Saw Your Face Today", artiste: "She & Him", album: "",
+    lien: "https://music.youtube.com/watch?v=HJstyRBLqBQ", note: "",
+    energie: 3, etrange: 2, danse: 4 },
+
+  { titre: "Till", artiste: "Conjunto Capri", album: "",
+    lien: "https://music.youtube.com/watch?v=5Ov-yEqFYvk", note: "",
+    energie: 2, etrange: 5, danse: 3 },
+
+  { titre: "Zelda's Lullaby (Skyward Sword)", artiste: "The Legend of Zelda", album: "",
+    lien: "https://music.youtube.com/watch?v=YHO6EDIbGlk", note: "",
+    energie: 1, etrange: 4, danse: 0 },
+
+  { titre: "Great Fairy's Fountain", artiste: "Sleeping Phoenix", album: "",
+    lien: "https://music.youtube.com/watch?v=O5HGP6yf0GA", note: "",
+    energie: 1, etrange: 5, danse: 1 },
+
+  { titre: "The Flight of the Bumble-bee", artiste: "Rimsky-Korsakov, Neeme Järvi", album: "",
+    lien: "https://music.youtube.com/watch?v=kh6gSLInIXo", note: "",
+    energie: 8, etrange: 4, danse: 3 },
+
+  { titre: "Tócame (feat. Dillom)", artiste: "Six Sex", album: "",
+    lien: "https://music.youtube.com/watch?v=rh6agFmfyhI", note: "",
+    energie: 8, etrange: 6, danse: 9 },
+
+  { titre: "夜に駆ける", artiste: "YOASOBI", album: "",
+    lien: "https://music.youtube.com/watch?v=by4SYYWlhEs", note: "",
+    energie: 7, etrange: 3, danse: 7 },
+
+  { titre: "Cocard", artiste: "Andrew Magenta", album: "",
+    lien: "https://music.youtube.com/watch?v=9ubW18FTnDA", note: "",
+    energie: 5, etrange: 7, danse: 5 },
+
+  { titre: "Be Ever Wonderful", artiste: "Earth, Wind & Fire", album: "",
+    lien: "https://music.youtube.com/watch?v=HLyU8BWfGKA", note: "",
+    energie: 3, etrange: 2, danse: 4 },
+
+  { titre: "Walking With Ice Cream", artiste: "Tupperwave", album: "",
+    lien: "https://music.youtube.com/watch?v=7Uv3P8-rhB8", note: "",
+    energie: 3, etrange: 6, danse: 4 },
+
+  { titre: "At Doom's Gate", artiste: "Mick Gordon", album: "",
+    lien: "https://music.youtube.com/watch?v=Lp-TdtDYGAA", note: "",
+    energie: 10, etrange: 6, danse: 6 },
+
+  { titre: "Have It All (feat. Pharrell)", artiste: "Gucci Mane", album: "",
+    lien: "https://music.youtube.com/watch?v=RdAAAUPYti4", note: "",
+    energie: 5, etrange: 4, danse: 7 },
+
+  { titre: "Dove", artiste: "Orca", album: "",
+    lien: "https://music.youtube.com/watch?v=4uX1fGGDD9k", note: "",
+    energie: 3, etrange: 7, danse: 3 },
+
+  { titre: "remember?", artiste: "svnti", album: "",
+    lien: "https://music.youtube.com/watch?v=4qCZ1WcPWr4", note: "",
+    energie: 3, etrange: 6, danse: 3 },
+
+  { titre: "Yesterday I Had the Blues", artiste: "Harold Melvin & The Blue Notes", album: "",
+    lien: "https://music.youtube.com/watch?v=jCwDytox1sM", note: "",
+    energie: 4, etrange: 2, danse: 5 },
+
+  { titre: "Clair de Lune", artiste: "Claude Debussy", album: "",
+    lien: "https://music.youtube.com/watch?v=WKU8DJzipW4", note: "",
+    energie: 1, etrange: 2, danse: 0 },
+
+  { titre: "Bobby", artiste: "Phoebe Bridgers", album: "",
+    lien: "https://music.youtube.com/watch?v=yLbf1Wgida4", note: "",
+    energie: 2, etrange: 4, danse: 1 },
+
+  { titre: "Stop The Wedding!", artiste: "Ashe", album: "",
+    lien: "https://music.youtube.com/watch?v=WNxAvQNsJuM", note: "",
+    energie: 5, etrange: 3, danse: 5 },
+
+  { titre: "Sing", artiste: "Carpenters", album: "",
+    lien: "https://music.youtube.com/watch?v=U07qx3MBEoI", note: "",
+    energie: 2, etrange: 2, danse: 3 },
+
+  { titre: "premium package", artiste: "SOMA", album: "",
+    lien: "https://music.youtube.com/watch?v=ycoaG_klmkY", note: "",
+    energie: 5, etrange: 7, danse: 6 },
+
+  { titre: "Gingerbread Boy", artiste: "Miles Davis", album: "",
+    lien: "https://music.youtube.com/watch?v=fVndRGAF8Gg", note: "",
+    energie: 7, etrange: 6, danse: 5 },
+
+  { titre: "Forse Domani", artiste: "Giampiero Boneschi & Sergio Farina", album: "",
+    lien: "https://music.youtube.com/watch?v=84hFDVEK3jQ", note: "",
+    energie: 3, etrange: 5, danse: 4 },
+
+  { titre: "I See Your Face Before Me", artiste: "Miles Davis", album: "",
+    lien: "https://music.youtube.com/watch?v=0us-KJG6UIM", note: "",
+    energie: 1, etrange: 3, danse: 1 },
+
+  { titre: "Funky Fanfare", artiste: "Keith Mansfield", album: "",
+    lien: "https://music.youtube.com/watch?v=tUFwQjOpqJM", note: "",
+    energie: 7, etrange: 4, danse: 8 },
+
 ];
