@@ -7,13 +7,16 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const Infos = (() => {
-  const CLE = 'md-wiki-v1';
+  const CLE = 'md-wiki-v2';
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { cache = {}; }
   const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(cache)); } catch (e) {} };
   const enCours = {};
 
-  const MUSIQUE = /(chanteu|rappeu|musicien|musicienne|groupe|duo|trio|disc[- ]?jockey|\bDJ\b|producteur|productrice|compositeu|auteur-compositeur|artiste|beatmaker|singer|rapper|musician|band|producer|songwriter|record producer|composer|hip hop|soul|jazz|électronique|electronic)/i;
+  // une vraie fiche de musicien : le métier doit apparaître dans la description courte (ou la première phrase)
+  const ROLE = /(chanteu|rappeu|musicien|compositeu|compositrice|auteur-compositeur|autrice-compositrice|groupe (de |musical)|duo (de |musical)|disc[- ]?jockey|\bDJ\b|producteur|productrice|beatmaker|pianiste|violoniste|guitariste|batteu|chef d'orchestre|orchestre|ensemble (vocal|musical)|singer|rapper|musician|composer|songwriter|record producer|\bband\b|pianist|violinist|guitarist|drummer|conductor|orchestra|musical (group|duo|ensemble)|music (group|duo|producer)|hip hop|DJ)/i;
+  // et surtout pas une vodka, une ville ou un footballeur qui porte le même nom
+  const PAS_MUSIQUE = /(vodka|boisson|alcool|bière|marque|entreprise|société|commune|ville|village|film|téléfilm|série télévisée|roman|jeu vidéo|personnage|footballeur|joueur de|homme politique|femme politique|astéroïde|cratère|navire|drink|beverage|brand|company|city|town|novel|video game|fictional|footballer|politician|asteroid|crater|ship)/i;
   const OEUVRE = {
     album: /(album|\bEP\b|mixtape|bande originale|soundtrack|compilation|\bLP\b|disque)/i,
     chanson: /(chanson|single|\bsong\b|\btitre\b|morceau)/i,
@@ -37,16 +40,30 @@ const Infos = (() => {
     langue
   });
 
+  // le titre de la page correspond-il au nom ? (« Schubert » -> « Franz Schubert », « Rachmaninoff » -> « Sergueï Rachmaninov »)
+  function memeNom(titre, nom) {
+    const t = norm(titre), n = norm(nom);
+    if (!t || !n) return false;
+    if (t === n || t === n.replace(/^the /, '') || t.startsWith(n + ' ') || n.startsWith(t + ' ') || t.endsWith(' ' + n)) return true;
+    // même nom de famille, à l'orthographe près
+    const dt = t.split(' ').pop(), dn = n.split(' ').pop();
+    return n.split(' ').length <= 2 && dt.length >= 6 && dn.length >= 6 && dt.slice(0, 6) === dn.slice(0, 6) && Math.abs(dt.length - dn.length) <= 2;
+  }
+  function estMusicien(s, titreBrut) {
+    const paren = (titreBrut.match(/\(([^)]*)\)/) || [])[1];
+    if (paren && !(ROLE.test(paren) || /(groupe|band|artiste|artist|musique|music|chanteu|rappeu|singer|rapper|DJ)/i.test(paren))) return false; // « Rachmaninoff (vodka) »
+    const desc = s.description || '';
+    const premiere = ((s.extract || '').match(/^[^.]*\./) || [''])[0];
+    const texte = desc || premiere;
+    return ROLE.test(texte) && !PAS_MUSIQUE.test(texte);
+  }
   async function chercherArtiste(nom, langue) {
-    const n = norm(nom);
-    if (!n) return null;
-    const res = await json(`https://${langue}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(nom)}&srlimit=6&format=json&origin=*`);
+    if (!norm(nom)) return null;
+    const res = await json(`https://${langue}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(nom)}&srlimit=8&format=json&origin=*`);
     for (const p of (res.query && res.query.search) || []) {
-      const t = norm(p.title);
-      if (!(t === n || t.startsWith(n + ' ') || n.startsWith(t + ' ') || t === n.replace(/^the /, ''))) continue;
+      if (!memeNom(p.title, nom)) continue;
       const s = await resume(p.title, langue);
-      if (s.type !== 'standard') continue;
-      if (!MUSIQUE.test(`${s.description || ''} ${s.extract || ''}`)) continue;
+      if (s.type !== 'standard' || !estMusicien(s, p.title)) continue;
       return fiche(s, langue, p);
     }
     return null;

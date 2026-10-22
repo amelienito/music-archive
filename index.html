@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=9">
-  <link rel="stylesheet" href="teintes.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="teintes.css?v=10">
 </head>
 <body>
 
@@ -111,12 +111,15 @@
 
         <div class="pile">
           <!-- la platine CD à couvercle fumé, comme sur la pochette -->
-          <button class="platine-cd" data-action="radio-lecture" aria-label="Lecture / pause">
-            <span class="platine-couvercle">
-              <span class="cd" id="cd"><span class="cd-etiquette" id="cd-etiquette"></span></span>
-              <span class="cd-bras"></span>
+          <!-- le magnétophone à bandes, comme celui de la pochette : les bobines tournent quand ça joue -->
+          <button class="platine-cd magneto" data-action="radio-lecture" aria-label="Lecture / pause">
+            <span class="magneto-face">
+              <span class="bobine bobine-pleine"></span>
+              <span class="bobine bobine-vide"></span>
+              <span class="bande" aria-hidden="true"></span>
+              <span class="tete" aria-hidden="true"></span>
             </span>
-            <span class="platine-socle"><span class="platine-led"></span><span class="platine-nom">Music Discovery</span></span>
+            <span class="platine-socle"><span class="magneto-etiquette" id="cd-etiquette"></span><span class="platine-led"></span><span class="platine-nom">Music Discovery</span></span>
           </button>
 
           <!-- l'unité de commande -->
@@ -150,15 +153,17 @@
               <div class="selecteurs">
                 <div class="selecteur-rotatif" data-reglage="energie" role="radiogroup" aria-label="Énergie">
                   <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="0" aria-checked="false"><span class="sel-led"></span>Détente</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="1" aria-checked="true"><span class="sel-led"></span>Entre deux</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="2" aria-checked="false"><span class="sel-led"></span>Énergique</button>
-                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="energie" tabindex="-1" aria-hidden="true"><span class="molette-repere"></span></button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="2" aria-checked="true"><span class="sel-led"></span>Entre deux</button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="energie" data-pos="4" aria-checked="false"><span class="sel-led"></span>Énergique</button>
+                  <span class="sel-valeur" aria-live="polite"></span>
+                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="energie" tabindex="-1" aria-label="Tourner d'un cran"><span class="molette-repere"></span></button>
                 </div>
-                <div class="selecteur-rotatif" data-reglage="etrange" role="radiogroup" aria-label="Style">
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="0" aria-checked="false"><span class="sel-led"></span>Accessible</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="1" aria-checked="true"><span class="sel-led"></span>De travers</button>
-                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="2" aria-checked="false"><span class="sel-led"></span>Barré</button>
-                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="etrange" tabindex="-1" aria-hidden="true"><span class="molette-repere"></span></button>
+                <div class="selecteur-rotatif" data-reglage="etrange" role="radiogroup" aria-label="Connu ou confidentiel">
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="0" aria-checked="false"><span class="sel-led"></span>Connu</button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="2" aria-checked="true"><span class="sel-led"></span>Entre deux</button>
+                  <button class="sel-etiquette" role="radio" data-action="regler" data-reglage="etrange" data-pos="4" aria-checked="false"><span class="sel-led"></span>Confidentiel</button>
+                  <span class="sel-valeur" aria-live="polite"></span>
+                  <button class="sel-bouton" data-action="regler-suivant" data-reglage="etrange" tabindex="-1" aria-label="Tourner d'un cran"><span class="molette-repere"></span></button>
                 </div>
                 <div class="bouton-rotatif bouton-rotatif-unite seulement-sans-ios" data-molette="volume">
                   <div class="molette" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100">
@@ -239,12 +244,12 @@
     <div class="reglage-son" role="radiogroup" aria-label="Comment écouter">
       <p class="reglage-titre">Comment écouter</p>
       <button class="choix-son" role="radio" data-action="son" data-son="complet" aria-checked="true">
-        <strong>Morceaux complets</strong><span>Par le lecteur officiel de YouTube. Ses pubs rémunèrent les artistes ; plus aucune pub avec YouTube Premium.</span>
+        <strong>Morceaux complets</strong><span>Via YouTube. Sans pub avec YouTube Premium (connecté dans ce navigateur).</span>
       </button>
       <button class="choix-son" role="radio" data-action="son" data-son="extraits" aria-checked="false">
-        <strong>Extraits de 30 secondes</strong><span>Zéro pub, sans compte, fournis par Deezer et Apple Music. Idéal pour découvrir vite.</span>
+        <strong>Extraits de 30 secondes</strong><span>Zéro pub, sans compte. Idéal pour découvrir vite.</span>
       </button>
-      <p class="reglage-note">Tu as Deezer, Apple Music, Qobuz ou Bandcamp ? Le livret de chaque morceau a ses liens pour l'écouter en entier chez eux.</p>
+      <p class="reglage-note">Le livret de chaque morceau a aussi ses liens Deezer, Apple Music, Qobuz et Bandcamp.</p>
     </div>
     <div class="reglage-teinte">
       <p class="reglage-titre">Teinte du site</p>
@@ -255,9 +260,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <audio id="extrait" preload="none" playsinline></audio>
 
-  <script src="data.js?v=9"></script>
-  <script src="pochettes.js?v=9"></script>
-  <script src="infos.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="data.js?v=10"></script>
+  <script src="pochettes.js?v=10"></script>
+  <script src="infos.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

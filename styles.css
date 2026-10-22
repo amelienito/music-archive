@@ -269,14 +269,23 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 }
 .fouille {
   display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-  grid-template-areas: "platine suite" "livret livret";
+  grid-template-areas: "platine suite" "platine livret";
   gap: clamp(30px, 4vw, 60px) clamp(28px, 4.4vw, 76px); align-items: start;
   max-width: 1320px; margin: 0 auto;
 }
 .fouille.sans-platine { grid-template-columns: minmax(0, 1fr); grid-template-areas: "suite" "livret"; max-width: 940px; }
 
 /* le disque qui joue */
-.platine { grid-area: platine; display: grid; gap: 20px; min-width: 0; animation: sortie .6s cubic-bezier(.2,.9,.3,1.1) both; }
+.platine {
+  grid-area: platine; display: grid; gap: 16px; min-width: 0; align-self: start;
+  padding: clamp(12px, 1.6vw, 18px); border-radius: var(--rayon-objet);
+  background: var(--fond-2); box-shadow: var(--relief-fort);
+  animation: sortie .6s cubic-bezier(.2,.9,.3,1.1) both;
+}
+@media (min-width: 961px) { .platine { position: -webkit-sticky; position: sticky; top: 96px; } }
+/* le livret vit dans la colonne de droite : la platine, collée à gauche, ne le recouvre jamais */
+@media (min-width: 961px) { .fouille:not(.sans-platine) .livret-pages { grid-template-columns: minmax(0, 1fr); } .fouille:not(.sans-platine) .livret-pages::before { display: none; } .fouille:not(.sans-platine) .livret-page + .livret-page { border-top: 1px solid var(--trait); } }
+.platine .platine-texte { padding: 0 4px 4px; }
 .platine-ecran { position: relative; width: 100%; }
 .emplacement-fouille { min-height: 200px; }
 body:not(.video-fouille) .emplacement-fouille { display: none; }
@@ -284,14 +293,14 @@ body:not(.video-fouille) .emplacement-fouille { display: none; }
 body.video-fouille .platine-pochette { display: none; }
 .pochette-platine { box-shadow: var(--ombre-pochette-forte); }
 .platine-texte { display: grid; gap: 6px; justify-items: start; min-width: 0; }
-.platine-titre { font-size: clamp(1.9rem, 3.5vw, 3.3rem); overflow-wrap: anywhere; }
+.platine-titre { font-size: clamp(1.7rem, 3vw, 2.8rem); overflow-wrap: anywhere; }
 .platine-artiste { font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 500; }
 .platine-album { margin-top: 2px; font-size: 15px; color: var(--encre-2); text-align: left; text-decoration: underline; text-decoration-color: var(--encre-3); text-decoration-thickness: 1px; text-underline-offset: 4px; }
 .platine-album:hover { color: var(--encre); text-decoration-color: currentColor; }
 .platine-note { margin-top: 6px; font-family: var(--note, var(--texte)); font-size: clamp(1.05rem, 1.5vw, 1.25rem); line-height: 1.5; max-width: 38em; }
 .platine-note::before { content: "« "; color: var(--aiguille); }
 .platine-note::after { content: " »"; color: var(--aiguille); }
-.platine-actions { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 12px; }
+.platine-actions { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 8px; }
 .platine-lecture {
   min-height: 52px; padding: 0 22px 0 20px; border-radius: 999px;
   display: inline-flex; align-items: center; gap: 12px;
@@ -412,11 +421,20 @@ body.video-fouille .platine-pochette { display: none; }
 .livret-wiki { display: grid; gap: 8px; justify-items: start; }
 .livret-wiki p, .livret-texte { max-width: 62ch; }
 .pistes { list-style: none; counter-reset: piste; margin: 0; padding: 0; display: grid; gap: 1px; font-size: 15px; font-variant-numeric: tabular-nums; max-height: 360px; overflow-y: auto; }
-.pistes li { counter-increment: piste; display: grid; grid-template-columns: 2em minmax(0, 1fr) auto; gap: 10px; padding: 4px 8px 4px 4px; border-radius: 4px; }
+.pistes-aide { font-size: 13px; color: var(--encre-2); }
+.pistes li { counter-increment: piste; display: grid; grid-template-columns: 2em minmax(0, 1fr); gap: 6px; align-items: center; border-radius: 4px; }
 .pistes li::before { content: counter(piste); color: var(--encre-2); text-align: right; }
+.piste-btn { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: baseline; width: 100%; padding: 5px 8px 5px 4px; border-radius: 4px; text-align: left; }
+button.piste-btn:hover { background: var(--fond-2); }
+.piste-note { font-size: 12px; font-weight: 600; color: var(--aiguille); }
+.piste-ecoute { color: var(--encre-2); font-weight: 500; opacity: 0; transition: opacity .15s; }
+button.piste-btn:hover .piste-ecoute, .pistes li.ecoute .piste-ecoute { opacity: 1; color: var(--aiguille); }
+.pistes li.ecoute .piste-btn { background: var(--fond-2); box-shadow: inset 3px 0 0 var(--aiguille); }
+.pistes li.ici .piste-note { color: inherit; }
 .piste-titre { overflow-wrap: anywhere; }
 .piste-duree { color: var(--encre-2); }
 .pistes li.ici { background: var(--aiguille); color: var(--sur-aiguille); font-weight: 600; }
+.pistes li.ici .piste-btn { cursor: default; }
 .pistes li.ici::before, .pistes li.ici .piste-duree { color: inherit; }
 .livret-artiste-tete { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
 .livret-photo { width: 88px; height: 88px; object-fit: cover; border-radius: 50%; box-shadow: var(--ombre-pochette); }
@@ -528,6 +546,33 @@ body.cd-tourne .cd-bras { transform: rotate(32deg); }
 body.cd-tourne .platine-led { background: var(--vfd); box-shadow: 0 0 8px 1px var(--vfd-halo); }
 .platine-nom { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; opacity: .7; }
 
+/* le magnétophone à bandes : deux bobines derrière le plexi fumé, qui tournent quand ça joue */
+.magneto-face {
+  position: relative; display: grid; grid-template-rows: 1fr 1fr; gap: 14px; justify-items: center; align-items: center;
+  width: 100%; padding: 18px 14px; border-radius: 10px; overflow: hidden;
+  background: var(--plexi);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 12px 30px rgba(0,0,0,.4);
+}
+.magneto-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(118deg, rgba(255,255,255,.3) 0 10%, transparent 24% 62%, rgba(255,255,255,.1) 78%, transparent 90%); }
+.bobine {
+  --bande-ext: 60%;
+  position: relative; z-index: 1; width: 74%; aspect-ratio: 1 / 1; border-radius: 50%;
+  background:
+    radial-gradient(circle, #f1f0ec 0 7%, #8d8c88 7.5% 9%, transparent 9.5%),
+    conic-gradient(from 10deg, #e4e3df 0 46deg, transparent 46deg 120deg, #e4e3df 120deg 166deg, transparent 166deg 240deg, #e4e3df 240deg 286deg, transparent 286deg 360deg),
+    radial-gradient(circle, transparent 0 20%, #3b2a1f 20.5% var(--bande-ext), transparent calc(var(--bande-ext) + .5%)),
+    radial-gradient(circle, #2a2a2e 0 70%, #c9c7c2 70.5% 73%, #6d6c68 73.5%);
+  box-shadow: 0 6px 14px rgba(0,0,0,.4);
+  animation: tourne 5s linear infinite; animation-play-state: paused;
+}
+.bobine-vide { --bande-ext: 36%; animation-duration: 3.2s; }
+body.cd-tourne .bobine { animation-play-state: running; }
+.bande { position: absolute; z-index: 0; right: 9%; top: 25%; bottom: 25%; width: 2px; background: #3b2a1f; }
+.tete { position: absolute; z-index: 2; right: calc(9% - 7px); top: 50%; width: 16px; height: 22px; margin-top: -11px; border-radius: 3px; background: linear-gradient(90deg, #8d8c88, #f1f0ec, #9b9a96); box-shadow: 0 2px 5px rgba(0,0,0,.35); }
+.magneto-etiquette { display: block; flex: none; width: 34px; }
+.magneto-etiquette .pochette { box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.magneto .platine-socle { padding: 0; gap: 10px; }
+
 /* l'unité de commande */
 .unite {
   display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; min-width: 0;
@@ -581,17 +626,20 @@ body:not(.video-machine) .emplacement-cd { display: none; }
 .selecteur-rotatif {
   --rot: 0deg;
   display: grid; grid-template-columns: auto 54px auto; grid-template-rows: auto auto;
-  grid-template-areas: ". haut ." "gauche bouton droite";
+  grid-template-areas: ". haut ." "gauche bouton droite" ". valeur .";
   align-items: center; justify-items: center; column-gap: 6px; row-gap: 2px;
 }
+.sel-valeur { grid-area: valeur; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--encre-cd); opacity: .7; white-space: nowrap; }
+.sel-etiquette.proche { opacity: .85; }
+.sel-etiquette.proche .sel-led { background: var(--aiguille); opacity: .45; }
 .sel-etiquette {
   display: inline-flex; align-items: center; gap: 6px; padding: 4px 5px; border-radius: 4px;
   font-size: 13px; font-weight: 600; white-space: nowrap; color: var(--encre-cd); opacity: .6;
   transition: opacity .2s, color .2s;
 }
 .sel-etiquette[data-pos="0"] { grid-area: gauche; justify-self: end; }
-.sel-etiquette[data-pos="1"] { grid-area: haut; }
-.sel-etiquette[data-pos="2"] { grid-area: droite; justify-self: start; }
+.sel-etiquette[data-pos="2"] { grid-area: haut; }
+.sel-etiquette[data-pos="4"] { grid-area: droite; justify-self: start; }
 .sel-etiquette:hover { opacity: .9; }
 .sel-etiquette[aria-checked="true"] { opacity: 1; color: var(--aiguille); }
 .sel-led { width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,.22); box-shadow: inset 0 1px 1px rgba(0,0,0,.35); transition: background .2s, box-shadow .2s; }
@@ -603,6 +651,7 @@ body:not(.video-machine) .emplacement-cd { display: none; }
     repeating-conic-gradient(var(--capuchon-bas) 0 6deg, var(--capuchon-haut) 6deg 12deg);
   box-shadow: 0 5px 12px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.18);
 }
+.sel-bouton { cursor: grab; touch-action: none; }
 .sel-bouton .molette-repere { transition: transform .4s cubic-bezier(.3,1.6,.5,1); }
 .bouton-rotatif-unite { align-self: end; }
 .bouton-rotatif-unite .molette { width: 54px; height: 54px; }
@@ -815,7 +864,10 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .selecteurs { justify-content: center; gap: 18px 24px; }
   .source-radio { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; border-radius: 14px; }
   .source-pos { padding: 0 6px; font-size: 13px; border-radius: 11px; line-height: 1.15; }
-  .sel-etiquette { font-size: 12px; }
+  .sel-etiquette { font-size: 12px; padding: 6px 5px; }
+  .selecteur-rotatif { grid-template-columns: auto 66px auto; }
+  .sel-bouton { width: 66px; height: 66px; }
+  .platine { padding: 10px; }
   .touche { width: 56px; height: 56px; }
   .touche-grosse { width: 74px; height: 74px; }
 

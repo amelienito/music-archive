@@ -14,8 +14,8 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const Pochettes = (() => {
-  const CLE = 'md-pochettes-v6';
-  const CLE_ALBUMS = 'md-albums-v1';
+  const CLE = 'md-pochettes-v7';
+  const CLE_ALBUMS = 'md-albums-v2';
   const lire = cle => { try { return JSON.parse(localStorage.getItem(cle)) || {}; } catch (e) { return {}; } };
   let cache = lire(CLE);
   let albums = lire(CLE_ALBUMS);
@@ -120,14 +120,22 @@ const Pochettes = (() => {
       id: best.id || null,
       album: best.album && best.album.title || null,
       idAlbum: best.album && best.album.id || null,
+      idArtiste: best.artist && best.artist.id || null,
       duree: best.duration || null,
     };
+  }
+  // combien de fans l'artiste a sur Deezer : c'est ce qui dit s'il est connu ou confidentiel
+  async function fansDeezer(id) {
+    const d = await jsonp(`https://api.deezer.com/artist/${id}?output=jsonp`);
+    return d && !d.error && typeof d.nb_fan === 'number' ? d.nb_fan : null;
   }
 
   async function chercher(m) {
     let apple = null, deezer = null, dzErr = false;
     try { apple = await chercherApple(m); } catch (e) {}
     try { deezer = await chercherDeezer(m); } catch (e) { dzErr = true; }
+    let fans = null;
+    if (deezer && deezer.idArtiste) { try { fans = await fansDeezer(deezer.idArtiste); } catch (e) {} }
     const pris = k => (apple && apple[k]) || (deezer && deezer[k]) || null;
     // l'album : celui qui correspond à data.js d'abord, sinon Apple, sinon Deezer
     const voulu = m.album ? normaliser(m.album) : '';
@@ -145,8 +153,18 @@ const Pochettes = (() => {
       annee: pris('annee'), genre: pris('genre'), duree: pris('duree'),
       idAlbumApple: apple && apple.idAlbum || null,
       idAlbumDeezer: deezer && deezer.idAlbum || null,
+      fans, absentDeezer: !dzErr && !deezer,
       dzErr, t: Date.now()
     };
+  }
+
+  // connu (0) ou confidentiel (10), d'après le nombre de fans sur Deezer ; null tant qu'on ne sait pas
+  function confidentiel(m) {
+    const c = cache[m.id];
+    if (!c) return null;
+    if (typeof c.fans === 'number') return Math.max(0, Math.min(10, 10 - (Math.log10(c.fans + 1) - 2) * 1.8));
+    if (c.absentDeezer) return 9; // introuvable sur Deezer : on le range côté confidentiel
+    return null;
   }
 
   /* ─── les extraits ─── */
@@ -181,6 +199,12 @@ const Pochettes = (() => {
         return c.previewApple || null;
       })
       .catch(() => c.previewApple || null);
+  }
+  // l'extrait d'un titre de l'album (Apple d'abord, sinon Deezer avec un lien tout neuf)
+  function extraitPiste(p) {
+    if (p.extrait) return Promise.resolve(p.extrait);
+    if (!p.dzId) return Promise.resolve(null);
+    return jsonp(`https://api.deezer.com/track/${p.dzId}?output=jsonp`).then(d => d && d.preview || null).catch(() => null);
   }
   // un extrait qui refuse de se lire, même renouvelé : on ne le propose plus
   function oublierExtrait(m, url) {
@@ -219,7 +243,7 @@ const Pochettes = (() => {
     const alb = nettoyerAlbum(col.collectionName);
     const pistes = res.filter(r => r.wrapperType === 'track')
       .sort((a, b) => ((a.discNumber || 1) - (b.discNumber || 1)) || ((a.trackNumber || 0) - (b.trackNumber || 0)))
-      .map(r => ({ titre: r.trackName, duree: r.trackTimeMillis ? Math.round(r.trackTimeMillis / 1000) : null }));
+      .map(r => ({ titre: r.trackName, duree: r.trackTimeMillis ? Math.round(r.trackTimeMillis / 1000) : null, extrait: r.previewUrl || null }));
     // « ℗ 1992 Sony Music Entertainment UK Limited » -> « Sony Music Entertainment UK Limited »
     const label = (col.copyright || '').replace(/^[^A-Za-zÀ-ÿ]*(?:\(?[cpCP]\)?\s*)?\d{4}[\s,.]*/, '').trim() || null;
     return {
@@ -239,7 +263,7 @@ const Pochettes = (() => {
       date: d.release_date || null, label: d.label || null,
       genre: d.genres && d.genres.data && d.genres.data[0] ? d.genres.data[0].name : null,
       nb: d.nb_tracks || null, duree: d.duration || null,
-      pistes: ((d.tracks && d.tracks.data) || []).map(t => ({ titre: t.title, duree: t.duration || null })),
+      pistes: ((d.tracks && d.tracks.data) || []).map(t => ({ titre: t.title, duree: t.duration || null, dzId: t.id || null })),
       lien: d.link || null,
     };
   }
@@ -256,6 +280,8 @@ const Pochettes = (() => {
     if (c.idAlbumDeezer) { try { dz = await lookupDeezer(c.idAlbumDeezer); } catch (e) {} }
     if (!ap && !dz) return null;
     const pistes = ap && ap.pistes.length ? ap.pistes : dz ? dz.pistes : [];
+    // on garde aussi l'identifiant Deezer de chaque titre, pour retrouver un extrait si Apple n'en a pas
+    if (ap && dz) pistes.forEach(p => { const x = dz.pistes.find(q => normaliser(q.titre) === normaliser(p.titre)); if (x) p.dzId = x.dzId; });
     const info = {
       titre: (ap && ap.titre) || (dz && dz.titre) || c.album,
       type: (dz && dz.type) || (ap && ap.type) || c.typeAlbum || 'album',
@@ -368,5 +394,5 @@ const Pochettes = (() => {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  return { html, image, extrait, extraitFrais, rafraichir, oublierExtrait, etat, meta, source, liens, album, demander, couleur, echapper, artistePrincipal, normaliser };
+  return { html, image, extrait, extraitFrais, extraitPiste, confidentiel, rafraichir, oublierExtrait, etat, meta, source, liens, album, demander, couleur, echapper, artistePrincipal, normaliser };
 })();

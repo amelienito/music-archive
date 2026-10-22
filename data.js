@@ -288,4 +288,8 @@ const MORCEAUX = [
     lien: "https://music.youtube.com/watch?v=tUFwQjOpqJM", note: "",
     energie: 7, etrange: 4, danse: 8 },
 
+  { titre: "The Empty Room", artiste: "Haruomi Hosono", album: "",
+    lien: "https://music.youtube.com/watch?v=CYC30CSXG4o", note: "",
+    energie: 2, etrange: 6, danse: 1 },
+
 ];

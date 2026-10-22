@@ -64,20 +64,26 @@ const BANQUE = (typeof MORCEAUX !== 'undefined' ? MORCEAUX : []).map((m, i) => {
 const parId = Object.fromEntries(BANQUE.map(m => [m.id, m]));
 const parTitre = t => BANQUE.find(m => m.titre.toLowerCase() === String(t).toLowerCase());
 // Découvrir mesure trois choses (énergie, côté barré, envie de danser) ; la radio, deux
-const distance = (a, b) => Math.hypot(a.energie - b.energie, a.etrange - b.etrange, (a.danse - b.danse) * 0.8);
-const distanceRadio = (a, b) => Math.hypot(a.energie - b.energie, a.etrange - b.etrange);
+// connu (0) ou confidentiel (10) : mesuré d'après le nombre de fans de l'artiste sur Deezer,
+// et, tant qu'on ne sait pas, d'après la note « etrange » de data.js
+const conf = m => { const c = m.id ? Pochettes.confidentiel(m) : null; return c === null ? m.etrange : c; };
+const val = (m, cle) => cle === 'etrange' ? conf(m) : m[cle];
+const distance = (a, b) => Math.hypot(a.energie - b.energie, conf(a) - conf(b), (a.danse - b.danse) * 0.8);
+const distanceRadio = (a, b) => Math.hypot(a.energie - b.energie, conf(a) - conf(b));
 
 /* ─────────────────────────────── les réglages de la radio ─────────────────────────────── */
+// cinq crans par sélecteur : les trois mots, et un cran entre chacun
 const REGLAGES = {
-  energie: { valeurs: [2, 5, 8.5], noms: ['Détente', 'Entre deux', 'Énergique'] },
-  etrange: { valeurs: [2, 5, 8.5], noms: ['Accessible', 'De travers', 'Barré'] },
+  energie: { valeurs: [1, 3, 5, 7, 9], noms: ['Détente', 'Plutôt calme', 'Entre deux', 'Plutôt énergique', 'Énergique'] },
+  etrange: { valeurs: [1, 3, 5, 7, 9], noms: ['Connu', 'Plutôt connu', 'Entre deux', 'Plutôt confidentiel', 'Confidentiel'] },
 };
-const versPos = v => v <= 3.5 ? 0 : v >= 6.5 ? 2 : 1;
+const CRANS = 5;
 function tonDeDepart() {
-  const v2 = memoire.lire('md-ton-v2', null);
-  if (v2 && [0, 1, 2].includes(v2.energie) && [0, 1, 2].includes(v2.etrange)) return v2;
-  const ancien = memoire.lire('md-ton', null); // les anciennes molettes (0 à 10)
-  return ancien ? { energie: versPos(num(ancien.energie, 5)), etrange: versPos(num(ancien.etrange, 5)) } : { energie: 1, etrange: 1 };
+  const v3 = memoire.lire('md-ton-v3', null);
+  if (v3 && v3.energie >= 0 && v3.energie < CRANS && v3.etrange >= 0 && v3.etrange < CRANS) return v3;
+  const v2 = memoire.lire('md-ton-v2', null); // les sélecteurs à trois positions
+  if (v2 && [0, 1, 2].includes(v2.energie)) return { energie: v2.energie * 2, etrange: [0, 1, 2].includes(v2.etrange) ? v2.etrange * 2 : 2 };
+  return { energie: 2, etrange: 2 };
 }
 
 /* ─────────────────────────────── l'état ─────────────────────────────── */
@@ -306,13 +312,13 @@ const DIRECTIONS = {
   veine:      { etiquette: 'Dans la même veine' },
   calme:      { etiquette: 'Plus calme', cle: 'energie', sens: -1 },
   energique:  { etiquette: 'Plus énergique', cle: 'energie', sens: 1 },
-  accessible: { etiquette: 'Plus accessible', cle: 'etrange', sens: -1 },
-  barre:      { etiquette: 'Plus barré', cle: 'etrange', sens: 1 },
+  accessible: { etiquette: 'Plus connu', cle: 'etrange', sens: -1 },
+  barre:      { etiquette: 'Plus confidentiel', cle: 'etrange', sens: 1 },
   pose:       { etiquette: 'Plus posé', cle: 'danse', sens: -1 },
   dansant:    { etiquette: 'Plus dansant', cle: 'danse', sens: 1 },
   ailleurs:   { etiquette: 'Complètement ailleurs' },
-  debutDoux:  { etiquette: 'Plutôt accessible' },
-  debutBarre: { etiquette: 'Plutôt barré' },
+  debutDoux:  { etiquette: 'Plutôt connu' },
+  debutBarre: { etiquette: 'Plutôt confidentiel' },
   coup:       { etiquette: 'Coup de cœur' },
 };
 function disponibles(exclure = []) {
@@ -340,14 +346,14 @@ function versDirection(ref, dir, pool) {
   }
   const d = DIRECTIONS[dir];
   const autres = ['energie', 'etrange', 'danse'].filter(k => k !== d.cle);
-  const score = x => autres.reduce((s, k) => s + Math.abs(x[k] - ref[k]), 0) + Math.abs(Math.abs(x[d.cle] - ref[d.cle]) - 3) * 0.6;
-  const c = pool.filter(x => (x[d.cle] - ref[d.cle]) * d.sens >= 2).sort((a, b) => score(a) - score(b));
+  const score = x => autres.reduce((s, k) => s + Math.abs(val(x, k) - val(ref, k)), 0) + Math.abs(Math.abs(val(x, d.cle) - val(ref, d.cle)) - 3) * 0.6;
+  const c = pool.filter(x => (val(x, d.cle) - val(ref, d.cle)) * d.sens >= 2).sort((a, b) => score(a) - score(b));
   return hasard(c.slice(0, 2));
 }
 function tirerSuite(ref, { exclure = [], pasDeCoup = false } = {}) {
   const pool = disponibles([...(S.courant ? [S.courant] : []), ...exclure]);
   if (pool.length < 2) return null;
-  // premier choix : la même énergie, l'un accessible, l'autre barré
+  // premier choix : la même énergie, l'un plutôt connu, l'autre plutôt confidentiel
   if (!ref) {
     const c = S.cible;
     let tol = 1.5, proches = [];
@@ -357,7 +363,7 @@ function tirerSuite(ref, { exclure = [], pasDeCoup = false } = {}) {
       tol += 1;
     }
     if (proches.length < 2) proches = pool;
-    const tri = [...proches].sort((a, b) => a.etrange - b.etrange);
+    const tri = [...proches].sort((a, b) => conf(a) - conf(b));
     const a = hasard(tri.slice(0, Math.min(3, tri.length - 1)));
     const reste = tri.filter(x => x !== a);
     const b = hasard(reste.slice(-Math.min(3, reste.length)));
@@ -378,7 +384,7 @@ function tirerSuite(ref, { exclure = [], pasDeCoup = false } = {}) {
   else {
     const possibles = ['calme', 'energique', 'accessible', 'barre', 'pose', 'dansant'].filter(d => {
       const D = DIRECTIONS[d];
-      return resteB.some(x => (x[D.cle] - ref[D.cle]) * D.sens >= 2);
+      return resteB.some(x => (val(x, D.cle) - val(ref, D.cle)) * D.sens >= 2);
     });
     const poids = possibles.map(d => (1 + 1.5 * (S.prefs[d] || 0)) * (d === S.dernierDir ? 0.5 : 1));
     dir = possibles.length ? tirerPondere(possibles, poids) : 'ailleurs';
@@ -390,13 +396,14 @@ function tirerSuite(ref, { exclure = [], pasDeCoup = false } = {}) {
 }
 function apprendre(m) {
   S.cible.energie = borner(S.cible.energie + (m.energie - S.cible.energie) * 0.2, 0, 10);
-  S.cible.etrange = borner(S.cible.etrange + (m.etrange - S.cible.etrange) * 0.3, 0, 10);
+  S.cible.etrange = borner(S.cible.etrange + (conf(m) - S.cible.etrange) * 0.3, 0, 10);
   S.cible.danse   = borner(S.cible.danse   + (m.danse   - S.cible.danse)   * 0.25, 0, 10);
 }
 // une phrase pour deviner un disque sans le voir
 function indice(m) {
   const e = m.energie <= 2 ? 'Tout en douceur' : m.energie <= 4 ? 'Plutôt détente' : m.energie <= 6 ? 'Ça avance' : m.energie <= 8 ? 'Énergique' : 'Ça cogne';
-  const t = m.etrange <= 3 ? 'et accessible' : m.etrange <= 6 ? 'et un peu de travers' : 'et franchement barré';
+  const c = conf(m);
+  const t = c <= 3 ? 'et plutôt connu' : c <= 6 ? 'et pas si connu' : 'et confidentiel';
   const d = m.danse >= 8 ? ' On danse.' : m.danse <= 2 ? ' On reste assis.' : '';
   return `${e}, ${t}.${d}`;
 }
@@ -541,10 +548,8 @@ function majPlatine() {
   else if (actif && S.erreur) html = 'Ce morceau ne peut pas être lu ici. <button class="lien-bouton" data-action="livret" data-livret="fouille" data-ouvrir="1">Le livret</button> donne ses liens pour l\'écouter en entier ailleurs.';
   else if (actif && S.lecture === 'extrait') {
     const entier = src && src.lien ? ` <a href="${E(src.lien)}" target="_blank" rel="noopener">En entier sur ${src.nom}</a>` : '';
-    const par = src ? `, fourni par ${src.nom}` : '';
-    html = (S.son === 'extraits' ? `Extrait de 30 secondes${par}.`
-      : !m.yt ? `Pas de lecture intégrée pour ce morceau : extrait de 30 secondes${par}.`
-      : `Ce morceau refuse d'être lu sur un autre site : extrait de 30 secondes${par}.`) + entier;
+    html = (S.son === 'extraits' ? 'Extrait de 30 secondes.'
+      : 'Ce morceau ne se lit pas ici en entier : extrait de 30 secondes.') + entier;
   }
   info.hidden = !html;
   if (info.innerHTML !== html) info.innerHTML = html;
@@ -742,7 +747,14 @@ function rendreLivret(ou, m, { force = false } = {}) {
     </div>` : ''}`;
   if (ouvert) { remplirAlbum(el, m); remplirArtiste(el, m); }
 }
+const pistesLivret = {};
+// un titre de l'album qui est aussi dans la sélection : on peut le lancer en entier
+function dansLaSelection(titre, artiste) {
+  const t = N(titre), a = N(Pochettes.artistePrincipal(artiste));
+  return BANQUE.find(x => N(x.titre) === t && (N(x.artiste).includes(a) || a.includes(N(Pochettes.artistePrincipal(x.artiste)))));
+}
 function remplirAlbum(el, m) {
+  const ou = el.id.replace('livret-', '');
   Pochettes.album(m).then(a => {
     const corps = el.querySelector(`[data-album-pour="${m.id}"]`);
     if (!corps) return;
@@ -752,10 +764,16 @@ function remplirAlbum(el, m) {
       return;
     }
     const t = N(m.titre);
-    const pistes = a.pistes.length > 1 ? `<ol class="pistes">${a.pistes.slice(0, 40).map(p => {
+    pistesLivret[ou] = a.pistes;
+    const pistes = a.pistes.length > 1 ? `<p class="pistes-aide">Touche un titre pour en écouter 30 secondes${a.pistes.some(p => dansLaSelection(p.titre, a.artiste || m.artiste)) ? ' (ceux marqués « en entier » sont dans la sélection)' : ''}.</p>
+      <ol class="pistes">${a.pistes.slice(0, 40).map((p, i) => {
       const pt = N(p.titre);
       const ici = pt && t && (pt === t || pt.startsWith(t) || t.startsWith(pt));
-      return `<li class="${ici ? 'ici' : ''}"><span class="piste-titre">${E(p.titre)}</span>${p.duree ? `<span class="piste-duree">${minutes(p.duree)}</span>` : ''}</li>`;
+      const sel = !ici && dansLaSelection(p.titre, a.artiste || m.artiste);
+      const duree = p.duree ? `<span class="piste-duree">${minutes(p.duree)}</span>` : '';
+      return ici
+        ? `<li class="ici"><span class="piste-btn"><span class="piste-titre">${E(p.titre)}</span><span class="piste-note">en cours</span>${duree}</span></li>`
+        : `<li><button class="piste-btn" data-action="piste" data-livret="${ou}" data-i="${i}"${sel ? ` data-id="${sel.id}"` : ''}><span class="piste-titre">${E(p.titre)}</span>${sel ? '<span class="piste-note">en entier</span>' : '<span class="piste-note piste-ecoute">30 s</span>'}${duree}</button></li>`;
     }).join('')}</ol>` : '';
     corps.innerHTML = `
       <div class="livret-album-tete">
@@ -808,8 +826,8 @@ function ouvrirLivret(ou, m) {
 
 // la première fois qu'un morceau passe par YouTube : pourquoi des pubs, et comment s'en passer légalement
 const AVIS_PUB = `
-  <p class="avis-titre">Pourquoi des pubs ?</p>
-  <p>Les morceaux complets passent par le lecteur officiel de YouTube : ses pubs rémunèrent les artistes. Sans pub et en restant réglo : YouTube Premium, le mode extraits (dans Réglages), ou ton propre service, via les liens du livret.</p>
+  <p class="avis-titre">Des pubs ?</p>
+  <p>Les morceaux complets passent par YouTube. Connecté à YouTube Premium dans ce navigateur, plus de pub. Sinon, il y a le mode extraits, dans Réglages.</p>
   <div class="avis-actions">
     <button class="gros-bouton gros-bouton-plein" data-action="encart-ok">Compris</button>
     <button class="lien-bouton" data-action="encart-extraits">Passer en extraits</button>
@@ -844,6 +862,20 @@ function lancerExtrait(id, el) {
     clearInterval(fondu);
     const cibleVol = borner(S.volume / 100 * m.facteur, 0, 1);
     fondu = setInterval(() => { audioExtrait.volume = Math.min(cibleVol, audioExtrait.volume + cibleVol / 10); if (audioExtrait.volume >= cibleVol) clearInterval(fondu); }, 50);
+  });
+}
+function lancerExtraitPiste(p, cle, li) {
+  arreterExtrait();
+  extraitPour = cle;
+  appliquerVolume();
+  if (li) li.classList.add('ecoute');
+  Pochettes.extraitPiste(p).then(url => {
+    if (extraitPour !== cle) return;
+    if (!url) { arreterExtrait(); toast('Pas d\'extrait pour ce titre.'); return; }
+    audioExtrait.dataset.id = '';
+    audioExtrait.src = url;
+    audioExtrait.volume = borner(S.volume / 100, 0, 1);
+    audioExtrait.play().catch(() => arreterExtrait());
   });
 }
 function arreterExtrait() {
@@ -1043,10 +1075,14 @@ function tempsActuel() {
 /* Règles du lecteur YouTube, respectées ici : la vidéo est toujours visible
    pendant qu'elle joue (jamais de lecture cachée), dans un cadre d'au moins
    200 × 200 pixels, sans rien posé par-dessus. */
+let platineVue = true;
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver(es => { const v = es[0].isIntersecting; if (v !== platineVue) { platineVue = v; majPoste(); } }, { threshold: 0.2 }).observe($('#platine'));
+}
 function majPoste() {
   const p = $('#poste');
   const yt = S.lecture === 'yt';
-  const surSaPage = S.vue === 'fouille' && S.mode === 'decouvrir' && S.courant === S.joue;
+  const surSaPage = S.vue === 'fouille' && S.mode === 'decouvrir' && S.courant === S.joue && platineVue;
   const radioSurMachine = S.vue === 'machine' && S.mode === 'radio';
   const visible = !!S.joue && S.vue !== 'allumage' && !radioSurMachine && !surSaPage;
   p.hidden = !visible;
@@ -1073,7 +1109,7 @@ let suiviRAF = null;
 function emplacementCible() {
   if (!S.joue || S.lecture !== 'yt') return null;
   if (S.vue === 'machine' && S.mode === 'radio') return $('[data-emplacement="machine"]');
-  if (S.vue === 'fouille' && S.mode === 'decouvrir' && S.courant === S.joue) return $('[data-emplacement="fouille"]');
+  if (S.vue === 'fouille' && S.mode === 'decouvrir' && S.courant === S.joue && platineVue) return $('[data-emplacement="fouille"]');
   if (!$('#poste').hidden && !S.posteReduit) return $('[data-emplacement="poste"]');
   return null;
 }
@@ -1128,23 +1164,41 @@ function descriptionTon() {
 function majSelecteurs() {
   $$('.selecteur-rotatif').forEach(el => {
     const cle = el.dataset.reglage, pos = S.tonPos[cle];
-    el.style.setProperty('--rot', `${(pos - 1) * 62}deg`);
+    el.style.setProperty('--rot', `${(pos - 2) * 31}deg`);
+    const nom = $('.sel-valeur', el);
+    if (nom) nom.textContent = REGLAGES[cle].noms[pos];
     $$('.sel-etiquette', el).forEach(b => {
-      const ok = +b.dataset.pos === pos;
+      const p = +b.dataset.pos, ok = p === pos;
       b.setAttribute('aria-checked', ok);
-      b.tabIndex = ok ? 0 : -1;
+      b.classList.toggle('proche', !ok && Math.abs(p - pos) === 1);
+      b.tabIndex = ok || (pos % 2 === 1 && p === pos - 1) ? 0 : -1;
     });
   });
 }
-function regler(cle, pos) {
+// on peut aussi attraper le bouton et le tourner, cran par cran
+$$('.sel-bouton').forEach(bt => {
+  let g = null;
+  bt.addEventListener('pointerdown', e => { g = { x: e.clientX, y: e.clientY, bouge: false, pos: S.tonPos[bt.dataset.reglage] }; try { bt.setPointerCapture(e.pointerId); } catch (er) {} e.preventDefault(); });
+  bt.addEventListener('pointermove', e => {
+    if (!g) return;
+    const d = (g.y - e.clientY) + (e.clientX - g.x);
+    if (Math.abs(d) > 6) g.bouge = true;
+    if (g.bouge) regler(bt.dataset.reglage, g.pos + Math.round(d / 24), true);
+  });
+  // après avoir tourné le bouton, le « clic » qui suit ne doit pas avancer d'un cran de plus
+  const fin = () => { if (!g) return; const bouge = g.bouge; g = null; if (bouge) { bt.dataset.saisi = '1'; setTimeout(() => delete bt.dataset.saisi, 50); tonChange(); } };
+  bt.addEventListener('pointerup', fin);
+  bt.addEventListener('pointercancel', fin);
+});
+function regler(cle, pos, enDirect) {
   if (!REGLAGES[cle]) return;
-  pos = borner(pos, 0, 2);
+  pos = borner(pos, 0, CRANS - 1);
   if (S.tonPos[cle] === pos) return;
   S.tonPos[cle] = pos;
-  memoire.ecrire('md-ton-v2', S.tonPos);
+  memoire.ecrire('md-ton-v3', S.tonPos);
   majSelecteurs();
-  clic(1500 + pos * 350, 0.03, 0.07);
-  tonChange();
+  clic(1500 + pos * 200, 0.03, 0.07);
+  if (!enDirect) tonChange();
 }
 // au clavier : les flèches déplacent le sélecteur
 $$('.selecteur-rotatif').forEach(el => el.addEventListener('keydown', e => {
@@ -1153,7 +1207,7 @@ $$('.selecteur-rotatif').forEach(el => el.addEventListener('keydown', e => {
   e.preventDefault();
   const cle = el.dataset.reglage;
   regler(cle, S.tonPos[cle] + pas);
-  const b = $(`.sel-etiquette[data-pos="${S.tonPos[cle]}"]`, el);
+  const b = $(`.sel-etiquette[tabindex="0"]`, el);
   if (b) b.focus();
 }));
 // la file : les morceaux les plus proches du réglage, enchaînés avec un fil
@@ -1241,7 +1295,7 @@ function majAfficheur() {
   const src = active && S.lecture === 'extrait' ? Pochettes.source(m) : null;
   ms.hidden = !src && !(active && S.bloque);
   if (active && S.bloque) ms.textContent = 'La lecture ne démarre pas toute seule : appuie sur lecture.';
-  else if (src) ms.innerHTML = `Extrait de 30 secondes fourni par ${src.nom}.${src.lien ? ` <a href="${E(src.lien)}" target="_blank" rel="noopener">L'écouter en entier sur ${src.nom}</a>` : ''}`;
+  else if (src) ms.innerHTML = `Extrait de 30 secondes.${src.lien ? ` <a href="${E(src.lien)}" target="_blank" rel="noopener">En entier sur ${src.nom}</a>` : ''}`;
   document.body.classList.toggle('cd-tourne', active && S.enLecture);
 }
 function radioJouerCourant() {
@@ -1449,6 +1503,13 @@ const ACTIONS = {
     rendreSuite();
   },
   'rester': () => annulerCompte(false),
+  'piste': b => {
+    if (b.dataset.id) { arreterExtrait(); clic(1300); mettreSurLaPlatine(parId[b.dataset.id]); return; }
+    const p = (pistesLivret[b.dataset.livret] || [])[+b.dataset.i];
+    if (!p) return;
+    const cle = `piste:${b.dataset.livret}:${b.dataset.i}`;
+    if (extraitPour === cle) arreterExtrait(); else lancerExtraitPiste(p, cle, b.closest('li'));
+  },
   'extrait': b => { const id = b.dataset.id; if (extraitPour === id) arreterExtrait(); else lancerExtrait(id, b.closest('.option, .coup')); },
   'ouvrir': b => { fermerPanneaux(); clic(1300); mettreSurLaPlatine(parId[b.dataset.id]); },
   'garder': b => basculerGarde(b.dataset.id),
@@ -1482,7 +1543,7 @@ const ACTIONS = {
   'radio-garder': () => basculerGarde(S.file[S.pos]),
   'radio-raconte': () => { const m = parId[S.file[S.pos]]; if (m) ouvrirLivret('machine', m); },
   'regler': b => regler(b.dataset.reglage, +b.dataset.pos),
-  'regler-suivant': b => { const c = b.dataset.reglage; regler(c, (S.tonPos[c] + 1) % 3); },
+  'regler-suivant': b => { if (b.dataset.saisi) return; const c = b.dataset.reglage; regler(c, (S.tonPos[c] + 1) % CRANS); },
   'source-radio': b => choisirSourceRadio(b.dataset.source),
   'ouvrir-bac': () => ouvrirPanneau('bac'),
   'ouvrir-reglages': () => ouvrirPanneau('reglages'),
