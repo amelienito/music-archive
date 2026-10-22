@@ -122,7 +122,7 @@ function prochain() {
   const l = L();
   for (const id of l.ids) {
     if (l.decisions[id]) continue;
-    if (DEJA.has(id)) { l.decisions[id] = 'deja'; continue; }
+    if (DEJA.has(id) && T.active !== 'site') { l.decisions[id] = 'deja'; continue; }
     return id;
   }
   return null;
@@ -204,12 +204,16 @@ function lesOui() {
 }
 function texteExport() {
   const oui = lesOui();
+  if (T.active === 'site') {
+    const l = L(), non = l.ids.filter(id => l.decisions[id] === 'non');
+    return `Morceaux du site à RETIRER (${non.length}) :\n` + non.map(id => { const m = l.infos[id] || {}; return `${m.artiste || '?'} | ${m.titre || '?'} | https://music.youtube.com/watch?v=${id}`; }).join('\n');
+  }
   return `Morceaux validés sur la table de tri (${oui.length}) :\n` + oui.map(m =>
     `${m.artiste || '?'} | ${m.titre || m.brut || '?'} | https://music.youtube.com/watch?v=${m.id}${m.refus ? ' | lecture intégrée refusée' : ''}`).join('\n');
 }
 function rendreExport() {
   const oui = lesOui();
-  $('#export').hidden = !oui.length;
+  $('#export').hidden = !oui.length && !(T.active === 'site' && Object.values(L().decisions).includes('non'));
   $('#liste-oui').innerHTML = oui.map(m => `<li>${esc(m.artiste || '?')}, ${esc(m.titre || m.brut || m.id)}</li>`).join('');
   const passes = Object.values(L().decisions).filter(x => x === 'passe').length;
   $('#revoir-passes').hidden = !passes;
@@ -283,3 +287,12 @@ fiche.addEventListener('touchend', e => {
 rendreListes();
 if (T.active && T.listes[T.active]) $('#entree').placeholder = 'Colle une nouvelle playlist, ou reprends une des tiennes ci-dessous.';
 })();
+
+/* ─────────── trier aussi les morceaux déjà sur le site ─────────── */
+document.getElementById('trier-site').addEventListener('click', () => {
+  const ids = [...DEJA], infos = {};
+  (typeof MORCEAUX !== 'undefined' ? MORCEAUX : []).forEach(m => { const r = (m.lien || '').match(/[?&]v=([\w-]{11})/); if (r) infos[r[1]] = { titre: m.titre, artiste: m.artiste }; });
+  if (!T.listes.site) T.listes.site = { nom: 'Le site actuel', list: null, ids, infos, decisions: {}, historique: [], complet: true, cree: Date.now() };
+  T.active = 'site'; sauver(); ouvrirTable();
+  toast('Vert = il reste, rouge = il sort du site.');
+});
