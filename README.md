@@ -1,25 +1,25 @@
 # Music Discovery
 
-Quelqu'un a fouillé pendant des années. Commence, et écoute ce qu'il a trouvé.
+J'ai fouillé pendant des années. Fais-toi une compil avec ce que j'ai trouvé.
 
 Site en ligne : https://amelienito.github.io/music-archive/
 
 ---
 
-## Ce que fait la v0.9
+## Ce que fait la v1.0
 
-- **L'intro** : on règle le volume (la molette se tourne comme une vraie, ou on touche l'anneau), puis **Commencer**. Les morceaux très énergiques sont baissés automatiquement.
-- **La façade** (en haut) : Découvrir / Écouter, les pastilles de teinte, le volume, **Réglages** (teinte + façon d'écouter) et **Mes trouvailles**.
-- **Découvrir, par où commencer** : une seule question, « T'as envie de quoi ? » : *Quelque chose d'énergique*, *De la détente*, ou *Surprends-moi*. Plus le morceau du jour, une carte à retourner (le même pour tout le monde, il change chaque jour).
-- **Découvrir, la fouille** : une seule page. Le disque qui joue est réuni dans un seul bloc (vidéo, titre, album, **Garder**) qui reste à l'écran sur ordinateur ; sur téléphone, le petit lecteur prend le relais dès qu'on fait défiler. Juste à côté, **la suite** : deux disques, chacun avec une étiquette de disquaire qui dit où il t'emmène (« Dans la même veine », « Plus confidentiel », « Plus calme », « Complètement ailleurs »…). On survole ou on touche « Écouter 30 s » pour entendre un bout, on clique pour choisir. Si on ne choisit pas, le premier démarre tout seul à la fin du morceau (compte à rebours de 5 secondes, « Rester ici » pour l'arrêter). « Aucun des deux » en propose deux autres. Les directions que tu choisis souvent reviennent plus souvent.
-- **Les surprises** : de temps en temps une carte mystère (un des deux disques est caché, juste un indice), et un « Coup de cœur » mis de côté pour toi.
-- **Le livret** (replié, sous la page) : l'album en une phrase (« Album sorti le 26 octobre 1992 chez Epic. 8 titres, 47 minutes. Au rayon soul. »), sa fiche Wikipédia quand elle existe, la liste des titres avec le morceau en cours surligné (chaque titre s'écoute 30 secondes d'un toucher, et ceux qui sont dans la sélection se lancent en entier), l'artiste, et les liens pour écouter le morceau en entier (YouTube Music, Deezer, Apple Music, Qobuz, Bandcamp) et lire les paroles.
-- **Clavier** : 1 ou 2 pour choisir la suite, G pour garder, Espace pour la pause.
-- **Mes trouvailles** : les morceaux gardés + l'historique de tout ce que tu as croisé, enregistré dans ton navigateur. On peut les écouter à la suite, les ouvrir en playlist YouTube ou copier la liste.
-- **Écouter** : une chaîne inspirée de la pochette *For A Good Time…* d'Odeal. Enceintes en noyer qui bougent avec la musique, magnétophone à bandes derrière un plexi fumé (les bobines tournent quand ça joue, appuie dessus = lecture/pause), afficheur fluorescent qui annonce la suite, **Garder** et **Plus d'infos** (le livret s'ouvre sous la chaîne). Cinq touches, comme les stations d'un vieux poste : **Énergique**, **Détente**, **Surprends-moi**, **Mes trouvailles**, **Longs moments** (20 minutes et plus). On appuie, la radio change de station tout de suite et enchaîne seule d'un morceau proche à l'autre. Dans Découvrir, « Connu / Confidentiel » se mesure tout seul d'après le nombre de fans de l'artiste principal sur Deezer ; on peut forcer avec `connu: true` dans data.js (Mozart, Zelda…).
-- **Une radio qui ne se bloque plus** : un morceau qui refuse de se lire (vidéo refusée, extrait périmé, vidéo qui ne démarre pas) est remplacé par son extrait ou sauté au bout de quelques secondes ; après trois ratés d'affilée, la radio s'arrête proprement et dit pourquoi.
-- **Réglages** : morceaux complets via YouTube, ou extraits de 30 secondes sans pub ; teinte du site.
-- **Trois teintes** : Salon (le jour), Nuit (le mode sombre, choisi tout seul si le téléphone est en mode sombre), Papier.
+Trois étapes, comme chez le disquaire : **fouiller les bacs**, **graver sa compil**, **l'écouter sur la chaîne**.
+
+- **Le carton d'entrée** : on règle le volume (la molette se tourne comme une vraie), puis **Commencer**. Pas de compte, pas d'inscription : tout reste dans le navigateur. Ouvert depuis Instagram, TikTok, Messenger…, un bandeau propose d'ouvrir la page dans le vrai navigateur (leur navigateur intégré lit mal YouTube et oublie la compil), avec un bouton « Ouvrir dans Chrome » sur Android et « Copier le lien ».
+- **1. Les bacs** : un bac par ambiance, avec ses pochettes qui dépassent : **Soleil** (soul, funk, chaleur), **Bitume** (rap, la ville la nuit), **Piste** (pour danser), **Brume** (doux et rêveur), **Ailleurs** (étrange et lointain), **Électrique** (guitares et pop vive), **Épopée** (orchestres et jeux vidéo), et **Surprends-moi**. On touche une couleur, la musique démarre. Plus le morceau du jour, une carte à retourner.
+- **La fouille** : le disque qui joue (vidéo, titre, album, **Ajouter à ma compil**) et, à côté, **trois directions** : *Dans la même veine*, un changement d'intensité (*Plus calme*, *Plus énergique*, *Plus dansant*, *Plus posé*, *Plus connu*, *Plus confidentiel*) et *Un pas de côté* vers une ambiance voisine. Chaque proposition dit son style et sa décennie (« Philly soul, années 70 ») : on peut choisir sans écouter. Sur téléphone, les directions passent en lignes, la direction d'abord, avec un petit bouton pour écouter 30 secondes. Si on ne choisit pas, la première démarre à la fin du morceau. De temps en temps, une carte mystère ou un coup de cœur.
+- **2. La compil** : les morceaux ajoutés s'écrivent au feutre sur la jaquette d'un boîtier de CD. À partir de 3 titres, **Graver la compil** : le CD-R tourne, les titres s'inscrivent un à un, rangés dans l'ordre qui s'enchaîne le mieux. Puis **La mettre dans la chaîne**.
+- **3. La chaîne** : une micro-chaîne CD des années 2000. Le tiroir s'ouvre, le disque s'y pose, on le voit tourner derrière le hublot fumé. Écran à cristaux liquides (piste, temps, titre qui défile, morceau suivant) avec un petit égaliseur qui bat au tempo du morceau ; enceintes dont la membrane bat aussi ; gros bouton de volume à anneau lumineux ; touche d'éjection. Dessous, **le rack** : la compil gravée, un disque par ambiance, et Surprends-moi. Chaque disque est rangé pour s'enchaîner d'un morceau proche à l'autre. Alu brossé et écran bleu le jour, laque noire et écran ambré la nuit, à l'encre en Papier.
+- **Les recommandations** : chaque morceau a une fiche dans `data.js` (ambiance, style, année, tempo, voix, étiquettes). `moteur.js` compare les fiches : deux morceaux qui partagent leurs étiquettes, leur époque et leur tempo se suivent ; un changement d'intensité reste dans le même monde ; un pas de côté passe par le morceau le plus proche de l'ambiance voisine.
+- **Le livret** (replié, sous la page) : l'album, sa fiche Wikipédia, la liste des titres (30 secondes d'un toucher), l'artiste, et les liens pour écouter en entier (YouTube Music, Deezer, Apple Music, Qobuz, Bandcamp).
+- **Clavier** : 1, 2 ou 3 pour choisir la suite, G pour ajouter à la compil, Espace pour la pause.
+- **Une chaîne qui ne se bloque pas** : un morceau qui refuse de se lire est remplacé par son extrait ou sauté ; après trois ratés d'affilée, elle s'arrête et dit pourquoi.
+- **Réglages** : morceaux complets via YouTube, ou extraits de 30 secondes sans pub ; teinte du site (Salon, Nuit, Papier).
 
 ## La table de tri
 
@@ -49,6 +49,7 @@ Site en ligne : https://amelienito.github.io/music-archive/
 | Fichier | À quoi il sert | Tu y touches ? |
 |---|---|---|
 | `data.js` | Ta banque de morceaux et tes textes | **Oui, c'est le tien** |
+| `moteur.js` | Les sept ambiances (noms, couleurs) et la façon de passer d'un morceau à l'autre | Pour renommer ou recolorer une ambiance |
 | `teintes.css` | Les couleurs et polices de chaque teinte | Si tu veux créer une teinte |
 | `styles.css` | La forme des objets (façade, chaîne, pochettes) | Rarement |
 | `app.js` | Le fonctionnement | Non |
@@ -65,8 +66,12 @@ Dans `data.js`, copie un bloc, colle-le avant le `];` final, remplis :
 { titre: "Pearls", artiste: "Sade", album: "Love Deluxe",
   lien: "https://music.youtube.com/watch?v=JcljzvUgoAQ",
   note: "Ce que tu veux en dire. Ou rien.",
+  ambiance: "soleil", style: "Soul feutrée", annee: 1992, bpm: 72, voix: "chant",
+  tags: ["soul", "rnb", "nocturne", "ballade"],
   energie: 2, etrange: 4, danse: 1 },
 ```
+
+- La **fiche** (ambiance, style, année, tempo, voix, étiquettes) range le morceau dans son bac et décide de ses voisins. Le plus simple : colle tes « oui » de la table de tri à Claude, il écrit les fiches.
 
 - La **pochette** et l'**extrait** se trouvent tout seuls (pas besoin de les fournir).
 - La **note** est facultative. Un morceau sans texte, c'est très bien aussi.
@@ -89,7 +94,7 @@ Ouvre **https://amelienito.github.io/music-archive/verif.html** et clique sur «
 - Certains morceaux refusent d'être lus hors de YouTube. Le site le détecte et joue à la place l'extrait de 30 secondes, avec le lien vers la version complète. Le vérificateur te dit lesquels remplacer.
 - Les morceaux complets passent par YouTube, qui peut afficher des pubs. Un visiteur connecté à YouTube Premium n'en a pas. Sinon : le mode extraits, ou les liens Deezer, Apple Music, Qobuz et Bandcamp de chaque morceau (le site l'explique la première fois).
 - Les extraits viennent d'Apple Music, et de Deezer quand Apple ne trouve pas.
-- Écouter n'a plus de catégories à nommer : ce sont les réglages energie / etrange / danse de chaque morceau qui décident ce que les molettes font passer.
+- Les ambiances et l'ordre des disques viennent des fiches de `data.js` : une fiche juste, c'est un enchaînement fluide.
 - Sur iPhone, une page web ne peut pas régler le volume : ce sont les boutons du téléphone qui comptent.
 - Les pochettes HD viennent d'Apple Music ou de Deezer. Si un morceau n'y est pas, l'image YouTube prend le relais.
 - Tout est gratuit : aucun serveur, aucune base de données, hébergé par GitHub Pages.

@@ -31,11 +31,26 @@
      coeur    true pour un coup de cœur : il passe en priorité quand le site
               propose « Celui-là, je l'avais mis de côté pour toi ».
               (La table de tri le coche pour toi.)
-     long     true pour un long moment (un morceau de 20 minutes et plus) :
-              il a son bouton à lui sur la radio, « Longs moments ».
+     long     true pour un morceau de 20 minutes et plus (simple repère).
      bandcamp le lien Bandcamp du morceau, s'il y est. Il apparaît dans
               « Écouter en entier sur » (sans pub, et l'artiste touche plus).
               Ex : bandcamp: "https://artiste.bandcamp.com/track/morceau"
+
+   La fiche du morceau : c'est elle qui fait que « dans la même veine »
+   reste dans la même veine, et que la chaîne enchaîne sans à-coups.
+     ambiance le bac et le disque où il range : "soleil" (soul, funk, chaleur),
+              "bitume" (rap, la ville la nuit), "piste" (pour danser),
+              "brume" (doux et rêveur), "ailleurs" (étrange et lointain),
+              "electrique" (guitares et pop vive), "epopee" (orchestres,
+              jeux vidéo). Les couleurs et les noms sont dans moteur.js.
+     style    deux ou trois mots montrés aux visiteurs : "Philly soul"
+     annee    l'année de sortie (ou de composition)
+     bpm      le tempo, à peu près
+     voix     "chant", "rap" ou "instru"
+     tags     quelques étiquettes, en minuscules : ["soul", "philly", "cordes"].
+              Deux morceaux qui partagent des étiquettes se suivent bien.
+   Tu n'as pas à les remplir toi-même : quand tu colles tes « oui » de la
+   table de tri, Claude écrit la fiche de chaque nouveau morceau.
 
    Les réglages (de 0 à 10) servent au moteur de découverte.
    Ils ne sont jamais montrés aux visiteurs. Ajuste-les à l'instinct :
