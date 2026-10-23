@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Music Discovery</title>
-  <meta name="description" content="J'ai fouillé pendant des années. Fais-toi une compil avec ce que j'ai trouvé.">
+  <meta name="description" content="J'ai fouillé pendant des années. Allume la chaîne, oriente-la, garde ce qui te plaît.">
   <meta name="theme-color" content="#dcdbd8">
   <script>
     // la teinte est posée tout de suite (évite un flash de la mauvaise couleur) ; sans choix, on suit le mode sombre du téléphone
@@ -14,20 +14,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
 
   <!-- ═════════════ LA FAÇADE (barre du haut) ═════════════ -->
   <header class="facade-haut" id="facade">
-    <button class="marque" data-action="accueil" aria-label="Retour à l'accueil de Découvrir">Music<br>Discovery</button>
+    <button class="marque" data-action="accueil" aria-label="Music Discovery">Music<br>Discovery</button>
 
-    <div class="selecteur" role="tablist" aria-label="Ce que tu veux faire">
-      <button class="selecteur-pos" role="tab" data-action="source" data-source="decouvrir" aria-selected="true">Découvrir</button>
-      <button class="selecteur-pos" role="tab" data-action="source" data-source="ecouter" aria-selected="false">Écouter</button>
-      <span class="selecteur-curseur" aria-hidden="true"></span>
-    </div>
+    <span aria-hidden="true"></span>
 
     <div class="facade-droite">
       <div class="teintes masquer-mobile" role="radiogroup" aria-label="Teinte du site" id="teintes-facade"></div>
@@ -39,9 +35,9 @@
         <span class="bouton-rotatif-nom">Volume</span>
       </div>
       <button class="bouton-facade bouton-reglages" data-action="ouvrir-reglages" aria-haspopup="dialog" aria-label="Réglages : teinte du site et façon d'écouter"><span class="icone-teinte" aria-hidden="true"></span><span class="masquer-mobile">Réglages</span></button>
-      <button class="bouton-facade bouton-trouvailles" data-action="ouvrir-bac" aria-label="Ma compil">
+      <button class="bouton-facade bouton-trouvailles" data-action="ouvrir-bac" aria-label="Ma sélection">
         <span class="mini-cdr" aria-hidden="true"></span>
-        <span class="masquer-mobile">Ma compil</span><span class="seulement-mobile-inline">Compil</span>
+        <span class="masquer-mobile">Ma sélection</span><span class="seulement-mobile-inline">Sélection</span>
         <span class="compteur" id="compteur-bac">0</span>
       </button>
     </div>
@@ -64,12 +60,12 @@
       <div class="allumage-texte">
         <p class="surtitre">Music Discovery</p>
         <h1>J'ai fouillé pendant des années.</h1>
-        <p class="allumage-sous">Fais-toi une compil avec ce que j'ai trouvé.</p>
+        <p class="allumage-sous">Allume la chaîne. Oriente-la, garde ce qui te plaît.</p>
       </div>
       <ol class="etapes" aria-label="Comment ça marche">
-        <li><b>1</b><span>Fouille les bacs</span></li>
-        <li><b>2</b><span>Grave ta compil</span></li>
-        <li><b>3</b><span>Écoute-la sur la chaîne</span></li>
+        <li><b>1</b><span>La chaîne joue</span></li>
+        <li><b>2</b><span>Tu orientes la suite</span></li>
+        <li><b>3</b><span>Tu gardes ce qui te plaît</span></li>
       </ol>
       <div class="panneau-allumage">
         <div class="bouton-rotatif bouton-rotatif-grand" data-molette="volume">
@@ -87,29 +83,6 @@
       <p class="allumage-conseil" id="allumage-conseil">Règle le volume d'abord : attrape la molette et tourne-la, ou touche l'anneau à la hauteur voulue.</p>
       <p class="allumage-retour" id="allumage-retour" hidden></p>
       <p class="allumage-libre">Pas de compte, pas d'inscription. Tout reste dans ton navigateur.</p>
-    </section>
-
-    <!-- ═════════════ ÉTAPE 1 : LES BACS ═════════════ -->
-    <section class="ecran ecran-accueil" data-ecran="accueil" hidden>
-      <div class="bacs-tete">
-        <p class="surtitre"><span class="etape-puce">1</span> Fouiller</p>
-        <h1 class="envie-titre">Par quel bac tu commences&nbsp;?</h1>
-        <p class="envie-aide">Touche une couleur, la musique démarre. Ce qui te plaît, tu l'ajoutes à ta compil.</p>
-      </div>
-      <div class="bacs" id="bacs"></div>
-      <div class="accueil-jour" id="accueil-jour"></div>
-    </section>
-
-    <!-- ═════════════ ÉTAPE 1 : LA FOUILLE ═════════════
-         À gauche le disque qui joue ; à droite les directions pour la suite,
-         puis la compil qui se remplit ; en bas le livret. -->
-    <section class="ecran ecran-fouille" data-ecran="fouille" hidden>
-      <div class="fouille sans-platine" id="fouille">
-        <article class="platine" id="platine" aria-label="Le disque qui joue" hidden></article>
-        <section class="suite" id="suite" aria-labelledby="suite-titre"></section>
-        <section class="compil" id="compil" aria-label="Ta compil"></section>
-        <section class="livret" id="livret-fouille" aria-label="Le livret" hidden></section>
-      </div>
     </section>
 
     <!-- ═════════════ ÉTAPE 3 : LA CHAÎNE ═════════════
@@ -157,7 +130,7 @@
               <button class="rond rond-ejecter" data-action="ejecter" aria-label="Ouvrir le tiroir et changer de disque"><span class="icone-ejecter"></span></button>
             </div>
             <div class="hifi-actions">
-              <button class="pilule cd-garder" data-action="radio-garder" id="radio-garder" aria-pressed="false"><span class="led" aria-hidden="true"></span><span class="cd-garder-texte">Dans ma compil</span></button>
+              <button class="pilule cd-garder" data-action="radio-garder" id="radio-garder" aria-pressed="false"><span class="led" aria-hidden="true"></span><span class="cd-garder-texte">Ajouter à ma sélection</span></button>
               <button class="pilule" data-action="radio-raconte" aria-controls="livret-machine">Plus d'infos</button>
             </div>
             <div class="bouton-rotatif bouton-rotatif-hifi seulement-sans-ios" data-molette="volume">
@@ -173,17 +146,27 @@
         <div class="hifi-enceinte" aria-hidden="true"><span class="hp-tweeter"></span><span class="hp-boomer"><i></i></span><span class="hifi-enceinte-pied">BASS REFLEX</span></div>
       </div>
 
-      <!-- le rack : un disque par ambiance, la compil gravée, et « surprends-moi » -->
-      <section class="rack" aria-labelledby="rack-titre">
-        <div class="rack-tete">
-          <h2 id="rack-titre">Les disques</h2>
-          <p>Touche un disque : il entre dans la chaîne, la musique suit son fil, d'un morceau proche à l'autre.</p>
+      <div class="avis-pub avis-machine" data-avis hidden></div>
+      <!-- le pupitre : ce qui passe, et de quoi orienter la suite pendant que la chaîne tourne -->
+      <section class="pupitre" id="pupitre" aria-label="Ce qui passe et la suite">
+        <article class="maintenant" id="maintenant" aria-live="polite"></article>
+        <div class="pupitre-cote">
+          <div class="orienter">
+            <h2 class="pupitre-titre">Oriente la suite</h2>
+            <div class="caps" id="caps" role="group" aria-label="Orienter le prochain morceau"></div>
+          </div>
+          <div class="a-suivre">
+            <h2 class="pupitre-titre">À suivre <span class="pupitre-aide">touche un titre pour l'écouter tout de suite</span></h2>
+            <ol class="file" id="file"></ol>
+          </div>
+          <div class="sources">
+            <h2 class="pupitre-titre">Dans la chaîne</h2>
+            <div class="sources-choix" id="sources" role="radiogroup" aria-label="Ce que la chaîne diffuse"></div>
+          </div>
         </div>
-        <div class="rack-disques" id="rack" role="radiogroup" aria-label="Choisis un disque"></div>
       </section>
       <p class="machine-source" id="machine-source" hidden></p>
-      <div class="avis-pub avis-machine" data-avis hidden></div>
-      <section class="livret livret-machine" id="livret-machine" aria-label="Le livret du disque qui passe" hidden></section>
+      <section class="livret livret-machine" id="livret-machine" aria-label="Plus d'infos sur le morceau qui passe" hidden></section>
     </section>
 
   </main>
@@ -196,7 +179,7 @@
       <span class="poste-artiste" id="poste-artiste"></span>
     </button>
     <div class="poste-touches">
-      <button class="touche touche-mini" data-action="garder-joue" id="poste-garder" aria-label="Ajouter à ma compil" aria-pressed="false"><span class="icone-garder"></span></button>
+      <button class="touche touche-mini" data-action="garder-joue" id="poste-garder" aria-label="Ajouter à ma sélection" aria-pressed="false"><span class="icone-garder"></span></button>
       <button class="touche touche-mini" data-action="lecture" aria-label="Lecture / pause"><span class="icone icone-lecture" id="poste-icone"></span></button>
       <button class="touche touche-mini" data-action="suivant" aria-label="Morceau suivant"><span class="icone icone-suiv"></span></button>
       <button class="touche touche-mini touche-reduire" data-action="reduire-poste" id="poste-reduire" aria-label="Réduire le lecteur (met en pause)" hidden><span class="icone-chevron"></span></button>
@@ -205,43 +188,27 @@
 
   <div class="ecran-video" id="ecran-video" hidden><div id="yt-lecteur"></div></div>
 
-  <!-- ═════════════ ÉTAPE 2 : LA GRAVURE ═════════════ -->
-  <div class="gravure" id="gravure" role="dialog" aria-modal="true" aria-labelledby="gravure-titre" hidden>
-    <div class="gravure-boite">
-      <div class="gravure-disque" aria-hidden="true"><span class="gravure-anneau"></span><span class="disque disque-compil"><span class="disque-main">Ma compil</span></span></div>
-      <div class="gravure-texte">
-        <p class="surtitre"><span class="etape-puce">2</span> Graver</p>
-        <h2 id="gravure-titre">Gravure en cours…</h2>
-        <p class="gravure-etat" id="gravure-etat" aria-live="polite"></p>
-        <ol class="gravure-liste" id="gravure-liste"></ol>
-        <div class="gravure-actions">
-          <button class="gros-bouton gros-bouton-plein" data-action="inserer" id="gravure-inserer" hidden>La mettre dans la chaîne</button>
-          <button class="lien-bouton" data-action="fermer-gravure" id="gravure-fermer" hidden>Continuer à fouiller</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═════════════ MA COMPIL ═════════════ -->
+  <!-- ═════════════ MA SÉLECTION ═════════════ -->
   <div class="voile" id="voile" data-action="fermer-panneaux" hidden></div>
-  <aside class="bac" id="bac" aria-label="Ma compil" hidden>
+  <aside class="bac" id="bac" aria-label="Ma sélection" hidden>
     <div class="bac-tete">
       <div>
-        <h2>Ma compil</h2>
-        <p class="bac-explication">Les morceaux que tu as ajoutés, et tout ce que tu as croisé. C'est enregistré dans ce navigateur, même si tu reviens dans six mois.</p>
+        <h2>Ma sélection</h2>
+        <p class="bac-explication">Les morceaux que tu as gardés, et tout ce qui est passé dans la chaîne. C'est enregistré dans ce navigateur, même si tu reviens dans six mois.</p>
       </div>
       <button class="lien-bouton" data-action="fermer-panneaux">Fermer</button>
     </div>
     <div class="onglets" role="tablist">
-      <button class="onglet" role="tab" data-action="onglet" data-onglet="gardes" aria-selected="true">Dans ma compil <span id="n-gardes">0</span></button>
+      <button class="onglet" role="tab" data-action="onglet" data-onglet="gardes" aria-selected="true">Ma sélection <span id="n-gardes">0</span></button>
       <button class="onglet" role="tab" data-action="onglet" data-onglet="croises" aria-selected="false">Historique <span id="n-croises">0</span></button>
     </div>
     <ul class="bac-liste" id="bac-liste"></ul>
     <div class="bac-pied" id="bac-pied">
-      <button class="gros-bouton gros-bouton-plein" data-action="graver">Graver la compil</button>
+      <button class="gros-bouton gros-bouton-plein" data-action="ecouter-selection">L'écouter dans la chaîne</button>
+      <div class="cassette-bloc"><span class="cassette" aria-hidden="true"><i></i><i></i></span><div><p class="cassette-titre">Repartir avec une cassette</p><p class="cassette-sous">Ta sélection en playlist, pour l'écouter ailleurs.</p></div></div>
       <div class="bac-pied-liens">
-        <a class="lien-bouton" id="lien-playlist" target="_blank" rel="noopener">Ouvrir en playlist YouTube</a>
-        <button class="lien-bouton" data-action="copier-liste">Copier la liste</button>
+        <a class="lien-bouton" id="lien-playlist" target="_blank" rel="noopener">En playlist YouTube</a>
+        <button class="lien-bouton" data-action="copier-liste">Copier la liste (pour Deezer, Apple Music…)</button>
       </div>
     </div>
   </aside>
@@ -275,6 +242,6 @@
   <script src="moteur.js?v=1"></script>
   <script src="pochettes.js?v=12"></script>
   <script src="infos.js?v=12"></script>
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

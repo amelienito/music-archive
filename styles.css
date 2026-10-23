@@ -659,7 +659,7 @@ button.piste-btn:hover .piste-ecoute, .pistes li.ecoute .piste-ecoute { opacity:
    Une micro-chaîne CD du milieu des années 2000 : façade alu brossé (ou laque noire
    la nuit), porte à hublot fumé où l'on voit tourner le disque, écran à cristaux
    liquides avec son petit égaliseur, gros bouton de volume à anneau lumineux. */
-.ecran-machine { display: grid; align-content: start; justify-items: center; gap: clamp(28px, 4vw, 48px); padding-top: clamp(20px, 3.5vw, 48px); }
+.ecran-machine { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; justify-items: center; gap: clamp(28px, 4vw, 48px); padding-top: clamp(20px, 3.5vw, 48px); }
 .hifi {
   position: relative; isolation: isolate;
   display: grid; grid-template-columns: minmax(84px, 150px) minmax(0, 1000px) minmax(84px, 150px);
@@ -1109,4 +1109,100 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
+}
+
+/* ─────────────────────────────── LE PUPITRE (sous la chaîne) ───────────────────────────────
+   Le morceau qui passe et sa petite chronique, l'avis du visiteur,
+   les directions pour la suite, ce qui vient ensuite, et le disque dans la chaîne. */
+.pupitre {
+  width: 100%; max-width: 1220px;
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(18px, 3vw, 40px); align-items: start;
+}
+.maintenant {
+  display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 28px); align-items: start;
+  padding: clamp(16px, 2vw, 24px); border-radius: var(--rayon-objet); background: var(--fond-2); box-shadow: var(--relief-fort);
+  animation: sortie .5s cubic-bezier(.2,.9,.3,1.1) both;
+}
+.maintenant-vide { grid-column: 1 / -1; color: var(--encre-2); }
+.maintenant-pochette .pochette { box-shadow: var(--ombre-pochette-forte); }
+.maintenant-texte { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.maintenant-style { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--aiguille); }
+.maintenant-titre { font-size: clamp(1.5rem, 2.8vw, 2.3rem); overflow-wrap: anywhere; }
+.maintenant-artiste { font-size: clamp(1rem, 1.5vw, 1.2rem); font-weight: 500; }
+.maintenant-note { margin-top: 4px; font-family: var(--note, var(--texte)); font-size: 1.05rem; max-width: 46ch; }
+.maintenant-note::before { content: "« "; color: var(--aiguille); } .maintenant-note::after { content: " »"; color: var(--aiguille); }
+.maintenant-chronique { margin-top: 4px; font-size: 15px; line-height: 1.55; color: var(--encre-2); max-width: 52ch; min-height: 1.5em; opacity: 0; transition: opacity .5s; }
+.maintenant-chronique.pret { opacity: 1; }
+.avis-boutons { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+.avis-bouton {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px;
+  font-weight: 600; font-size: 14px; background: var(--fond); box-shadow: inset 0 0 0 1.5px var(--trait);
+  transition: background-color .2s, color .2s, box-shadow .2s, transform .1s;
+}
+.avis-bouton:hover { box-shadow: inset 0 0 0 1.5px var(--encre-3); }
+.avis-bouton:active { transform: scale(.97); }
+.avis-bouton span[aria-hidden] { font-size: 1.05em; }
+.avis-aime.actif { background: color-mix(in srgb, var(--aiguille) 14%, var(--fond)); color: var(--aiguille); box-shadow: inset 0 0 0 1.5px var(--aiguille); }
+.avis-garder.est-garde { background: var(--aiguille); color: var(--sur-aiguille); box-shadow: none; }
+.avis-garder.est-garde span[aria-hidden] { display: none; }
+.pupitre-cote { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; min-width: 0; }
+.pupitre-cote > *, .maintenant { min-width: 0; }
+.pupitre-titre { font-size: clamp(1.1rem, 1.6vw, 1.3rem); margin-bottom: 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.pupitre-aide { font-family: var(--texte); font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--encre-2); }
+.caps { display: flex; flex-wrap: wrap; gap: 8px; }
+.cap {
+  min-height: 40px; padding: 0 15px; border-radius: 999px; font-weight: 600; font-size: 14px;
+  background: var(--fond-2); box-shadow: var(--relief), inset 0 0 0 1px var(--trait);
+  transition: background-color .2s, color .2s, transform .1s;
+}
+.cap:hover { transform: translateY(-1px); }
+.cap[aria-pressed="true"] { background: var(--encre); color: var(--fond); }
+.cap:disabled { opacity: .45; cursor: default; transform: none; }
+.file { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; counter-reset: f; }
+.file li { counter-increment: f; }
+.file-titre { position: relative; display: grid; grid-template-columns: 22px 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 7px 10px 7px 6px; border-radius: 10px; text-align: left; transition: background-color .15s; animation: sortie .45s cubic-bezier(.2,.9,.3,1.1) both; }
+.file li:nth-child(2) .file-titre { animation-delay: .04s; } .file li:nth-child(3) .file-titre { animation-delay: .08s; } .file li:nth-child(4) .file-titre { animation-delay: .12s; } .file li:nth-child(5) .file-titre { animation-delay: .16s; }
+.file-titre::before { content: counter(f); text-align: right; font-size: 13px; color: var(--encre-2); font-variant-numeric: tabular-nums; }
+.file-titre:hover { background: var(--fond-2); }
+.pochette-file { width: 48px; }
+.file-texte { display: grid; min-width: 0; line-height: 1.25; }
+.file-nom { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-artiste { font-size: 14px; color: var(--encre-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-style { font-size: 12px; color: var(--encre-2); opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-cap { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--encre); color: var(--fond); white-space: nowrap; }
+.file-vide { color: var(--encre-2); padding: 6px 0; }
+.sources-choix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.source { display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
+.source-galette { position: relative; display: block; width: 100%; max-width: 92px; filter: drop-shadow(0 8px 10px rgba(0,0,0,.28)); transition: transform .45s cubic-bezier(.2,.9,.3,1.25); }
+.source-galette::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; box-shadow: 0 0 0 2.5px var(--aiguille); opacity: 0; transition: opacity .2s; }
+.source:hover .source-galette { transform: translateY(-4px) rotate(24deg); }
+.source[aria-checked="true"] .source-galette::after { opacity: 1; }
+.source[aria-checked="true"] .source-nom { color: var(--aiguille); }
+.source[data-vide] .source-galette { opacity: .5; }
+.source-nom { font-weight: 600; font-size: 14px; line-height: 1.15; }
+.source-sous { font-size: 12px; color: var(--encre-2); line-height: 1.2; }
+.sources.appel .sources-choix { animation: appel-sources .9s ease 2; }
+@keyframes appel-sources { 50% { transform: scale(1.03); } }
+/* le fond du bac : un disque noir, mat */
+.disque-fond { --amb-encre: #e9e2cf; background:
+  radial-gradient(circle, transparent 0 7%, rgba(255,255,255,.55) 7.4% 8.4%, rgba(90,90,96,.6) 8.6% 15.5%, rgba(255,255,255,.35) 15.7% 16.4%, transparent 16.6%),
+  repeating-radial-gradient(circle, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
+  radial-gradient(120% 120% at 30% 20%, #3a3833, #141311 60%, #050505); }
+.disque-fond .disque-nom { font-size: 10px; font-size: 10.5cqw; top: 20%; }
+.ecran-machine .avis-machine { width: 100%; max-width: 1220px; margin: 0; }
+.maintenant .avis-pub { grid-column: 1 / -1; }
+
+@media (max-width: 960px) { .pupitre { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .maintenant { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 14px; }
+  .maintenant-titre { font-size: 1.35rem; }
+  .avis-boutons { grid-column: 1 / -1; }
+  .maintenant-texte { display: contents; }
+  .maintenant-style, .maintenant-titre, .maintenant-artiste { grid-column: 2; }
+  .maintenant-pochette { grid-row: 1 / span 3; }
+  .maintenant-note, .maintenant-chronique, .avis-boutons, .maintenant > .lien-bouton, .maintenant-texte > .lien-bouton { grid-column: 1 / -1; }
+  .avis-bouton { flex: 1 1 auto; justify-content: center; padding: 0 12px; }
+  .caps { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none; }
+  .caps::-webkit-scrollbar { display: none; }
+  .cap { flex: none; }
 }

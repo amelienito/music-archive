@@ -68,24 +68,9 @@ const parTitre = t => BANQUE.find(m => m.titre.toLowerCase() === String(t).toLow
 // et, tant qu'on ne sait pas, d'après la note « etrange » de data.js
 const conf = m => { if (m.connu) return 1; const c = m.id ? Pochettes.confidentiel(m) : null; return c === null ? m.etrange : c; };
 const val = (m, cle) => cle === 'etrange' ? conf(m) : m[cle];
-const AMB = Moteur.AMBIANCES;
-const ambianceDe = m => (m && AMB[m.ambiance]) || null;
-const styleAmb = a => a ? `--amb:${a.couleur};--amb-sombre:${a.sombre};--amb-encre:${a.encre};` : '';
-// les disques de la chaîne : la compil gravée, une par ambiance, et « surprends-moi »
-const DISQUES = ['compil', ...Moteur.ORDRE, 'hasard'];
-const COMPIL_MIN = 3, COMPIL_IDEAL = 10;
-
 /* ─────────────────────────────── l'état ─────────────────────────────── */
 const S = {
   vue: 'allumage',
-  // Découvrir
-  prefs: {},              // les directions que tu suis le plus souvent
-  dernierDir: null,
-  tour: 0,
-  vusSession: new Set(),
-  courant: null,          // le disque sur la platine
-  suite: null,            // les disques proposés pour la suite : { type, options: [{ id, dir }] }
-  livrets: { fouille: false, machine: false },
   // lecture
   joue: null,             // morceau en cours de lecture
   lecture: null,          // 'yt' | 'extrait' | null
@@ -94,11 +79,13 @@ const S = {
   erreur: false,          // rien n'a pu être lu
   bloque: false,          // la lecture ne démarre pas toute seule
   aJoue: false,           // le morceau en cours a-t-il déjà démarré ?
-  mode: 'decouvrir',      // ou 'radio'
-  // Écouter
-  disque: (d => DISQUES.includes(d) ? d : null)(memoire.lire('md-disque', null)),
-  compilGravee: memoire.lire('md-compil-gravee', null), // { ids (dans l'ordre gravé), source (triés), date }
-  file: [], pos: 0, recents: [], echecs: 0,
+  mode: 'radio',
+  // la chaîne
+  source: (s => ['radio', 'fond', 'selection'].includes(s) ? s : 'radio')(memoire.lire('md-source', 'radio')),
+  suite: [], historique: [], echecs: 0,
+  cap: null, capVise: null,              // la direction demandée pour le prochain morceau
+  aime: new Set(memoire.lire('md-aime', [])),
+  aimePas: new Set(memoire.lire('md-aime-pas', [])),
   // le reste
   volume: borner(memoire.lire('md-volume', 60), 0, 100),
   croises: memoire.lire('md-croises', []),
@@ -107,12 +94,13 @@ const S = {
   son: memoire.lire('md-son', 'complet'),
   onglet: 'gardes',
   posteReduit: false,     // poste replié : la vidéo YouTube est alors en pause (jamais de lecture cachée)
+  livrets: { machine: false },
 };
 // les anciens identifiants finissaient par « -numéro » : on les retrouve
 const retrouver = ids => [...new Set(ids.map(id => parId[id] ? id : parId[String(id).replace(/-\d+$/, '')] ? String(id).replace(/-\d+$/, '') : null).filter(Boolean))];
 S.croises = retrouver(S.croises); memoire.ecrire('md-croises', S.croises);
 S.gardes  = retrouver(S.gardes);  memoire.ecrire('md-gardes', S.gardes);
-if (S.disque === 'compil' && !S.gardes.length) S.disque = null;
+if (S.source === 'selection' && !S.gardes.length) S.source = 'radio';
 
 let apiEnPanne = false;
 const jouable = m => S.son === 'complet' && !apiEnPanne && !!m.yt && !S.injouables.has(m.yt);
@@ -145,12 +133,8 @@ function aller(vue) {
   const faire = () => {
     $$('section[data-ecran]').forEach(s => { s.hidden = s.dataset.ecran !== vue; });
     document.body.dataset.vue = vue;
-    const source = vue === 'machine' ? 'ecouter' : 'decouvrir';
-    document.body.dataset.source = source;
-    $$('.selecteur-pos').forEach(b => b.setAttribute('aria-selected', b.dataset.source === source));
     window.scrollTo(0, 0);
     arreterExtrait();
-    if (vue !== 'fouille') annulerCompte(true);
     majPoste();
   };
   // un fondu entre deux écrans, là où le navigateur sait le faire
@@ -159,11 +143,6 @@ function aller(vue) {
   }
   faire();
 }
-function allerDecouvrir() {
-  if (S.courant || S.suite) { rendreFouille(); aller('fouille'); }
-  else { rendreAccueil(); aller('accueil'); }
-}
-
 /* ─────────────────────────────── LA MOLETTE DE VOLUME ───────────────────────────────
    Elle se tourne comme une vraie : on l'attrape et on tourne autour.
    Glisser vers le haut marche aussi, la roulette et les flèches du clavier aussi.
@@ -255,7 +234,7 @@ function appliquerVolume() {
 
 /* ─────────────────────────────── croiser / garder ─────────────────────────────── */
 function croiser(id) {
-  S.vusSession.add(id);
+
   if (!S.croises.includes(id)) {
     S.croises.unshift(id);
     memoire.ecrire('md-croises', S.croises);
@@ -267,22 +246,19 @@ function basculerGarde(id) {
   let ajoute = false;
   if (estGarde(id)) {
     S.gardes = S.gardes.filter(x => x !== id);
-    toast('Retiré de ta compil.');
+    toast('Retiré de ta sélection.');
   } else {
     ajoute = true;
     S.gardes.unshift(id);
     const n = S.gardes.length;
-    toast(n === 1 ? 'Ajouté à ta compil. Elle se remplit sous les directions.'
-      : n === COMPIL_MIN ? `${n} titres : ta compil peut déjà être gravée.`
-      : n === COMPIL_IDEAL ? `${n} titres : belle compil, il est temps de la graver.`
-      : `Ajouté à ta compil (${n}).`, n === 1 ? 4200 : 2400);
+    toast(n === 1 ? 'Ajouté à ta sélection. Tu la retrouves en haut, et dans la chaîne.' : `Ajouté à ta sélection (${n}).`, n === 1 ? 4200 : 2400);
     clic(900, 0.08, 0.06);
     const b = $('.bouton-trouvailles'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
   }
   memoire.ecrire('md-gardes', S.gardes);
   majGarde();
-  rendreCompil(ajoute ? id : null);
-  if (S.vue === 'machine') rendreRack();
+  if (ajoute) S.aime.add(id);
+  rendrePupitre();
   if (!$('#bac').hidden) rendreBac();
 }
 // tous les boutons Garder de la page se mettent à jour d'un coup
@@ -292,79 +268,19 @@ function majGarde() {
     const g = estGarde(b.dataset.garder);
     b.classList.toggle('est-garde', g);
     b.setAttribute('aria-pressed', g);
-    if (b.classList.contains('bouton-garder')) b.textContent = g ? 'Dans ta compil' : 'Ajouter à ma compil';
+    const t = $('.avis-garder-texte', b); if (t) t.textContent = g ? 'Dans ma sélection' : 'Ajouter à ma sélection';
   });
   const pg = $('#poste-garder');
   const gj = S.joue && estGarde(S.joue);
   pg.classList.toggle('est-garde', !!gj); pg.setAttribute('aria-pressed', !!gj);
-  pg.setAttribute('aria-label', gj ? 'Retirer de ma compil' : 'Ajouter à ma compil');
+  pg.setAttribute('aria-label', gj ? 'Retirer de ma sélection' : 'Ajouter à ma sélection');
   const rg = $('#radio-garder');
-  const idRadio = S.file[S.pos];
+  const idRadio = S.joue;
   const gr = idRadio && estGarde(idRadio);
   rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr);
-  $('.cd-garder-texte', rg).textContent = gr ? 'Dans ma compil' : 'Ajouter à ma compil';
+  $('.cd-garder-texte', rg).textContent = gr ? 'Dans ma sélection' : 'Ajouter à ma sélection';
 }
 
-/* ─────────────────────────────── le moteur de découverte ───────────────────────────────
-   À chaque disque, trois directions pour la suite : la même veine, un
-   changement d'intensité (plus calme, plus énergique, plus dansant…), et
-   un pas de côté vers une ambiance voisine. Les fiches de data.js (style,
-   année, tempo, voix) gardent les enchaînements cohérents (moteur.js).
-   Les directions que tu choisis souvent reviennent plus souvent. */
-const DIRECTIONS = { ...Moteur.DIRECTIONS, coup: { etiquette: 'Coup de cœur', court: 'Coup de cœur' } };
-function disponibles(exclure = []) {
-  const hors = new Set(exclure);
-  let pool = BANQUE.filter(m => !S.vusSession.has(m.id) && !hors.has(m.id));
-  if (pool.length < 8) {
-    S.vusSession = new Set(S.gardes);
-    if (S.courant) S.vusSession.add(S.courant);
-    toast('Tu as fait le tour de la sélection. On rebat les cartes.');
-    pool = BANQUE.filter(m => !S.vusSession.has(m.id) && !hors.has(m.id));
-  }
-  const ok = pool.filter(ecoutable);
-  return ok.length >= 4 ? ok : pool;
-}
-function tirerPondere(items, poids) {
-  const total = poids.reduce((s, p) => s + p, 0);
-  let r = Math.random() * total;
-  for (let i = 0; i < items.length; i++) { r -= poids[i]; if (r <= 0) return items[i]; }
-  return items[items.length - 1];
-}
-function tirerSuite(ref, { exclure = [], pasDeCoup = false } = {}) {
-  const pool = disponibles([...(S.courant ? [S.courant] : []), ...exclure]);
-  if (!ref || pool.length < 2) return null;
-  // de temps en temps, un coup de cœur tout seul : un favori (coeur: true), le plus proche du disque qui joue
-  if (!pasDeCoup && S.tour > 0 && S.tour % 7 === 0) {
-    const favoris = pool.filter(x => x.coeur);
-    const base = favoris.length ? favoris : pool.filter(x => x.ambiance === ref.ambiance);
-    const m = Moteur.lesPlusProches(ref, base.length ? base : pool)[0];
-    if (m) return { type: 'coup', options: [{ id: m.id, dir: 'coup' }] };
-  }
-  const pris = new Set();
-  const libres = () => pool.filter(x => !pris.has(x.id));
-  const prendre = dir => { const x = Moteur.versDirection(ref, dir, libres(), val); if (x) pris.add(x.id); return x; };
-  // A : dans la même veine (un lien choisi à la main dans data.js passe en premier)
-  const manuel = ref.liens.map(parTitre).find(x => x && pool.includes(x));
-  if (manuel) pris.add(manuel.id);
-  const a = manuel || prendre('veine');
-  // B : un changement d'intensité, sans changer de monde
-  const possibles = ['calme', 'energique', 'dansant', 'pose', 'connu', 'confidentiel'].filter(d => Moteur.possible(ref, d, libres(), val));
-  const poids = possibles.map(d => (1 + 1.5 * (S.prefs[d] || 0)) * (d === S.dernierDir ? 0.5 : 1));
-  const dirB = possibles.length ? tirerPondere(possibles, poids) : null;
-  const b = dirB ? prendre(dirB) : null;
-  // C : un pas de côté, vers une ambiance voisine (de temps en temps, en carte mystère)
-  const c = prendre('cote');
-  const options = [];
-  if (a) options.push({ id: a.id, dir: 'veine' });
-  if (b) options.push({ id: b.id, dir: dirB });
-  if (c) options.push({ id: c.id, dir: 'cote', mystere: S.tour >= 3 && S.tour % 4 === 3 });
-  while (options.length < 2) {
-    const x = libres()[0];
-    if (!x) break;
-    pris.add(x.id); options.push({ id: x.id, dir: 'cote' });
-  }
-  return options.length ? { type: 'normal', options } : null;
-}
 // « Philly soul, années 70 » : de quoi choisir sans avoir à écouter
 function decennie(a) {
   if (!a) return '';
@@ -378,7 +294,7 @@ function indice(m) {
   return t || (m.energie <= 3 ? 'Tout en douceur' : m.energie >= 7 ? 'Ça cogne' : 'Ça avance');
 }
 
-/* ─────────────────────────────── DÉCOUVRIR : les bacs ─────────────────────────────── */
+
 function dateDuJour() {
   const d = new Date();
   return `${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDate())}`;
@@ -391,367 +307,6 @@ function morceauDuJour() {
   const h = [...j].reduce((s, c) => (s * 31 + c.charCodeAt(0)) >>> 0, 7);
   return pool[h % pool.length];
 }
-// les pochettes qui dépassent de chaque bac : les plus représentatives de l'ambiance
-const VITRINES = {};
-Moteur.ORDRE.forEach(k => { VITRINES[k] = Moteur.representatifs(BANQUE.filter(m => m.ambiance === k), 3); });
-VITRINES.hasard = Moteur.ORDRE.map(k => VITRINES[k][0]).filter(Boolean).slice(0, 3);
-function rendreBacs() {
-  const bacs = Moteur.ORDRE.map((k, i) => {
-    const a = AMB[k];
-    const n = BANQUE.filter(m => m.ambiance === k).length;
-    if (!n) return '';
-    return `<button class="bac-couleur" data-action="bac" data-ambiance="${k}" style="${styleAmb(a)}--i:${i}" aria-label="Le bac ${E(a.nom)} : ${E(a.sous)}, ${n} disques">
-      <span class="bac-pochettes" aria-hidden="true">${VITRINES[k].map(m => Pochettes.html(m, 'pochette-bac')).join('')}</span>
-      <span class="bac-intercalaire"><span class="bac-nom">${E(a.nom)}</span><span class="bac-sous">${E(a.sous)}</span><span class="bac-nombre">${n} disques</span></span>
-    </button>`;
-  }).join('');
-  $('#bacs').innerHTML = bacs + `<button class="bac-couleur bac-hasard" data-action="bac" data-ambiance="hasard" style="--i:7" aria-label="Surprends-moi : un peu de tout">
-      <span class="bac-pochettes" aria-hidden="true">${VITRINES.hasard.map(m => Pochettes.html(m, 'pochette-bac')).join('')}</span>
-      <span class="bac-intercalaire"><span class="bac-nom">Surprends-moi</span><span class="bac-sous">Un peu de tout</span><span class="bac-nombre">${BANQUE.length} disques</span></span>
-    </button>`;
-}
-function rendreAccueil() {
-  rendreBacs();
-  const m = morceauDuJour();
-  const revele = memoire.lire('md-jour', '') === dateDuJour();
-  const dateTexte = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-  $('#accueil-jour').innerHTML = `
-    <p class="jour-titre">Ou le morceau du jour</p>
-    <button class="carte-retournable carte-jour ${revele ? 'retournee' : ''}" data-action="jour" data-id="${m.id}" aria-label="${revele ? `Réécouter ${E(m.affiche)}` : 'Retourner le morceau du jour'}">
-      <span class="carte-face carte-dos"><span class="carte-dos-motif"></span><span class="carte-dos-texte">${E(indice(m))}.<br><br>Retourne-moi.</span></span>
-      <span class="carte-face carte-recto">${Pochettes.html(m, 'pochette-grande')}</span>
-    </button>
-    ${revele ? `<p class="titre-morceau">${E(m.affiche)}</p><p class="artiste-morceau">${E(m.artiste)}</p>` : ''}
-    <p class="jour-pied">Le même pour tout le monde, ce ${E(dateTexte)}. Il change demain.</p>`;
-}
-// on touche un bac : un de ses disques les plus représentatifs part tout de suite sur la platine
-function commencer(amb) {
-  S.tour = 0; S.prefs = {}; S.dernierDir = null;
-  const dans = m => amb === 'hasard' || m.ambiance === amb;
-  let pool = disponibles().filter(dans);
-  if (!pool.length) pool = BANQUE.filter(dans);
-  if (!pool.length) return;
-  const m = amb === 'hasard' ? hasard(pool) : hasard(Moteur.representatifs(pool, 5));
-  clic(1200);
-  mettreSurLaPlatine(m);
-}
-
-/* ─────────────────────────────── LA FOUILLE ─────────────────────────────── */
-function rendreFouille() {
-  rendrePlatine();
-  rendreSuite();
-  rendreCompil();
-  rendreLivret('fouille', S.courant && parId[S.courant]);
-  majGarde();
-  majAvis();
-}
-// choisir un disque : il passe sur la platine, et deux autres sortent pour la suite
-function choisir(id, dir, { bouger = true } = {}) {
-  const m = parId[id];
-  if (!m) return;
-  annulerCompte(true);
-  if (dir && DIRECTIONS[dir] && DIRECTIONS[dir].cle) S.prefs[dir] = (S.prefs[dir] || 0) + 1;
-  S.dernierDir = dir || null;
-  S.tour++;
-  mettreSurLaPlatine(m, { bouger });
-}
-function mettreSurLaPlatine(m, { bouger = true, jouer = true } = {}) {
-  S.courant = m.id;
-  croiser(m.id);
-  S.suite = tirerSuite(m);
-  if (S.suite) S.suite.options.forEach(o => croiser(o.id));
-  rendreFouille();
-  if (bouger) {
-    if (S.vue !== 'fouille') aller('fouille');
-    else window.scrollTo({ top: 0, behavior: doux });
-  }
-  if (jouer) { S.mode = 'decouvrir'; jouerMorceau(m); }
-  else majPoste();
-  if (!bouger) toast(`Ensuite : ${m.affiche}`);
-}
-
-/* le disque qui joue */
-function rendrePlatine() {
-  const el = $('#platine');
-  const m = S.courant && parId[S.courant];
-  el.hidden = !m;
-  $('#fouille').classList.toggle('sans-platine', !m);
-  if (!m) { el.dataset.id = ''; return; }
-  if (el.dataset.id !== m.id) {
-    el.dataset.id = m.id;
-    el.innerHTML = `
-      <div class="platine-ecran">
-        <div class="emplacement-ecran emplacement-fouille" data-emplacement="fouille"></div>
-        <div class="platine-pochette">${Pochettes.html(m, 'pochette-platine')}</div>
-      </div>
-      <div class="platine-texte">
-        <h1 class="platine-titre">${E(m.affiche)}</h1>
-        <p class="platine-artiste">${E(m.artiste)}</p>
-        <button class="platine-album" data-action="livret" data-livret="fouille" data-ouvrir="1" hidden></button>
-        ${m.note ? `<p class="platine-note">${E(m.note).replace(/\n/g, '<br>')}</p>` : ''}
-        <div class="platine-actions">
-          <button class="bouton-garder" data-action="garder" data-garder="${m.id}" data-id="${m.id}">Garder</button>
-          <button class="platine-lecture" data-action="platine-lecture" hidden><span class="icone icone-lecture"></span><span class="platine-lecture-texte">Lecture</span></button>
-          <button class="lien-bouton" data-action="livret" data-livret="fouille" data-ouvrir="1">Ouvrir le livret</button>
-        </div>
-        <div class="platine-progression" hidden><span></span></div>
-        <p class="platine-info" hidden></p>
-        <div class="avis-pub" data-avis hidden></div>
-      </div>`;
-    teinterFond(m);
-  }
-  majPlatine();
-}
-function phraseAlbumCourte(m) {
-  const f = Pochettes.meta(m) || {};
-  const nom = f.album || m.album;
-  const annee = f.annee;
-  if (f.typeAlbum === 'single' || (nom && N(nom) === N(m.titre))) return `Sorti en single${annee ? ` en ${annee}` : ''}`;
-  if (!nom) return '';
-  return `Sur l'album ${nom}${annee ? ` (${annee})` : ''}`;
-}
-function majPlatine() {
-  const el = $('#platine');
-  if (!el || el.hidden) return;
-  const m = parId[el.dataset.id];
-  if (!m) return;
-  const actif = S.mode === 'decouvrir' && S.joue === m.id;
-  el.classList.toggle('actif', actif);
-  const alb = $('.platine-album', el);
-  const phrase = phraseAlbumCourte(m);
-  alb.hidden = !phrase;
-  alb.textContent = phrase;
-  // pour les extraits (pas de commandes YouTube), ou pour reprendre ce disque
-  const b = $('.platine-lecture', el);
-  const montrer = !actif || (S.lecture === 'extrait' && !S.erreur);
-  b.hidden = !montrer;
-  b.classList.toggle('en-pause', actif && S.enLecture);
-  $('.icone', b).classList.toggle('pause', actif && S.enLecture);
-  $('.platine-lecture-texte', b).textContent = !actif ? 'L\'écouter' : S.enLecture ? 'Pause' : 'Lecture';
-  $('.platine-progression', el).hidden = !(actif && S.lecture === 'extrait');
-  // ce qu'il faut savoir sur la lecture
-  const info = $('.platine-info', el);
-  const src = Pochettes.source(m);
-  let html = '';
-  if (actif && S.bloque && S.lecture === 'yt') html = 'La vidéo ne démarre pas toute seule : appuie sur ▶ dans la vidéo.';
-  else if (actif && S.bloque) html = 'L\'extrait ne démarre pas tout seul : appuie sur Lecture.';
-  else if (actif && S.erreur) html = 'Ce morceau ne peut pas être lu ici. <button class="lien-bouton" data-action="livret" data-livret="fouille" data-ouvrir="1">Le livret</button> donne ses liens pour l\'écouter en entier ailleurs.';
-  else if (actif && S.lecture === 'extrait') {
-    const entier = src && src.lien ? ` <a href="${E(src.lien)}" target="_blank" rel="noopener">En entier sur ${src.nom}</a>` : '';
-    html = (S.son === 'extraits' ? 'Extrait de 30 secondes.'
-      : 'Ce morceau ne se lit pas ici en entier : extrait de 30 secondes.') + entier;
-  }
-  info.hidden = !html;
-  if (info.innerHTML !== html) info.innerHTML = html;
-}
-function teinterFond(m) {
-  const ec = $('.ecran-fouille');
-  ec.style.removeProperty('--couleur-disque');
-  Pochettes.couleur(m, ([r, g, b]) => { if (S.courant === m.id) ec.style.setProperty('--couleur-disque', `${r}, ${g}, ${b}`); });
-}
-
-/* les directions pour la suite */
-function rendreSuite() {
-  const el = $('#suite');
-  const s = S.suite;
-  if (!s) { el.innerHTML = `<h2 class="suite-titre" id="suite-titre">C'est tout pour l'instant</h2><p class="suite-sous">La sélection est trop petite pour te proposer autre chose. Reviens bientôt.</p>`; return; }
-  const coup = s.type === 'coup';
-  el.innerHTML = `
-    <h2 class="suite-titre" id="suite-titre">${coup ? 'Avant de continuer' : 'Et ensuite ?'}</h2>
-    <p class="suite-sous" id="suite-sous" aria-live="polite">${coup ? 'Celui-là, je l\'avais mis de côté pour toi.'
-      : tactile ? 'Choisis une direction. Sinon, la première démarre à la fin du morceau.'
-      : 'Choisis une direction (survole une pochette pour l\'entendre). Sinon, la première démarre à la fin du morceau.'}</p>
-    <div class="suite-options suite-${s.type}">${coup ? carteCoup(s.options[0]) : s.options.map(carteOption).join('')}</div>
-    ${coup ? '' : `<div class="suite-pied">
-      <button class="lien-bouton" data-action="aucun">D'autres directions</button>
-      ${tactile ? '' : '<span class="raccourcis">Au clavier : 1, 2 ou 3 pour choisir, G pour l\'ajouter à ta compil.</span>'}
-    </div>`}`;
-  if (!tactile) {
-    $$('.option:not(.mystere), .coup', el).forEach(c => {
-      c.addEventListener('mouseenter', () => lancerExtrait(c.dataset.id, c));
-      c.addEventListener('mouseleave', () => { if (extraitPour === c.dataset.id) arreterExtrait(); });
-    });
-  }
-}
-function boutonEcoute(m) {
-  return `<button class="option-ecoute" data-action="extrait" data-id="${m.id}" data-extrait-pour="${m.id}" data-etat="${Pochettes.etat(m)}" aria-label="Écouter 30 secondes de ${E(m.affiche)}"><span class="extrait-icone" aria-hidden="true"></span><span class="option-ecoute-texte">${tactile ? 'Écouter 30 s' : 'Extrait'}</span></button>`;
-}
-const PENCHES = [-2, 1.4, -0.8];
-function carteOption(o, i) {
-  const m = parId[o.id];
-  const et = DIRECTIONS[o.dir] ? DIRECTIONS[o.dir].etiquette : '';
-  const st = `${styleAmb(ambianceDe(m))}--penche:${PENCHES[i] || 0}deg`;
-  if (o.mystere) {
-    return `<article class="option mystere" data-id="${m.id}" style="${st}">
-      <button class="option-choix" data-action="choisir-mystere" data-id="${m.id}" data-dir="${o.dir}" aria-label="${E(et)} : une carte mystère. Indice : ${E(indice(m))}">
-        <span class="option-pochette carte-retournable">
-          <span class="carte-face carte-dos"><span class="carte-dos-motif"></span><span class="carte-dos-texte">${E(indice(m))}</span></span>
-          <span class="carte-face carte-recto">${Pochettes.html(m, 'pochette-option')}</span>
-          <span class="sticker" aria-hidden="true">${E(et)}</span>
-          <span class="option-barre" aria-hidden="true"></span>
-        </span>
-        <span class="option-textes">
-          <span class="option-dir" aria-hidden="true">${E(et)}</span>
-          <span class="option-style"><i class="puce-amb" aria-hidden="true"></i>${E(indice(m))}</span>
-          <span class="option-titre">Carte mystère</span>
-          <span class="option-artiste">Retourne-la, elle se lance.</span>
-        </span>
-      </button>
-    </article>`;
-  }
-  return `<article class="option" data-id="${m.id}" style="${st}">
-    <button class="option-choix" data-action="choisir" data-id="${m.id}" data-dir="${o.dir}" aria-label="${E(et)} : ${E(m.affiche)}, ${E(m.artiste)}. ${E(indice(m))}">
-      <span class="option-pochette">${Pochettes.html(m, 'pochette-option')}<span class="sticker" aria-hidden="true">${E(et)}</span><span class="option-barre" aria-hidden="true"></span></span>
-      <span class="option-textes">
-        <span class="option-dir" aria-hidden="true">${E(et)}</span>
-        <span class="option-style"><i class="puce-amb" aria-hidden="true"></i>${E(indice(m))}</span>
-        <span class="option-titre">${E(m.affiche)}</span>
-        <span class="option-artiste">${E(m.artiste)}</span>
-      </span>
-    </button>
-    ${boutonEcoute(m)}
-  </article>`;
-}
-function carteCoup(o) {
-  const m = parId[o.id];
-  return `<article class="coup" data-id="${m.id}" style="${styleAmb(ambianceDe(m))}">
-    <button class="option-pochette" data-action="choisir" data-id="${m.id}" data-dir="coup" aria-label="Écouter le coup de cœur : ${E(m.affiche)}, ${E(m.artiste)}">
-      ${Pochettes.html(m, 'pochette-option')}
-      <span class="sticker sticker-coup" aria-hidden="true">Coup de cœur</span>
-      <span class="option-barre" aria-hidden="true"></span>
-    </button>
-    <div class="coup-texte">
-      <p class="option-style"><i class="puce-amb" aria-hidden="true"></i>${E(indice(m))}</p>
-      <p class="option-titre">${E(m.affiche)}</p>
-      <p class="option-artiste">${E(m.artiste)}</p>
-      ${boutonEcoute(m)}
-      <div class="coup-actions">
-        <button class="gros-bouton gros-bouton-plein" data-action="choisir" data-id="${m.id}" data-dir="coup">L'écouter</button>
-        <button class="lien-bouton" data-action="pas-maintenant">Pas maintenant</button>
-      </div>
-    </div>
-  </article>`;
-}
-
-/* ─────────────────────────────── ÉTAPE 2 : LA COMPIL ───────────────────────────────
-   Les morceaux ajoutés s'écrivent au feutre sur la jaquette ; à partir de
-   trois, on peut graver. La gravure range les titres dans l'ordre qui
-   s'enchaîne le mieux, puis le disque part dans la chaîne. */
-const ordreCompil = () => [...S.gardes].reverse(); // du premier ajouté au dernier
-const memesTitres = (a, b) => a.length === b.length && [...a].sort().join('|') === [...b].sort().join('|');
-function disqueHTML(k, extra = '') {
-  if (k === 'compil') return `<span class="disque disque-compil ${extra}"><span class="disque-main">Ma compil<small>${S.gardes.length ? `${S.gardes.length} titres` : ''}</small></span></span>`;
-  if (k === 'hasard') return `<span class="disque disque-hasard ${extra}"><span class="disque-nom">Surprends-moi<small>Un peu de tout</small></span></span>`;
-  const a = AMB[k];
-  if (!a) return `<span class="disque disque-vide ${extra}"></span>`;
-  return `<span class="disque disque-amb ${extra}" style="${styleAmb(a)}"><span class="disque-nom">${E(a.nom)}<small>Music Discovery</small></span></span>`;
-}
-function rendreCompil(nouveau) {
-  const el = $('#compil');
-  if (!el) return;
-  const ids = ordreCompil();
-  const n = ids.length;
-  const lignes = [];
-  for (let i = 0; i < Math.min(Math.max(COMPIL_IDEAL, n), 12); i++) {
-    const m = parId[ids[i]];
-    lignes.push(m ? `<li${m.id === nouveau ? ' class="nouveau"' : ''}><span>${E(m.affiche)}</span><em>${E(Pochettes.artistePrincipal(m.artiste))}</em></li>` : '<li class="vide"></li>');
-  }
-  const pret = n >= COMPIL_MIN;
-  const aide = n === 0 ? 'Quand un morceau te plaît, appuie sur « Ajouter à ma compil ».'
-    : n < COMPIL_MIN ? `Encore ${COMPIL_MIN - n} titre${COMPIL_MIN - n > 1 ? 's' : ''} pour pouvoir la graver.`
-    : n < COMPIL_IDEAL ? `Tu peux la graver, ou continuer jusqu'à ${COMPIL_IDEAL}.`
-    : 'Belle compil. Il est temps de la graver.';
-  el.innerHTML = `
-    <div class="compil-boitier" aria-hidden="true">
-      <div class="compil-papier"><ol class="compil-liste">${lignes.join('')}</ol></div>
-      <div class="compil-plateau">${disqueHTML('compil')}</div>
-    </div>
-    <div class="compil-texte">
-      <p class="surtitre"><span class="etape-puce">2</span> Ta compil</p>
-      <p class="compil-compte">${n ? `${n} titre${n > 1 ? 's' : ''}` : 'Vide pour l\'instant'}</p>
-      <div class="compil-jauge" style="--p:${Math.min(1, n / COMPIL_IDEAL)}"><span></span></div>
-      <p class="compil-aide">${aide}</p>
-      <button class="gros-bouton${pret ? ' gros-bouton-plein' : ''}" data-action="graver"${pret ? '' : ' disabled'}>Graver la compil</button>
-    </div>`;
-  if (nouveau) { el.classList.remove('ajout'); void el.offsetWidth; el.classList.add('ajout'); }
-}
-let gravureMinuteries = [];
-function graver() {
-  const ids = ordreCompil();
-  if (ids.length < COMPIL_MIN) { toast(`Il faut au moins ${COMPIL_MIN} titres pour graver une compil.`); return; }
-  fermerPanneaux(true);
-  arreterExtrait();
-  // l'ordre gravé : celui qui s'enchaîne le mieux, en partant du premier morceau ajouté
-  const ordre = Moteur.sequencer(ids.map(id => parId[id]), { depart: parId[ids[0]] }).map(m => m.id);
-  S.compilGravee = { ids: ordre, source: [...ids].sort(), date: Date.now() };
-  memoire.ecrire('md-compil-gravee', S.compilGravee);
-  gravureMinuteries.forEach(clearTimeout); gravureMinuteries = [];
-  const g = $('#gravure');
-  g.hidden = false;
-  document.body.classList.add('gravure-ouverte');
-  g.classList.remove('finie'); g.classList.add('en-cours');
-  g.querySelector('.gravure-boite').style.setProperty('--avance', 0);
-  $('#gravure-titre').textContent = 'Gravure en cours…';
-  $('#gravure-etat').textContent = '';
-  $('#gravure-liste').innerHTML = ordre.map(id => `<li><span>${E(parId[id].affiche)}</span><em>${E(Pochettes.artistePrincipal(parId[id].artiste))}</em></li>`).join('');
-  $('#gravure-inserer').hidden = true; $('#gravure-fermer').hidden = true;
-  const pas = reduitMouvement ? 0 : Math.max(160, Math.min(420, 2800 / ordre.length));
-  const lis = $$('#gravure-liste li');
-  ordre.forEach((id, i) => gravureMinuteries.push(setTimeout(() => {
-    if (lis[i]) { lis[i].classList.add('ecrit'); lis[i].scrollIntoView({ block: 'nearest' }); }
-    $('#gravure-etat').textContent = `Piste ${i + 1} sur ${ordre.length}`;
-    g.querySelector('.gravure-boite').style.setProperty('--avance', (i + 1) / ordre.length);
-    clic(2400 + i * 50, 0.012, 0.02);
-  }, pas * (i + 1))));
-  gravureMinuteries.push(setTimeout(() => {
-    g.classList.remove('en-cours'); g.classList.add('finie');
-    $('#gravure-titre').textContent = 'Compil gravée.';
-    $('#gravure-etat').textContent = `${ordre.length} titres, rangés dans l'ordre qui s'enchaîne le mieux.`;
-    $('#gravure-inserer').hidden = false; $('#gravure-fermer').hidden = false;
-    $('#gravure-inserer').focus({ preventScroll: true });
-    clic(880, 0.12, 0.08); setTimeout(() => clic(1320, 0.1, 0.06), 110);
-  }, pas * (ordre.length + 1) + 250));
-}
-function fermerGravure() {
-  gravureMinuteries.forEach(clearTimeout); gravureMinuteries = [];
-  $('#gravure').hidden = true;
-  document.body.classList.remove('gravure-ouverte');
-}
-
-/* enchaînement automatique à la fin d'un morceau : la première proposition, après 5 secondes */
-let compte = null;
-function annulerCompte(silencieux) {
-  clearInterval(compte); compte = null;
-  $$('.option.compte, .coup.compte').forEach(c => c.classList.remove('compte'));
-  if (!silencieux) {
-    const s = $('#suite-sous');
-    if (s) s.textContent = 'D\'accord, on reste là. Choisis quand tu veux.';
-  }
-}
-function lancerCompte(o) {
-  annulerCompte(true);
-  const m = parId[o.id];
-  let n = 5;
-  const carte = $(`#suite [data-id="${o.id}"]`);
-  if (carte) carte.classList.add('compte');
-  const maj = () => {
-    const s = $('#suite-sous');
-    if (s) s.innerHTML = `On enchaîne sur « ${E(m.affiche)} » dans ${n} s. <button class="lien-bouton" data-action="rester">Rester ici</button>`;
-  };
-  maj();
-  compte = setInterval(() => {
-    n--;
-    if (n <= 0) { annulerCompte(true); choisir(o.id, o.dir); }
-    else maj();
-  }, 1000);
-}
-function enchainerDecouverte() {
-  const o = S.suite && S.suite.options[0];
-  if (!o) return;
-  if (S.vue === 'fouille' && S.courant === S.joue) lancerCompte(o);
-  else choisir(o.id, o.dir, { bouger: false }); // ailleurs sur le site : on enchaîne sans te déplacer
-}
-
 /* ─────────────────────────────── LE LIVRET ───────────────────────────────
    Comme le livret d'un CD : l'album, l'artiste, et où écouter le morceau
    en entier. Replié par défaut, pour que la page reste légère. */
@@ -800,7 +355,7 @@ function rendreLivret(ou, m, { force = false } = {}) {
   el.innerHTML = `
     <button class="livret-bouton" data-action="livret" data-livret="${ou}" aria-expanded="${ouvert}">
       <span class="livret-icone" aria-hidden="true"><span></span></span>
-      <span class="livret-bouton-texte"><strong>${ouvert ? 'Refermer le livret' : 'Ouvrir le livret'}</strong>
+      <span class="livret-bouton-texte"><strong>${ouvert ? 'Moins d\'infos' : 'Plus d\'infos'}</strong>
       <span>L'album, l'artiste, et où écouter « ${E(m.affiche)} » en entier</span></span>
     </button>
     ${ouvert ? `
@@ -899,10 +454,10 @@ function ouvrirLivret(ou, m) {
 // la première fois qu'un morceau passe par YouTube : pourquoi des pubs, et comment s'en passer légalement
 const AVIS_PUB = `
   <p class="avis-titre">Des pubs ?</p>
-  <p>Les morceaux complets passent par YouTube. Connecté à YouTube Premium dans ce navigateur, plus de pub. Sinon, il y a le mode extraits, dans Réglages.</p>
+  <p>Je sais que c'est relou, mais c'est lié à YouTube. Si t'as YouTube Premium, il suffit de te connecter ; sinon, passe en mode extraits.</p>
   <div class="avis-actions">
     <button class="gros-bouton gros-bouton-plein" data-action="encart-ok">Compris</button>
-    <button class="lien-bouton" data-action="encart-extraits">Passer en extraits</button>
+    <button class="lien-bouton" data-action="encart-extraits">Passer en mode extraits</button>
   </div>`;
 function majAvis() {
   const montrer = S.lecture === 'yt' && !memoire.lire('md-encart-pub', false);
@@ -974,7 +529,6 @@ audioExtrait.addEventListener('error', () => {
 });
 document.addEventListener('pochette-prete', e => {
   const id = e.detail;
-  if (S.courant === id) majPlatine();
   if (S.joue === id && S.vue === 'machine') majAfficheur();
 });
 
@@ -1037,13 +591,12 @@ function surveillerDemarrage(m) {
     if (st === YT.PlayerState.PLAYING || st === YT.PlayerState.PAUSED) return;
     if (st === YT.PlayerState.BUFFERING && patience-- > 0) { demarrage = setTimeout(verif, 6000); return; }
     S.bloque = true;
-    if (S.mode === 'radio') echecRadio(m, 'ne démarre pas');
+    echecRadio(m, 'ne démarre pas');
     majEtat();
   };
   demarrage = setTimeout(verif, 9000);
 }
 function jouerMorceau(m) {
-  annulerCompte(true);
   arreterExtrait();
   clearTimeout(demarrage);
   S.joue = m.id;
@@ -1082,7 +635,7 @@ function jouerExtraitComplet(m, essai = 0) {
         if (S.joue !== m.id) return;
         S.enLecture = false;
         // lecture automatique refusée par le navigateur : il faut un geste (appuyer sur lecture)
-        if (err && err.name === 'NotAllowedError') { S.bloque = true; if (S.mode === 'radio') echecRadio(m, 'ne démarre pas'); }
+        if (err && err.name === 'NotAllowedError') { S.bloque = true; echecRadio(m, 'ne démarre pas'); }
         majEtat();
         // les autres erreurs (lien mort) arrivent par l'événement « error » ci-dessous
       });
@@ -1091,7 +644,7 @@ function jouerExtraitComplet(m, essai = 0) {
 function extraitIntrouvable(m) {
   S.lecture = null; S.enLecture = false; S.erreur = true;
   majPoste(); majEtat();
-  if (S.mode === 'radio') echecRadio(m, S.son === 'extraits' ? 'n\'a pas d\'extrait' : 'ne s\'écoute que sur YouTube Music');
+  echecRadio(m, S.son === 'extraits' ? 'n\'a pas d\'extrait' : 'ne s\'écoute que sur YouTube Music');
 }
 // un extrait dont le lien est périmé : on en redemande un, une fois ; sinon on passe
 audioLecture.addEventListener('error', () => {
@@ -1120,7 +673,7 @@ function basculerLecture() {
 function finDuMorceau() {
   if (S.finTraitee) return;
   S.finTraitee = true;
-  if (S.mode === 'radio') radioSuivant(); else enchainerDecouverte();
+  radioSuivant();
 }
 setInterval(() => {
   if (S.lecture !== 'yt' || !lecteurPret || S.finTraitee || !S.joue) return;
@@ -1129,8 +682,7 @@ setInterval(() => {
 function majEtat() {
   document.body.classList.toggle('en-lecture', S.enLecture);
   $('#poste-icone').classList.toggle('pause', S.enLecture);
-  $('#radio-icone').classList.toggle('pause', S.enLecture && S.mode === 'radio');
-  majPlatine();
+  $('#radio-icone').classList.toggle('pause', S.enLecture);
   majAvis();
   majPoste();
   if (S.vue === 'machine') majAfficheur();
@@ -1147,16 +699,10 @@ function tempsActuel() {
 /* Règles du lecteur YouTube, respectées ici : la vidéo est toujours visible
    pendant qu'elle joue (jamais de lecture cachée), dans un cadre d'au moins
    200 × 200 pixels, sans rien posé par-dessus. */
-let platineVue = true;
-if ('IntersectionObserver' in window) {
-  new IntersectionObserver(es => { const v = es[0].isIntersecting; if (v !== platineVue) { platineVue = v; majPoste(); } }, { threshold: 0.2 }).observe($('#platine'));
-}
 function majPoste() {
   const p = $('#poste');
   const yt = S.lecture === 'yt';
-  const surSaPage = S.vue === 'fouille' && S.mode === 'decouvrir' && S.courant === S.joue && platineVue;
-  const radioSurMachine = S.vue === 'machine' && S.mode === 'radio';
-  const visible = !!S.joue && S.vue !== 'allumage' && !radioSurMachine && !surSaPage;
+  const visible = !!S.joue && S.vue !== 'allumage' && S.vue !== 'machine';
   p.hidden = !visible;
   p.classList.toggle('avec-video', visible && yt && !S.posteReduit);
   p.classList.toggle('reduit', visible && yt && S.posteReduit);
@@ -1180,8 +726,7 @@ function majPoste() {
 let suiviRAF = null;
 function emplacementCible() {
   if (!S.joue || S.lecture !== 'yt') return null;
-  if (S.vue === 'machine' && S.mode === 'radio') return $('[data-emplacement="machine"]');
-  if (S.vue === 'fouille' && S.mode === 'decouvrir' && S.courant === S.joue && platineVue) return $('[data-emplacement="fouille"]');
+  if (S.vue === 'machine') return $('[data-emplacement="machine"]');
   if (!$('#poste').hidden && !S.posteReduit) return $('[data-emplacement="poste"]');
   return null;
 }
@@ -1191,7 +736,6 @@ function placerEcranVideo() {
   cancelAnimationFrame(suiviRAF);
   const ou = slot ? slot.dataset.emplacement : '';
   document.body.classList.toggle('video-machine', ou === 'machine');
-  document.body.classList.toggle('video-fouille', ou === 'fouille');
   if (!slot) {
     ev.classList.add('cache');
     // garde-fou : une vidéo qui n'est pas à l'écran ne doit pas jouer
@@ -1211,66 +755,86 @@ addEventListener('resize', majPoste);
 
 // le temps qui passe : la chaîne, et la barre des extraits sur la platine
 setInterval(() => {
-  if (S.vue === 'fouille') {
-    const barre = $('#platine .platine-progression span');
-    if (barre && S.mode === 'decouvrir' && S.joue === S.courant && S.lecture === 'extrait') {
-      const [t, d] = tempsActuel();
-      barre.style.width = d ? `${Math.min(100, t / d * 100)}%` : '0%';
-    }
-  }
-  if (S.vue !== 'machine') return;
-  const m = parId[S.file[S.pos]];
-  const active = !!m && S.mode === 'radio' && S.joue === m.id;
-  if (!active) return;
+  if (S.vue !== 'machine' || !S.joue || !S.lecture) return;
   const [t] = tempsActuel();
   $('#lcd-temps').textContent = `${deux(t / 60)}:${deux(t % 60)}`;
 }, 500);
 
-/* ─────────────────────────────── ÉTAPE 3 : LA CHAÎNE ───────────────────────────────
-   On met un disque dans la chaîne : la compil gravée, une ambiance, ou
-   « surprends-moi ». Chaque disque est rangé dans l'ordre qui s'enchaîne
-   le mieux, d'un morceau proche à l'autre (moteur.js). */
-function infosDisque(k) {
-  if (k === 'compil') return { nom: 'Ma compil', sous: S.gardes.length ? `${S.gardes.length} titre${S.gardes.length > 1 ? 's' : ''}` : 'Pas encore gravée' };
-  if (k === 'hasard') return { nom: 'Surprends-moi', sous: 'Un peu de tout' };
-  const a = AMB[k];
-  return a ? { nom: a.nom, sous: a.sous } : { nom: '', sous: '' };
+/* ─────────────────────────────── LA CHAÎNE ET LE PUPITRE ───────────────────────────────
+   Un seul lieu : la chaîne diffuse, et dessous on l'oriente pendant qu'elle
+   tourne. « Ça j'aime bien » attire la suite vers ce morceau, « Pas trop
+   comme ça » l'en éloigne (et passe au suivant), les directions changent le
+   prochain titre. Le moteur (moteur.js) compare les fiches de data.js pour
+   que chaque morceau mène au plus proche. */
+const SOURCES = {
+  radio:     { nom: 'La radio', sous: 'Toute la sélection, d\'un morceau proche à l\'autre' },
+  fond:      { nom: 'Le fond du bac', sous: 'Les disques les plus enfouis' },
+  selection: { nom: 'Ma sélection', sous: 'Ce que tu as gardé' },
+};
+const CAPS = ['calme', 'energique', 'dansant', 'pose', 'connu', 'confidentiel', 'cote'];
+const nomCap = d => d === 'connu' ? 'Plus mainstream' : (Moteur.DIRECTIONS[d] || {}).etiquette || '';
+function poolSource() {
+  let p;
+  if (S.source === 'selection') p = S.gardes.map(id => parId[id]).filter(Boolean);
+  else if (S.source === 'fond') {
+    // les plus confidentiels, et ceux qui sortent le plus des sentiers battus
+    const tri = BANQUE.filter(m => !m.connu).map(m => [m, conf(m) + m.etrange * 0.6]).sort((a, b) => b[1] - a[1]);
+    p = tri.slice(0, Math.max(14, Math.round(BANQUE.length * 0.28))).map(x => x[0]);
+  } else p = BANQUE;
+  const ok = p.filter(ecoutable);
+  return ok.length >= 3 ? ok : p;
 }
-function construireFil() {
-  const k = S.disque || 'hasard';
-  if (k === 'compil') {
-    const ids = ordreCompil();
-    const g = S.compilGravee;
-    if (g && Array.isArray(g.ids) && memesTitres(g.ids, ids)) return g.ids.filter(id => parId[id]);
-    return Moteur.sequencer(ids.map(id => parId[id]).filter(Boolean), { depart: parId[ids[0]] }).map(m => m.id);
+// ce que tu aimes attire, ce que tu n'aimes pas repousse
+function score(cur, x) {
+  let d = Moteur.distance(cur, x);
+  S.aime.forEach(id => { const a = parId[id]; if (a && a !== x) d -= 0.7 * Math.exp(-Moteur.distance(a, x) / 2.6); });
+  S.aimePas.forEach(id => { const a = parId[id]; if (a) d += 2.4 * Math.exp(-Moteur.distance(a, x) / 2.2); });
+  return d;
+}
+function parmiDeux(l) { return !l.length ? null : l.length === 1 || Math.random() < 0.72 ? l[0] : l[1]; }
+function construireSuite(depuis, n = 6) {
+  const recents = new Set(S.historique.slice(-40));
+  const base = poolSource().filter(m => (!depuis || m.id !== depuis.id) && !S.aimePas.has(m.id));
+  if (S.source === 'selection') {
+    // ta sélection, rangée pour s'enchaîner, en repartant après le morceau en cours
+    const ordre = Moteur.sequencer(poolSource(), { depart: depuis && S.gardes.includes(depuis.id) ? depuis : null }).map(m => m.id);
+    const i = depuis ? ordre.indexOf(depuis.id) : -1;
+    return [...ordre.slice(i + 1), ...ordre.slice(0, Math.max(0, i))].slice(0, n);
   }
-  let pool = BANQUE.filter(m => k === 'hasard' || m.ambiance === k);
-  const ok = pool.filter(ecoutable);
-  if (ok.length >= 3) pool = ok;
-  if (!pool.length) return [];
-  // on part d'un morceau qu'on n'a pas entendu récemment
-  const recents = new Set(S.recents.slice(-12));
-  const departs = pool.filter(m => !recents.has(m.id));
-  return Moteur.sequencer(pool, { depart: hasard(departs.length ? departs : pool) }).map(m => m.id);
+  let pool = base.filter(m => !recents.has(m.id));
+  if (pool.length < n) pool = base;
+  const suite = [];
+  let cur = depuis || hasard(pool);
+  if (!depuis && cur) { suite.push(cur.id); pool = pool.filter(m => m !== cur); }
+  while (suite.length < n && pool.length) {
+    let x = null;
+    if (!suite.length && S.cap && cur) x = Moteur.versDirection(cur, S.cap, pool, val);
+    if (!x) x = parmiDeux(pool.map(m => [m, score(cur, m)]).sort((a, b) => a[1] - b[1]).map(p => p[0]));
+    if (!x) break;
+    suite.push(x.id);
+    pool = pool.filter(m => m !== x);
+    cur = x;
+  }
+  return suite;
 }
-function rendreRack() {
-  $('#rack').innerHTML = DISQUES.map(k => {
-    const i = infosDisque(k);
-    const vide = k === 'compil' && !S.gardes.length;
-    const n = k === 'compil' ? S.gardes.length : k === 'hasard' ? BANQUE.length : BANQUE.filter(m => m.ambiance === k).length;
-    if (!n && k !== 'compil') return '';
-    return `<button class="rack-disque" role="radio" aria-checked="${S.disque === k}" data-action="disque" data-disque="${k}"${vide ? ' data-vide' : ''} aria-label="${E(i.nom)} : ${E(i.sous)}">
-      <span class="rack-galette">${disqueHTML(k)}</span>
-      <span class="rack-nom">${E(i.nom)}</span><span class="rack-sous">${E(k === 'compil' || k === 'hasard' ? i.sous : `${n} titres`)}</span>
-    </button>`;
-  }).join('');
+function rafraichirSuite() {
+  S.suite = construireSuite(parId[S.joue] || null);
+  rendrePupitre();
+  majAfficheur();
 }
-// le tiroir s'ouvre, le disque s'y pose, il se referme (et l'écran affiche « READING »)
+
+/* le disque dans le tiroir : la radio (holographique), le fond du bac (noir), ma sélection (CD-R) */
+function disqueHTML(k, extra = '') {
+  if (k === 'selection') return `<span class="disque disque-compil ${extra}"><span class="disque-main">Ma sélection</span></span>`;
+  if (k === 'fond') return `<span class="disque disque-fond ${extra}"><span class="disque-nom">Le fond du bac</span></span>`;
+  if (k === 'radio') return `<span class="disque disque-hasard ${extra}"><span class="disque-nom">La radio<small>Music Discovery</small></span></span>`;
+  return `<span class="disque disque-vide ${extra}"></span>`;
+}
 let tiroirMin = [];
 function poserDisque(k) {
   const d = $('#disque-tiroir');
   const tmp = document.createElement('div');
-  tmp.innerHTML = k ? disqueHTML(k, 'disque-tiroir') : '<span class="disque disque-vide disque-tiroir"></span>';
+  tmp.innerHTML = disqueHTML(k, 'disque-tiroir');
   const nv = tmp.firstElementChild;
   nv.id = 'disque-tiroir';
   d.replaceWith(nv);
@@ -1292,36 +856,183 @@ function ejecter() {
   if (t.classList.contains('ouvert')) { t.classList.remove('ouvert'); clic(320, 0.16, 0.05); return; }
   t.classList.add('ouvert');
   clic(300, 0.18, 0.05);
-  const r = $('.rack');
-  r.classList.remove('appel'); void r.offsetWidth; r.classList.add('appel');
-  r.scrollIntoView({ behavior: doux, block: 'center' });
-  toast('Choisis un disque dans le rack.');
-  tiroirMin.push(setTimeout(() => t.classList.remove('ouvert'), 4000));
+  const s = $('.sources');
+  s.classList.remove('appel'); void s.offsetWidth; s.classList.add('appel');
+  s.scrollIntoView({ behavior: doux, block: 'center' });
+  tiroirMin.push(setTimeout(() => t.classList.remove('ouvert'), 3500));
 }
-function choisirDisque(k) {
-  if (!DISQUES.includes(k)) return;
-  if (k === 'compil' && !S.gardes.length) { toast('Ta compil est vide : ajoute des morceaux dans Découvrir, puis grave-la.', 4000); return; }
-  S.disque = k;
-  memoire.ecrire('md-disque', k);
-  S.file = construireFil();
-  S.pos = 0;
-  rendreRack();
+function choisirSource(k) {
+  if (!SOURCES[k]) return;
+  if (k === 'selection' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur « Ajouter à ma sélection » quand un morceau te plaît.', 4200); return; }
+  S.source = k;
+  memoire.ecrire('md-source', k);
+  S.cap = null;
+  const premier = construireSuite(null, 1)[0];
   chargerTiroir(k);
-  radioJouerCourant(); // tout de suite : le navigateur ne laisse démarrer le son que juste après un geste
+  if (premier) jouerRadio(premier);
+}
+
+/* jouer : le morceau passe, la suite se recalcule depuis lui */
+function jouerRadio(id) {
+  const m = parId[id];
+  if (!m) return;
+  S.mode = 'radio';
+  croiser(m.id);
+  if (S.historique[S.historique.length - 1] !== m.id) S.historique.push(m.id);
+  jouerMorceau(m);
+  S.cap = S.capVise === m.id ? null : S.cap;
+  S.capVise = null;
+  S.suite = construireSuite(m);
+  if (S.cap) S.capVise = S.suite[0];
+  rendrePupitre();
+  majMachine();
+}
+function radioSuivant() {
+  if (!S.suite.length) S.suite = construireSuite(parId[S.joue] || null);
+  const id = S.suite[0];
+  clic(1400);
+  if (id) jouerRadio(id);
+}
+function radioPrecedent() {
+  const [t] = tempsActuel();
+  if (S.joue && t > 5) {
+    try { if (S.lecture === 'yt') lecteur.seekTo(0, true); else audioLecture.currentTime = 0; } catch (e) {}
+    clic(1100); return;
+  }
+  if (S.historique.length >= 2) { S.historique.pop(); const id = S.historique.pop(); clic(1100); jouerRadio(id); }
+}
+function radioLecture() {
+  S.echecs = 0;
+  if (S.joue && S.lecture) basculerLecture();
+  else jouerRadio(S.joue || construireSuite(null, 1)[0]);
+  clic(600, 0.06, 0.07);
+}
+function radioStop() {
+  if (!S.joue) return;
+  S.finTraitee = true;
+  clearTimeout(demarrage);
+  try { if (S.lecture === 'yt') lecteur.stopVideo(); } catch (e) {}
+  audioLecture.pause();
+  S.enLecture = false; S.lecture = null; S.bloque = false;
+  clic(500, 0.05, 0.06);
+  majEtat(); majMachine();
+}
+// un morceau qui ne veut pas se lire : on essaie l'extrait, sinon on passe ; au bout de 3 ratés d'affilée, on s'arrête
+function echecRadio(m, raison) {
+  if (S.joue !== m.id) return;
+  S.echecs++;
+  if (S.echecs >= 3) {
+    S.echecs = 0;
+    radioStop();
+    toast('Trois morceaux de suite ne démarrent pas. Vérifie ta connexion, puis appuie sur lecture.', 6000);
+    return;
+  }
+  if (S.lecture === 'yt' && Pochettes.etat(m) === 'ok' && !S.bloque) { jouerExtraitComplet(m); return; }
+  toast(`${m.affiche} ${raison}. On passe au suivant.`);
+  setTimeout(() => { if (S.joue === m.id) radioSuivant(); }, 1500);
+}
+
+/* l'avis du visiteur sur le morceau qui passe */
+function aimer(id) {
+  if (!id) return;
+  if (S.aime.has(id)) { S.aime.delete(id); toast('D\'accord, on oublie.'); }
+  else { S.aime.add(id); S.aimePas.delete(id); toast('Noté : la suite va dans ce sens.'); clic(1000, 0.06, 0.05); }
+  memoire.ecrire('md-aime', [...S.aime]); memoire.ecrire('md-aime-pas', [...S.aimePas]);
+  rafraichirSuite();
+}
+function pasAime(id) {
+  if (!id) return;
+  S.aimePas.add(id); S.aime.delete(id);
+  memoire.ecrire('md-aime', [...S.aime]); memoire.ecrire('md-aime-pas', [...S.aimePas]);
+  toast('Compris, on s\'éloigne de ce genre-là.');
+  S.suite = construireSuite(parId[id]);
+  radioSuivant();
+}
+function orienter(dir) {
+  if (!S.joue) return;
+  S.cap = S.cap === dir ? null : dir;
+  S.suite = construireSuite(parId[S.joue]);
+  S.capVise = S.cap ? S.suite[0] : null;
+  rendrePupitre();
+  majAfficheur();
+  const p = parId[S.suite[0]];
+  if (S.cap && p) toast(`${nomCap(dir)} : ensuite, « ${p.affiche} ».`);
+  clic(1500, 0.03, 0.06);
+}
+
+/* le pupitre : le morceau qui passe, sa mini-chronique, l'avis, la suite */
+function rendrePupitre() {
+  const m = parId[S.joue];
+  const el = $('#maintenant');
+  if (!m) {
+    el.innerHTML = `<p class="maintenant-vide">Appuie sur lecture : la chaîne démarre, et tu l'orientes ici.</p>`;
+  } else if (el.dataset.id !== m.id) {
+    el.dataset.id = m.id;
+    el.innerHTML = `
+      <div class="maintenant-pochette">${Pochettes.html(m, 'pochette-maintenant')}</div>
+      <div class="maintenant-texte">
+        <p class="maintenant-style">${E(indice(m))}</p>
+        <h2 class="maintenant-titre">${E(m.affiche)}</h2>
+        <p class="maintenant-artiste">${E(m.artiste)}</p>
+        ${m.note ? `<p class="maintenant-note">${E(m.note).replace(/\n/g, '<br>')}</p>` : ''}
+        <p class="maintenant-chronique" data-chronique="${m.id}"></p>
+        <div class="avis-boutons">
+          <button class="avis-bouton" data-action="pas-aime" aria-label="Pas trop comme ça : on passe et on s'en éloigne"><span aria-hidden="true">✕</span> Pas trop comme ça</button>
+          <button class="avis-bouton avis-aime" data-action="aime" aria-pressed="false"><span aria-hidden="true">♥</span> Ça, j'aime bien</button>
+          <button class="avis-bouton avis-garder" data-action="garder-joue" data-garder="${m.id}" aria-pressed="false"><span aria-hidden="true">+</span> <span class="avis-garder-texte">Ajouter à ma sélection</span></button>
+        </div>
+        <button class="lien-bouton" data-action="radio-raconte">Plus d'infos sur l'album et l'artiste</button>
+      </div>`;
+    remplirChronique(m);
+  }
+  if (m) {
+    const a = $('.avis-aime', el);
+    if (a) { a.setAttribute('aria-pressed', S.aime.has(m.id)); a.classList.toggle('actif', S.aime.has(m.id)); }
+  }
+  $('#caps').innerHTML = CAPS.map(d => `<button class="cap" data-action="cap" data-dir="${d}" aria-pressed="${S.cap === d}"${m ? '' : ' disabled'}>${E(nomCap(d))}</button>`).join('');
+  $('#file').innerHTML = S.suite.slice(0, 5).map((id, i) => {
+    const x = parId[id];
+    return `<li><button class="file-titre" data-action="jouer-id" data-id="${x.id}">
+      ${Pochettes.html(x, 'pochette-file')}
+      <span class="file-texte"><span class="file-nom">${E(x.affiche)}</span><span class="file-artiste">${E(x.artiste)}</span><span class="file-style">${E(indice(x))}</span></span>
+      ${i === 0 && S.cap ? `<span class="file-cap">${E(nomCap(S.cap))}</span>` : ''}
+    </button></li>`;
+  }).join('') || '<li class="file-vide">La suite s\'affichera ici.</li>';
+  $('#sources').innerHTML = Object.entries(SOURCES).map(([k, s]) => {
+    const vide = k === 'selection' && !S.gardes.length;
+    return `<button class="source" role="radio" aria-checked="${S.source === k}" data-action="source-chaine" data-source="${k}"${vide ? ' data-vide' : ''}>
+      <span class="source-galette">${disqueHTML(k)}</span>
+      <span class="source-nom">${E(s.nom)}</span><span class="source-sous">${E(k === 'selection' && S.gardes.length ? `${S.gardes.length} morceau${S.gardes.length > 1 ? 'x' : ''}` : s.sous)}</span>
+    </button>`;
+  }).join('');
+  majGarde();
+}
+// quelques mots sur l'album, comme une petite chronique : Wikipédia d'abord, sinon ce que disent les catalogues, sinon la fiche
+function remplirChronique(m) {
+  const ecrire = t => { const p = $(`[data-chronique="${m.id}"]`); if (p && t) { p.textContent = t; p.classList.add('pret'); } };
+  const premieres = (t, n = 2) => (String(t).match(/[^.!?]+[.!?]+/g) || [t]).slice(0, n).join(' ').trim();
+  Pochettes.album(m).then(a => {
+    const repli = () => {
+      if (a) return ecrire(phraseAlbum(a));
+      Infos.artiste(m.artiste, f => ecrire(f ? premieres(f.extrait, 1) : `${m.style || 'Un morceau à part'}${m.annee ? `, ${m.annee}` : ''}.`));
+    };
+    if (!a) return repli();
+    Infos.oeuvre(a.titre || m.album || m.titre, a.artiste || m.artiste, a.type === 'single' ? 'chanson' : 'album', w => {
+      if (w && w.extrait) ecrire(premieres(w.extrait)); else repli();
+    });
+  });
 }
 function entrerMachine() {
-  if (!S.disque && S.gardes.length >= COMPIL_MIN) S.disque = 'compil';
-  if (S.disque && !S.file.length) { S.file = construireFil(); S.pos = 0; }
-  rendreRack();
-  if (!$('#tiroir').classList.contains('ouvert')) poserDisque(S.disque);
+  rendrePupitre();
+  if (!$('#tiroir').classList.contains('ouvert')) poserDisque(S.source);
   aller('machine');
   majMachine();
 }
 function majMachine() {
-  const m = parId[S.file[S.pos]];
+  const m = parId[S.joue];
   majAfficheur();
   majGarde();
-  S.file.slice(S.pos + 1, S.pos + 4).forEach(x => Pochettes.demander(parId[x]));
+  S.suite.slice(0, 4).forEach(x => Pochettes.demander(parId[x]));
   rendreLivret('machine', m);
   placerEcranVideo();
 }
@@ -1329,21 +1040,20 @@ function texteLCD(el, texte) {
   if (el.textContent === texte) return;
   el.textContent = texte;
   el.style.animationDuration = `${Math.max(8, texte.length * 0.3)}s`;
-  // un texte qui tient sur l'écran ne défile pas
   const boite = el.parentElement;
   boite.classList.add('fixe');
   requestAnimationFrame(() => { if (el.scrollWidth > boite.clientWidth + 2) boite.classList.remove('fixe'); });
 }
 function majAfficheur() {
-  const m = parId[S.file[S.pos]];
-  const active = !!m && S.mode === 'radio' && S.joue === m.id;
+  const m = parId[S.joue];
+  const active = !!m && !!S.lecture;
   const lecture = document.body.classList.contains('lecture-disque');
-  $('#lcd-disque').textContent = S.disque ? infosDisque(S.disque).nom.toUpperCase() : 'PAS DE DISQUE';
-  $('#lcd-piste').textContent = m && S.disque ? `${deux(S.pos + 1)}/${deux(S.file.length)}` : '--';
-  const texte = lecture ? 'READING' : !S.disque ? 'CHOISIS UN DISQUE' : m ? `${m.affiche} · ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'DISQUE VIDE';
+  $('#lcd-disque').textContent = SOURCES[S.source].nom.toUpperCase();
+  $('#lcd-piste').textContent = m ? deux(S.historique.length) : '--';
+  const texte = lecture ? 'READING' : m ? `${m.affiche} · ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'APPUIE SUR LECTURE';
   texteLCD($('#lcd-texte'), texte);
   $('#lcd-etat').textContent = lecture ? 'READ' : !active ? 'STOP' : S.bloque ? 'APPUIE SUR ▶' : S.enLecture ? '▶ PLAY' : S.aJoue ? 'II PAUSE' : 'LOAD';
-  const ensuite = parId[S.file[S.pos + 1]];
+  const ensuite = parId[S.suite[0]];
   $('#lcd-ensuite').textContent = ensuite && !lecture ? `ENSUITE ${ensuite.affiche}` : '';
   if (!active) $('#lcd-temps').textContent = '--:--';
   const ms = $('#machine-source');
@@ -1352,7 +1062,7 @@ function majAfficheur() {
   if (active && S.bloque) ms.textContent = 'La lecture ne démarre pas toute seule : appuie sur lecture.';
   else if (src) ms.innerHTML = `Extrait de 30 secondes.${src.lien ? ` <a href="${E(src.lien)}" target="_blank" rel="noopener">En entier sur ${src.nom}</a>` : ''}`;
   document.body.classList.toggle('cd-tourne', active && S.enLecture);
-  document.body.classList.toggle('chaine-allumee', !!S.disque);
+  document.body.classList.toggle('chaine-allumee', true);
   if (m && m.bpm) document.body.style.setProperty('--battement', `${(60 / (m.bpm > 140 ? m.bpm / 2 : m.bpm)).toFixed(3)}s`);
   lancerSpectre();
 }
@@ -1365,11 +1075,11 @@ const pics = new Array(BARRES).fill(0);
 let spectreRAF = null, spectreDernier = 0;
 function lancerSpectre() {
   if (spectreRAF || reduitMouvement) return;
-  if (S.vue !== 'machine' || !S.enLecture || S.mode !== 'radio') return;
+  if (S.vue !== 'machine' || !S.enLecture) return;
   spectreRAF = requestAnimationFrame(animerSpectre);
 }
 function animerSpectre(t) {
-  if (S.vue !== 'machine' || !S.enLecture || S.mode !== 'radio') {
+  if (S.vue !== 'machine' || !S.enLecture) {
     spectreRAF = null;
     barres.forEach((b, i) => { b.style.setProperty('--h', '0.06'); pics[i] = 0; b.style.setProperty('--pic', 0); });
     return;
@@ -1391,69 +1101,6 @@ function animerSpectre(t) {
     b.style.setProperty('--pic', ((pics[i] - h) * 52).toFixed(1));
   });
 }
-function radioJouerCourant() {
-  if (!S.disque) { toast('Choisis d\'abord un disque dans le rack.'); const r = $('.rack'); r.classList.remove('appel'); void r.offsetWidth; r.classList.add('appel'); return; }
-  if (!S.file.length) { S.file = construireFil(); S.pos = 0; }
-  const m = parId[S.file[S.pos]];
-  if (!m) { toast('Ce disque est vide.'); return; }
-  S.mode = 'radio';
-  croiser(m.id);
-  if (S.recents[S.recents.length - 1] !== m.id) S.recents.push(m.id);
-  jouerMorceau(m);
-  majMachine();
-}
-// un morceau qui ne veut pas se lire : on essaie l'extrait, sinon on passe ; au bout de 3 ratés d'affilée, on s'arrête
-function echecRadio(m, raison) {
-  if (S.mode !== 'radio' || S.joue !== m.id) return;
-  S.echecs++;
-  if (S.echecs >= 3) {
-    S.echecs = 0;
-    radioStop();
-    toast('Trois morceaux de suite ne démarrent pas. Vérifie ta connexion, puis appuie sur lecture.', 6000);
-    return;
-  }
-  if (S.lecture === 'yt' && Pochettes.etat(m) === 'ok' && !S.bloque) { jouerExtraitComplet(m); return; }
-  toast(`${m.affiche} ${raison}. On passe au suivant.`);
-  setTimeout(() => { if (S.mode === 'radio' && S.joue === m.id) radioSuivant(); }, 1500);
-}
-function radioSuivant() {
-  if (!S.file.length) { S.file = construireFil(); S.pos = 0; }
-  S.pos++;
-  // fin du disque : la compil recommence au début, les autres disques repartent d'ailleurs
-  if (S.pos >= S.file.length) { S.file = construireFil(); S.pos = 0; }
-  clic(1400);
-  radioJouerCourant();
-}
-function radioPrecedent() {
-  const [t] = tempsActuel();
-  if (S.mode === 'radio' && S.joue && t > 5) {
-    try { if (S.lecture === 'yt') lecteur.seekTo(0, true); else audioLecture.currentTime = 0; } catch (e) {}
-    clic(1100); return;
-  }
-  if (S.pos > 0) S.pos--;
-  else if (S.file.length) S.pos = S.file.length - 1;
-  clic(1100);
-  radioJouerCourant();
-}
-function radioLecture() {
-  if (!S.disque) return radioJouerCourant();
-  if (!S.file.length) { S.file = construireFil(); S.pos = 0; }
-  const id = S.file[S.pos];
-  S.echecs = 0;
-  if (S.mode === 'radio' && S.joue === id && S.lecture) basculerLecture(); else radioJouerCourant();
-  clic(600, 0.06, 0.07);
-}
-function radioStop() {
-  if (S.mode !== 'radio' || !S.joue) return;
-  S.finTraitee = true;
-  clearTimeout(demarrage);
-  try { if (S.lecture === 'yt') lecteur.stopVideo(); } catch (e) {}
-  audioLecture.pause();
-  S.enLecture = false; S.lecture = null; S.joue = null; S.bloque = false;
-  clic(500, 0.05, 0.06);
-  majEtat(); majMachine();
-}
-
 /* ─────────────────────────────── MES TROUVAILLES / RÉGLAGES (panneaux) ─────────────────────────────── */
 function ouvrirPanneau(id) {
   fermerPanneaux(true);
@@ -1474,8 +1121,8 @@ function rendreBac() {
   const ids = S.onglet === 'gardes' ? S.gardes : S.croises;
   $('#bac-liste').innerHTML = !ids.length
     ? `<li class="bac-vide">${S.onglet === 'gardes'
-        ? 'Rien dans ta compil pour l\'instant. Quand un morceau te plaît dans Découvrir, appuie sur « Ajouter à ma compil ».'
-        : 'Tout ce que tu croises s\'inscrit ici. Lance une découverte.'}</li>`
+        ? 'Rien dans ta sélection pour l\'instant. Quand un morceau te plaît, appuie sur « Ajouter à ma sélection ».'
+        : 'Tout ce qui passe dans la chaîne s\'inscrit ici.'}</li>`
     : ids.map(id => {
         const m = parId[id];
         return `<li class="bac-ligne">
@@ -1492,7 +1139,7 @@ function rendreBac() {
 }
 async function copierListe() {
   const txt = S.gardes.map(id => { const m = parId[id]; return `${m.titre}, ${m.artiste}  ${m.lien}`; }).join('\n');
-  try { await navigator.clipboard.writeText('Mes trouvailles sur Music Discovery\n\n' + txt); toast('Liste copiée.'); }
+  try { await navigator.clipboard.writeText('Ma sélection sur Music Discovery\n\n' + txt); toast('Liste copiée : colle-la dans un outil d\'import de playlist (TuneMyMusic, Soundiiz…).', 4500); }
   catch (e) { toast('Copie impossible dans ce navigateur.'); }
 }
 
@@ -1549,98 +1196,51 @@ function allumer() {
   clic(220, 0.12, 0.12);
   setTimeout(() => clic(2600, 0.02, 0.04), 140);
   document.body.classList.add('allume');
-  setTimeout(() => { rendreAccueil(); aller('accueil'); }, reduitMouvement ? 0 : 600);
+  // le geste « Commencer » autorise le son : la chaîne démarre sur le morceau du jour
+  const m = S.source === 'radio' ? morceauDuJour() : parId[construireSuite(null, 1)[0]];
+  entrerMachine();
+  if (m) jouerRadio(m.id);
 }
 const demarre = () => document.body.classList.contains('allume');
 
 /* ─────────────────────────────── les actions ─────────────────────────────── */
 const ACTIONS = {
   'allumer': allumer,
-  'accueil': () => { if (!demarre()) return; rendreAccueil(); aller('accueil'); },
-  'source': b => {
-    if (!demarre()) return;
-    clic(1500, 0.03, 0.06);
-    if (b.dataset.source === 'ecouter') return entrerMachine();
-    allerDecouvrir();
-  },
-  'bac': b => commencer(b.dataset.ambiance),
-  'jour': b => {
-    memoire.ecrire('md-jour', dateDuJour());
-    const m = parId[b.dataset.id];
-    if (!b.classList.contains('retournee')) {
-      b.classList.add('retournee');
-      clic(900, 0.05, 0.06);
-      setTimeout(() => mettreSurLaPlatine(m), reduitMouvement ? 0 : 750);
-    } else mettreSurLaPlatine(m);
-  },
-  'choisir': b => { arreterExtrait(); clic(1200); choisir(b.dataset.id, b.dataset.dir); },
-  'choisir-mystere': b => {
-    const c = b.querySelector('.carte-retournable');
-    if (!c || c.classList.contains('retournee')) return;
-    c.classList.add('retournee');
-    clic(900, 0.05, 0.06);
-    setTimeout(() => choisir(b.dataset.id, b.dataset.dir), reduitMouvement ? 0 : 800);
-  },
-  'aucun': () => {
-    const exclure = S.suite ? S.suite.options.map(o => o.id) : [];
-    S.suite = tirerSuite(S.courant ? parId[S.courant] : null, { exclure, pasDeCoup: true });
-    if (S.suite) S.suite.options.forEach(o => croiser(o.id));
-    annulerCompte(true);
-    clic();
-    rendreSuite();
-    // le morceau était déjà fini : la nouvelle première proposition démarre à son tour
-    if (S.finTraitee && S.mode === 'decouvrir' && S.joue === S.courant && !S.enLecture && S.suite) lancerCompte(S.suite.options[0]);
-  },
-  'pas-maintenant': () => {
-    S.suite = tirerSuite(S.courant ? parId[S.courant] : null, { exclure: S.suite ? S.suite.options.map(o => o.id) : [], pasDeCoup: true });
-    if (S.suite) S.suite.options.forEach(o => croiser(o.id));
-    rendreSuite();
-  },
-  'rester': () => annulerCompte(false),
+  'accueil': () => { if (demarre()) window.scrollTo({ top: 0, behavior: doux }); },
   'piste': b => {
-    if (b.dataset.id) { arreterExtrait(); clic(1300); mettreSurLaPlatine(parId[b.dataset.id]); return; }
+    if (b.dataset.id) { arreterExtrait(); clic(1300); jouerRadio(b.dataset.id); return; }
     const p = (pistesLivret[b.dataset.livret] || [])[+b.dataset.i];
     if (!p) return;
     const cle = `piste:${b.dataset.livret}:${b.dataset.i}`;
     if (extraitPour === cle) arreterExtrait(); else lancerExtraitPiste(p, cle, b.closest('li'));
   },
-  'extrait': b => { const id = b.dataset.id; if (extraitPour === id) arreterExtrait(); else lancerExtrait(id, b.closest('.option, .coup')); },
-  'ouvrir': b => { fermerPanneaux(); clic(1300); mettreSurLaPlatine(parId[b.dataset.id]); },
+  'ouvrir': b => { fermerPanneaux(); clic(1300); jouerRadio(b.dataset.id); },
+  'jouer-id': b => { clic(1300); jouerRadio(b.dataset.id); },
   'garder': b => basculerGarde(b.dataset.id),
   'garder-joue': () => basculerGarde(S.joue),
+  'aime': () => aimer(S.joue),
+  'pas-aime': () => pasAime(S.joue),
+  'cap': b => orienter(b.dataset.dir),
+  'source-chaine': b => choisirSource(b.dataset.source),
   'lecture': () => basculerLecture(),
-  'platine-lecture': () => {
-    const m = parId[S.courant];
-    if (!m) return;
-    if (S.mode === 'decouvrir' && S.joue === m.id && S.lecture) basculerLecture();
-    else { S.mode = 'decouvrir'; jouerMorceau(m); }
-  },
-  'suivant': () => {
-    if (S.mode === 'radio') return radioSuivant();
-    const o = S.suite && S.suite.options[0];
-    if (o) choisir(o.id, o.dir, { bouger: S.vue === 'fouille' });
-  },
-  'retour-morceau': () => { if (S.mode === 'radio') entrerMachine(); else { rendreFouille(); aller('fouille'); } },
+  'suivant': () => radioSuivant(),
+  'retour-morceau': () => entrerMachine(),
   'livret': b => {
-    const ou = b.dataset.livret;
-    const m = ou === 'machine' ? parId[S.file[S.pos]] : parId[S.courant];
+    const m = parId[S.joue];
     if (!m) return;
-    if (b.dataset.ouvrir) return ouvrirLivret(ou, m);
-    S.livrets[ou] = !S.livrets[ou];
-    rendreLivret(ou, m, { force: true });
+    if (b.dataset.ouvrir) return ouvrirLivret('machine', m);
+    S.livrets.machine = !S.livrets.machine;
+    rendreLivret('machine', m, { force: true });
     clic(1000, 0.04, 0.05);
   },
   'radio-lecture': radioLecture,
   'radio-suivant': radioSuivant,
   'radio-precedent': radioPrecedent,
   'radio-stop': radioStop,
-  'radio-garder': () => basculerGarde(S.file[S.pos]),
-  'radio-raconte': () => { const m = parId[S.file[S.pos]]; if (m) ouvrirLivret('machine', m); },
-  'disque': b => choisirDisque(b.dataset.disque),
+  'radio-garder': () => basculerGarde(S.joue),
+  'radio-raconte': () => { const m = parId[S.joue]; if (m) ouvrirLivret('machine', m); },
   'ejecter': ejecter,
-  'graver': graver,
-  'inserer': () => { fermerGravure(); entrerMachine(); choisirDisque('compil'); },
-  'fermer-gravure': fermerGravure,
+  'ecouter-selection': () => { fermerPanneaux(); choisirSource('selection'); window.scrollTo({ top: 0, behavior: doux }); },
   'copier-lien': async () => {
     try { await navigator.clipboard.writeText(location.href); toast('Lien copié : colle-le dans ton navigateur.'); }
     catch (e) { toast(location.href, 6000); }
@@ -1672,19 +1272,15 @@ document.addEventListener('click', e => {
   try { a(b); } catch (err) { console.error(err); toast('Oups, quelque chose a coincé. Réessaie.'); }
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { fermerPanneaux(); if (!$('#gravure').hidden && !$('#gravure-fermer').hidden) fermerGravure(); }
-  const libre = e.target === document.body || (e.target.matches && e.target.matches('.option-choix, .option-pochette, .bouton-garder'));
+  if (e.key === 'Escape') fermerPanneaux();
+  const libre = e.target === document.body || (e.target.matches && e.target.matches('.cap, .avis-bouton, .file-titre'));
   if (!libre || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === ' ' && S.joue) { e.preventDefault(); basculerLecture(); return; }
-  if (S.vue === 'fouille' && S.suite && ['1', '2', '3'].includes(e.key)) {
-    const o = S.suite.options[+e.key - 1];
-    if (o) { e.preventDefault(); clic(1200); choisir(o.id, o.dir); }
-    return;
-  }
-  if (e.key === 'g' || e.key === 'G') {
-    const id = S.vue === 'machine' ? S.file[S.pos] : S.vue === 'fouille' ? S.courant : S.joue;
-    if (id) { e.preventDefault(); basculerGarde(id); }
-  }
+  if (!S.joue) return;
+  if (e.key === 'g' || e.key === 'G') { e.preventDefault(); basculerGarde(S.joue); }
+  else if (e.key === 'j' || e.key === 'J') { e.preventDefault(); aimer(S.joue); }
+  else if (e.key === 'x' || e.key === 'X') { e.preventDefault(); pasAime(S.joue); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); radioSuivant(); }
 });
 
 /* ─────────────────────────────── démarrage ─────────────────────────────── */
@@ -1692,8 +1288,9 @@ appliquerTeinte(teinteActive, false);
 majMolettes();
 majSon();
 majGarde();
-rendreRack();
-poserDisque(S.disque);
+S.suite = construireSuite(null);
+poserDisque(S.source);
+rendrePupitre();
 majAfficheur();
 chargerAPI();
 // pochettes, extraits et fiches de toute la sélection, préparés dès l'arrivée (puis gardés en cache)
@@ -1703,7 +1300,7 @@ if (S.gardes.length || S.croises.length) {
   const r = $('#allumage-retour');
   r.hidden = false;
   r.textContent = S.gardes.length
-    ? `Ta compil t'attend : ${S.gardes.length} titre${S.gardes.length > 1 ? 's' : ''}.`
+    ? `Ta sélection t'attend : ${S.gardes.length} morceau${S.gardes.length > 1 ? 'x' : ''}.`
     : `Content de te revoir. Tu avais croisé ${S.croises.length} morceaux.`;
 }
 // ouvert depuis Instagram, TikTok, Messenger… : leur navigateur intégré lit mal YouTube et ne garde rien
@@ -1717,8 +1314,8 @@ if (S.gardes.length || S.croises.length) {
   const android = /Android/i.test(ua);
   $('#avis-appli').hidden = false;
   $('#avis-appli-texte').textContent = android
-    ? `Le navigateur intégré à ${nom} lit mal la musique et oublie ta compil. Ouvre plutôt la page dans Chrome.`
-    : `Le navigateur intégré à ${nom} lit mal la musique et oublie ta compil. Touche ⋯ ou ↗ (en haut ou en bas de l'écran), puis « Ouvrir dans Safari » ou « Ouvrir dans le navigateur ».`;
+    ? `Le navigateur intégré à ${nom} lit mal la musique et oublie ta sélection. Ouvre plutôt la page dans Chrome.`
+    : `Le navigateur intégré à ${nom} lit mal la musique et oublie ta sélection. Touche ⋯ ou ↗ (en haut ou en bas de l'écran), puis « Ouvrir dans Safari » ou « Ouvrir dans le navigateur ».`;
   if (android) {
     const a = $('#avis-appli-ouvrir');
     a.hidden = false;

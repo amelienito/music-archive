@@ -217,6 +217,7 @@ async function chargerSuite() {
 async function demarrer() {
   const e = lireEntree($('#entree').value);
   if (!e) { toast('Je ne trouve pas de lien de playlist ou de morceau YouTube.'); return; }
+  T.derniere = $('#entree').value.trim(); // la playlist de tous les jours : elle sera déjà là la prochaine fois
   const existait = !!T.listes[e.cle];
   if (!existait) T.listes[e.cle] = { nom: '', list: e.list, ids: [], infos: {}, decisions: {}, historique: [], complet: !e.list, cree: Date.now() };
   T.active = e.cle;
@@ -911,5 +912,7 @@ rendreListes();
 majObjectif();
 const nTries = Object.keys(dejaTries()).length;
 if (nTries) $('#memoire').textContent = `${nTries} morceau${nTries > 1 ? 'x' : ''} déjà trié${nTries > 1 ? 's' : ''} en mémoire dans ce navigateur, plus les ${DEJA.size} du site : ils ne te seront plus reproposés, même dans une autre playlist.`;
+// la dernière playlist collée revient toute seule : il n'y a plus qu'à appuyer sur Charger
+if (T.derniere) $('#entree').value = T.derniere;
 if (T.active && T.listes[T.active]) $('#entree').placeholder = 'Colle une nouvelle playlist, ou la même pour la reprendre là où tu t\'es arrêté.';
 })();
