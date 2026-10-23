@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=19">
+  <link rel="stylesheet" href="styles.css?v=20">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
@@ -150,6 +150,7 @@
             <div class="hifi-actions">
               <button class="pilule pilule-coeur" data-action="aime" id="radio-garder" aria-pressed="false" aria-label="Ça, j'aime bien (et dans ma sélection)" title="Ça, j'aime bien"><span aria-hidden="true">♥</span></button>
               <button class="pilule" data-action="epure" id="bouton-epure" aria-pressed="false">Juste la musique</button>
+              <button class="pilule pilule-cosmetique" data-action="cosmetique" aria-expanded="false" aria-controls="trappe">Cosmétique</button>
             </div>
             <label class="fader seulement-sans-ios">
               <input type="range" id="fader-volume" min="0" max="100" step="1" value="60" aria-label="Volume">
@@ -159,7 +160,7 @@
 
           <!-- les petits réglages : ils ne servent à rien, sauf à faire plaisir -->
           <div class="trappe" id="trappe">
-            <p class="trappe-titre">Petits réglages inutiles</p>
+            <div class="trappe-tete"><p class="trappe-titre">Cosmétique : des petits réglages inutiles</p><button class="trappe-fermer" data-action="cosmetique" aria-label="Replier les réglages">×</button></div>
             <div class="trappe-panneau" id="trappe-panneau">
               <div class="bidouille">
                 <span class="bidouille-nom">Couleur de l'écran</span>
@@ -317,6 +318,6 @@
   <script src="moteur.js?v=3"></script>
   <script src="pochettes.js?v=14"></script>
   <script src="infos.js?v=14"></script>
-  <script src="app.js?v=21"></script>
+  <script src="app.js?v=22"></script>
 </body>
 </html>

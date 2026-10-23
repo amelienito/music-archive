@@ -377,6 +377,7 @@ function rendreLivret(ou, m, { force = false } = {}) {
     </button>
     ${ouvert ? `
     <button class="livret-fermer" data-action="fermer-livret" aria-label="Fermer les infos">×</button>
+    <p class="livret-genre">${E(indice(m))}</p>
     <div class="livret-pages">
       <section class="livret-page" aria-label="L'album">
         <div class="livret-album" data-album-pour="${m.id}"><p class="livret-attente">On feuillette l'album…</p></div>
@@ -1068,8 +1069,6 @@ function rendrePupitre() {
     el.dataset.id = m.id;
     el.innerHTML = `
       <div class="maintenant-texte">
-        <p class="maintenant-style">${E(indice(m))}</p>
-        <p class="maintenant-qui"><b>${E(m.affiche)}</b> <span>${E(m.artiste)}</span></p>
         ${m.note ? `<p class="maintenant-note">${E(m.note).replace(/\n/g, '<br>')}</p>` : ''}
         <p class="maintenant-chronique" data-chronique="${m.id}"></p>
         <div class="avis-boutons">
@@ -1102,6 +1101,13 @@ function remplirChronique(m) {
   }));
 }
 // « Juste la musique » : la chaîne seule, rien d'autre
+// le bouton « Cosmétique » : il déplie tous les petits réglages, et les replie
+function basculerCosmetique(force) {
+  const ouvre = typeof force === 'boolean' ? force : !document.body.classList.contains('cosmetique');
+  document.body.classList.toggle('cosmetique', ouvre);
+  $$('[data-action="cosmetique"]').forEach(b => b.setAttribute('aria-expanded', ouvre));
+  clic(ouvre ? 520 : 380, 0.08, 0.06);
+}
 function choisirAffichage(v) {
   S.affichage = v === 'ecran' ? 'ecran' : 'disque';
   memoire.ecrire('md-affichage', S.affichage);
@@ -1263,7 +1269,7 @@ function rendreBac() {
             ${Pochettes.html(m, 'pochette-mini')}
             <span><span class="bac-titre">${E(m.affiche)}</span><span class="bac-artiste">${E(m.artiste)}</span></span>
           </button>
-          <button class="bac-garder ${estGarde(m.id) ? 'est-garde' : ''}" data-action="garder" data-id="${m.id}" aria-label="${estGarde(m.id) ? 'Retirer' : 'Garder'} ${E(m.affiche)}">${estGarde(m.id) ? '−' : '+'}</button>
+          <button class="bac-garder ${estGarde(m.id) ? 'est-garde' : ''}" data-action="garder" data-id="${m.id}" aria-label="${estGarde(m.id) ? 'Retirer de ma sélection' : 'Ça, j\'aime bien'} : ${E(m.affiche)}" title="${estGarde(m.id) ? 'Retirer de ma sélection' : 'Ça, j\'aime bien'}">${estGarde(m.id) ? '♥' : '♡'}</button>
         </li>`;
       }).join('');
   $('#bac-pied').hidden = S.onglet !== 'gardes' || !S.gardes.length;
@@ -1369,6 +1375,7 @@ const ACTIONS = {
   'suivant': () => radioSuivant(),
   'retour-morceau': () => { entrerMachine(); window.scrollTo({ top: 0, behavior: doux }); },
   'epure': () => basculerEpure(),
+  'cosmetique': () => basculerCosmetique(),
   'affichage': b => choisirAffichage(b.dataset.val),
   'fermer-poste': () => {
     S.posteFerme = true;
