@@ -28,6 +28,9 @@
               Sans ça, le morceau du jour est tiré au sort, le même pour tous.
      connu    true pour un morceau connu de tous même si ses interprètes
               ne le sont pas (Mozart, Zelda…) : il ira côté « connu ».
+     coeur    true pour un coup de cœur : il passe en priorité quand le site
+              propose « Celui-là, je l'avais mis de côté pour toi ».
+              (La table de tri le coche pour toi.)
      long     true pour un long moment (un morceau de 20 minutes et plus) :
               il a son bouton à lui sur la radio, « Longs moments ».
      bandcamp le lien Bandcamp du morceau, s'il y est. Il apparaît dans

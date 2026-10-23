@@ -25,16 +25,24 @@ Site en ligne : https://amelienito.github.io/music-archive/
 
 **https://amelienito.github.io/music-archive/tri.html**
 
-1. Colle le lien d'une playlist YouTube ou YouTube Music (ou des liens de morceaux, un par ligne), clique sur Charger.
-2. Chaque morceau se lance (à 0:40 pour sauter l'intro, décochable). Bouton **vert = oui**, il entre sur le site. **Rouge = non**, il sort. « Pas sûr » le met de côté pour plus tard.
-3. Clavier : → oui, ← non, ↓ plus tard, Espace pause, ↑ +30 s, Z annuler. Sur téléphone : glisser la fiche à droite ou à gauche.
-4. Un morceau déjà sur le site, ou déjà trié dans n'importe quelle playlist, est sauté tout seul. Tes choix sont enregistrés au fur et à mesure : tu peux fermer et revenir. Recoller la même playlist la reprend là où tu t'étais arrêté (et ajoute les morceaux que tu y as mis depuis).
-5. **Ordre aléatoire** (case à cocher) : les morceaux arrivent dans le désordre, pour juger chacun sans être influencé par ceux d'à côté.
-6. **Plus de 200 morceaux** : le lecteur YouTube s'arrête à 200. Pour la suite, la table demande la liste à Invidious, un miroir public de YouTube (seulement les titres, la musique passe toujours par le lecteur officiel). Si le miroir est en panne, la table explique comment inverser l'ordre de la playlist pour continuer.
-5. Sous chaque titre, la table dit si la vidéo vient d'une chaîne officielle (YouTube Music, l'artiste, le label). Si elle doute, cherche la version officielle avant de dire oui.
-6. **Trier aussi les morceaux déjà sur le site** : repasse la sélection actuelle. Vert, il reste ; rouge, il sort.
-7. Mode sombre par défaut, bouton « Mode clair » en haut.
-8. Quand tu veux, **Copier pour Claude**, et colle le texte dans la conversation : Claude ajoute les oui dans `data.js` avec leurs réglages.
+1. Colle le lien d'une playlist YouTube ou YouTube Music (ou des liens de morceaux, un par ligne), clique sur Charger. Le formulaire se replie pendant le tri ; le bouton **Playlists** le rouvre.
+2. Chaque morceau se lance (à 0:40 pour sauter l'intro, décochable). Bouton **vert = oui**, il entre sur le site. **Rouge = non**, il sort. « Pas sûr » le met de côté pour plus tard. On peut aussi **faire glisser la carte** du morceau : à droite pour oui, à gauche pour non.
+3. **Un commentaire par morceau** : le champ sous la carte. Ce que tu écris part tel quel dans le champ `note` de `data.js`. Sur la liste « Le site actuel », le champ contient déjà le texte actuel du morceau.
+4. **Coup de cœur** (☆, touche C) : marque les morceaux à mettre en avant. Il devient `coeur: true` dans `data.js`, et le site le propose en priorité quand il glisse un « coup de cœur » dans la découverte.
+5. **Régler le ressenti** (facultatif) : trois curseurs, énergie, étrange, danse. Laissés de côté, ce sont les valeurs estimées par Claude qui servent.
+6. **Manches de dix** : une barre de dix segments montre où tu en es. Au dixième morceau, un bilan (oui, non, coups de cœur, commentaires, temps restant estimé) te laisse souffler ; chaque ligne rouvre le morceau. Désactivable avec « Bilan toutes les 10 écoutes ».
+7. **Objectif du jour** (en haut, toucher pour le changer : 10, 20, 30, 50, 100) et nombre de jours d'affilée.
+8. **La frise** : une case par morceau de la playlist (vert oui, rouge non, jaune à revoir, gris déjà vu, contour doré coup de cœur). Toucher une case rouvre le morceau pour changer d'avis.
+9. **Revue** : la liste de tout ce qui est jugé, avec filtres (oui, non, à revoir, ★, avec un mot), chiffres, et pour chaque morceau : changer le verdict, le coup de cœur, le commentaire, le réécouter.
+10. Clavier : → oui, ← non, ↓ plus tard, C coup de cœur, Espace pause, ↑ +30 s, Z annuler, Échap pour sortir du commentaire, Entrée pour passer au bilan suivant.
+11. Un morceau déjà sur le site, ou déjà trié dans n'importe quelle playlist, est sauté tout seul. Tes choix sont enregistrés au fur et à mesure : tu peux fermer et revenir. Recoller la même playlist la reprend là où tu t'étais arrêté.
+12. **Sauvegarde** (dans la Revue) : un seul fichier avec tous tes choix, commentaires et réglages, à restaurer sur un autre appareil. La restauration fusionne, elle n'écrase rien.
+13. **Ordre aléatoire** (case à cocher) : les morceaux arrivent dans le désordre, pour juger chacun sans être influencé par ceux d'à côté.
+14. **Plus de 200 morceaux** : le lecteur YouTube s'arrête à 200. Pour la suite, la table demande la liste à Invidious, un miroir public de YouTube (seulement les titres, la musique passe toujours par le lecteur officiel). Si le miroir est en panne, la table explique comment inverser l'ordre de la playlist pour continuer.
+15. Sous chaque titre, la table dit si la vidéo vient d'une chaîne officielle (YouTube Music, l'artiste, le label). Si elle doute, cherche la version officielle avant de dire oui.
+16. **Trier aussi les morceaux déjà sur le site** : repasse la sélection actuelle. Vert, il reste ; rouge, il sort.
+17. Mode sombre par défaut, bouton « Mode clair » en haut.
+18. Quand tu veux : **Copier pour Claude** (texte avec commentaires, coups de cœur et réglages), ou **Copier au format data.js** : des blocs prêts à coller avant le `];` final.
 
 ## Les fichiers
 

@@ -21,7 +21,7 @@
       --oui: #1f9a5a; --non: #d6402f; --trait: rgba(28,29,34,.12);
       --ombre: 0 10px 30px rgba(0,0,0,.08);
       --deja-fond: #fff3c4; --deja-encre: #5c4a00; --refus-fond: #ffe0dc; --refus-encre: #6b1a10;
-      --ok: #1f7a4a; --doute: #a35a00;
+      --ok: #1f7a4a; --doute: #a35a00; --coeur: #b87a00; --coeur-fond: #fff0c9;
       color-scheme: light;
     }
     [data-theme="sombre"] {
@@ -31,12 +31,12 @@
       --oui: #25a865; --non: #e24a37; --trait: rgba(236,235,230,.12);
       --ombre: 0 10px 30px rgba(0,0,0,.4);
       --deja-fond: #3a3110; --deja-encre: #f3dc8a; --refus-fond: #3d1a16; --refus-encre: #ffb4a8;
-      --ok: #5fd39a; --doute: #ffbe6b;
+      --ok: #5fd39a; --doute: #ffbe6b; --coeur: #ffcf5a; --coeur-fond: #3d3210;
       color-scheme: dark;
     }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body { margin: 0; min-height: 100vh; background: var(--fond); background-attachment: fixed; color: var(--encre); font: 16px/1.5 "Familjen Grotesk", system-ui, sans-serif; -webkit-font-smoothing: antialiased; transition: color .3s; }
+    body { margin: 0; min-height: 100vh; overflow-x: hidden; background: var(--fond); background-attachment: fixed; color: var(--encre); font: 16px/1.5 "Familjen Grotesk", system-ui, sans-serif; -webkit-font-smoothing: antialiased; transition: color .3s; }
     button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
     h1, h2, .gros { font-family: "Unbounded", system-ui, sans-serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; margin: 0; }
     main { max-width: 980px; margin: 0 auto; padding: 24px 18px 140px; padding-top: max(24px, env(safe-area-inset-top)); display: grid; gap: 22px; }
@@ -52,6 +52,10 @@
     .compteur { padding: 6px 12px; border-radius: 999px; background: var(--mur-2); box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; }
     .compteur b { font-variant-numeric: tabular-nums; }
     .c-oui b { color: var(--oui); } .c-non b { color: var(--non); }
+    .objectif { position: relative; overflow: hidden; min-height: 36px; padding: 0 14px; border-radius: 999px; background: var(--mur-2); box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; --p: 0%; }
+    .objectif::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p); background: color-mix(in srgb, var(--oui) 28%, transparent); transition: width .3s; }
+    .objectif span { position: relative; }
+    .bouton-menu { min-height: 36px; padding: 0 14px; border-radius: 999px; background: var(--mur-2); box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; }
     .bascule-theme { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; background: var(--mur-2); box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; }
     .bascule-theme::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(90deg, var(--encre) 50%, transparent 50%); box-shadow: inset 0 0 0 1.5px var(--encre); }
 
@@ -68,15 +72,37 @@
     .liste-pastille { padding: 6px 12px; border-radius: 999px; background: var(--carte); box-shadow: inset 0 0 0 1px var(--trait); font-size: 14px; }
     .liste-pastille[aria-pressed="true"] { background: var(--klein); color: var(--sur-klein); }
 
-    .table { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+    .table { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-areas: "ecran fiche" "frise fiche"; grid-template-rows: auto 1fr; gap: 14px 22px; align-items: start; }
+    .gauche { grid-area: ecran; }
+    .frise-bloc { grid-area: frise; }
+    .fiche { grid-area: fiche; }
     .ecran { position: relative; aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 20px 50px rgba(0,0,0,.25); touch-action: pan-y; }
     .ecran > div, .ecran iframe { width: 100%; height: 100%; display: block; border: 0; }
     .verdict-flash { position: absolute; inset: 0; display: grid; place-items: center; font-family: "Unbounded", sans-serif; font-size: 3rem; color: #fff; pointer-events: none; opacity: 0; transition: opacity .2s; }
     .verdict-flash.oui { background: rgba(31,154,90,.75); opacity: 1; }
     .verdict-flash.non { background: rgba(214,64,47,.75); opacity: 1; }
     .fiche { display: grid; gap: 14px; }
-    .position { font-size: 14px; color: var(--encre-2); font-variant-numeric: tabular-nums; }
-    .fiche h2 { font-size: clamp(1.4rem, 3vw, 2.1rem); overflow-wrap: anywhere; }
+
+    /* la manche : dix morceaux, puis un bilan */
+    .manche { display: grid; gap: 6px; }
+    .manche-segments { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+    .manche-segments i { height: 6px; border-radius: 3px; background: var(--trait); }
+    .manche-segments i.oui { background: var(--oui); } .manche-segments i.non { background: var(--non); } .manche-segments i.passe { background: var(--doute); }
+    .manche-segments i.ici { background: var(--encre-2); }
+    .position { font-size: 14px; color: var(--encre-2); font-variant-numeric: tabular-nums; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .choix-actuel { font-weight: 600; color: var(--encre); }
+
+    /* la carte : on la fait glisser, à droite pour oui, à gauche pour non */
+    .carte { position: relative; display: grid; gap: 8px; padding: 16px 18px; border-radius: 18px; background: var(--carte); box-shadow: var(--ombre), inset 0 0 0 1px var(--trait); touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab; --g: 0; }
+    .carte.glisse { cursor: grabbing; transition: none; }
+    .carte.retour { transition: transform .22s cubic-bezier(.3,1.4,.5,1); }
+    .carte.envol { transition: transform .2s ease-in, opacity .2s; opacity: 0; }
+    .carte.entre { animation: entre .22s ease-out; }
+    @keyframes entre { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .carte::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: color-mix(in srgb, var(--oui) 35%, transparent); opacity: max(0, var(--g)); }
+    .carte::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: color-mix(in srgb, var(--non) 35%, transparent); opacity: max(0, calc(var(--g) * -1)); }
+    .carte h2 { font-size: clamp(1.4rem, 3vw, 2.1rem); overflow-wrap: anywhere; position: relative; z-index: 1; }
+    .carte > * { position: relative; z-index: 1; }
     .artiste { font-size: 1.15rem; font-weight: 500; overflow-wrap: anywhere; }
     .chaine { font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
     .chaine::before { content: "●"; font-size: 10px; }
@@ -84,6 +110,25 @@
     .deja { padding: 8px 12px; border-radius: 10px; background: var(--deja-fond); color: var(--deja-encre); font-size: 14px; }
     .refus { padding: 8px 12px; border-radius: 10px; background: var(--refus-fond); color: var(--refus-encre); font-size: 14px; }
     .refus a { color: inherit; }
+
+    /* le commentaire : il part avec le morceau sur le site */
+    .mot { display: grid; gap: 8px; }
+    .mot-ligne { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .mot label { font-weight: 600; font-size: 14px; }
+    .mot textarea { width: 100%; min-height: 64px; max-height: 220px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--trait); background: var(--champ); color: var(--encre); font: inherit; font-size: 16px; resize: none; }
+    .mot textarea::placeholder { color: var(--encre-2); }
+    .mot textarea:focus-visible { outline-offset: 1px; }
+    .coeur { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; background: var(--carte); box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; }
+    .coeur[aria-pressed="true"] { background: var(--coeur-fond); color: var(--coeur); box-shadow: inset 0 0 0 1.5px var(--coeur); }
+    .ressenti { font-size: 14px; color: var(--encre-2); }
+    .ressenti summary { cursor: pointer; padding: 4px 0; }
+    .curseurs { display: grid; gap: 10px; padding: 8px 0 2px; }
+    .curseur { display: grid; grid-template-columns: 64px 1fr 28px; align-items: center; gap: 10px; }
+    .curseur input { width: 100%; accent-color: var(--klein); opacity: .45; }
+    .curseur input.regle { opacity: 1; }
+    .curseur output { font-variant-numeric: tabular-nums; text-align: right; color: var(--encre); font-weight: 600; }
+    .curseurs-pied { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+
     .transport { display: flex; gap: 8px; flex-wrap: wrap; }
     .transport button { min-width: 64px; min-height: 42px; padding: 0 12px; border-radius: 10px; background: var(--carte); box-shadow: inset 0 0 0 1px var(--trait); font-weight: 600; font-size: 14px; }
     .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -97,20 +142,73 @@
     .raccourcis { font-size: 13px; color: var(--encre-2); }
     kbd { display: inline-block; min-width: 22px; padding: 1px 6px; border-radius: 5px; background: var(--carte); color: var(--encre); box-shadow: inset 0 0 0 1px var(--trait), 0 1px 0 var(--trait); font: 600 12px "Familjen Grotesk", sans-serif; text-align: center; }
 
+    /* la frise : une case par morceau de la playlist */
+    .frise-bloc { display: grid; gap: 8px; }
+    .frise-tete { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--encre-2); }
+    .frise { display: grid; grid-template-columns: repeat(auto-fill, minmax(11px, 1fr)); gap: 3px; max-height: 190px; overflow: auto; padding: 2px; }
+    .frise.dense { grid-template-columns: repeat(auto-fill, minmax(7px, 1fr)); gap: 2px; }
+    .frise i { aspect-ratio: 1; border-radius: 3px; background: var(--trait); cursor: pointer; }
+    .frise i.oui { background: var(--oui); } .frise i.non { background: var(--non); } .frise i.passe { background: var(--doute); }
+    .frise i.vu { background: var(--encre-2); opacity: .35; }
+    .frise i.coeur-c { box-shadow: 0 0 0 2px var(--coeur); }
+    .frise i.ici { outline: 2px solid var(--encre); outline-offset: 1px; }
+
+    /* bilan de manche */
+    .bilan { display: grid; gap: 14px; padding: 22px; border-radius: 18px; background: var(--mur-2); box-shadow: var(--ombre); max-width: 640px; margin: 0 auto; width: 100%; }
+    .bilan h2 { font-size: 1.5rem; }
+    .bilan ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 340px; overflow: auto; }
+    .bilan li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; padding: 8px 10px; border-radius: 10px; background: var(--carte); cursor: pointer; }
+    .bilan li .pastille { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; }
+    .bilan li .pastille.oui { background: var(--oui); } .bilan li .pastille.non { background: var(--non); } .bilan li .pastille.passe { background: var(--doute); }
+    .bilan li small { display: block; color: var(--encre-2); font-size: 13px; }
+    .bilan li q { display: block; font-size: 14px; font-style: italic; color: var(--encre-2); quotes: "« " " »"; }
+
     .export { display: grid; gap: 12px; padding: 20px; border-radius: 18px; background: var(--mur-2); box-shadow: var(--ombre); }
     .export h2 { font-size: 1.3rem; }
     .export ol { margin: 0; padding-left: 22px; max-height: 260px; overflow: auto; font-size: 15px; }
     .fin { text-align: center; padding: 40px 10px; display: grid; gap: 12px; justify-items: center; }
     #fin-bloque { max-width: 560px; text-align: left; display: grid; gap: 8px; }
     #fin-bloque ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
-    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--encre); color: var(--mur); padding: 10px 18px; border-radius: 12px; transition: .25s; pointer-events: none; z-index: 9; max-width: 92vw; text-align: center; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--encre); color: var(--mur); padding: 10px 18px; border-radius: 12px; transition: .25s; pointer-events: none; z-index: 30; max-width: 92vw; text-align: center; }
     .toast.visible { opacity: 1; transform: translate(-50%, 0); }
 
+    /* la revue : tout ce qui est déjà jugé, avec les commentaires */
+    .voile { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.45); display: grid; justify-items: end; }
+    .panneau { width: min(560px, 100%); height: 100%; overflow: auto; background: var(--mur); padding: 20px 18px 40px; padding-top: max(20px, env(safe-area-inset-top)); display: grid; gap: 16px; align-content: start; box-shadow: -10px 0 40px rgba(0,0,0,.3); }
+    .panneau-tete { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .panneau h2 { font-size: 1.3rem; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+    .stat { padding: 10px 12px; border-radius: 12px; background: var(--mur-2); box-shadow: inset 0 0 0 1px var(--trait); }
+    .stat b { display: block; font: 700 1.2rem "Unbounded", sans-serif; letter-spacing: -.03em; }
+    .stat span { font-size: 13px; color: var(--encre-2); }
+    .filtres { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filtre { padding: 6px 12px; border-radius: 999px; background: var(--carte); box-shadow: inset 0 0 0 1px var(--trait); font-size: 14px; }
+    .filtre[aria-pressed="true"] { background: var(--klein); color: var(--sur-klein); }
+    .revue { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .revue li { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: var(--mur-2); box-shadow: inset 0 0 0 1px var(--trait); }
+    .revue .r-nom b { display: block; overflow-wrap: anywhere; }
+    .revue .r-nom span { font-size: 14px; color: var(--encre-2); overflow-wrap: anywhere; }
+    .r-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .r-actions button { min-height: 34px; padding: 0 12px; border-radius: 999px; background: var(--carte); box-shadow: inset 0 0 0 1px var(--trait); font-size: 14px; font-weight: 600; }
+    .r-actions button[aria-pressed="true"].b-oui { background: var(--oui); color: #fff; }
+    .r-actions button[aria-pressed="true"].b-non { background: var(--non); color: #fff; }
+    .r-actions button[aria-pressed="true"].b-passe { background: var(--doute); color: #1c1d22; }
+    .r-actions button[aria-pressed="true"].b-coeur { background: var(--coeur-fond); color: var(--coeur); box-shadow: inset 0 0 0 1.5px var(--coeur); }
+    .revue textarea { width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--trait); background: var(--champ); color: var(--encre); font: inherit; font-size: 16px; resize: vertical; }
+    .vide { color: var(--encre-2); padding: 20px 0; text-align: center; }
+
     @media (max-width: 760px) {
-      .table { grid-template-columns: minmax(0, 1fr); }
+      .table { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ecran" "fiche" "frise"; grid-template-rows: none; }
       .raccourcis { display: none; }
       .v { min-height: 76px; font-size: 1.3rem; }
-      .verdicts { position: sticky; bottom: 10px; }
+      .verdicts { position: sticky; bottom: 10px; z-index: 5; }
+      body.ecrit .verdicts { position: static; }
+      .frise { max-height: 140px; }
+      .curseur { grid-template-columns: 56px 1fr 24px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .carte.entre { animation: none; }
+      .carte.retour, .carte.envol { transition: none; }
     }
   </style>
 </head>
@@ -119,7 +217,7 @@
   <div class="tete">
     <div>
       <h1>Table de tri</h1>
-      <p class="sous">Colle une playlist, écoute, et décide : vert, le morceau entre sur le site ; rouge, il sort.</p>
+      <p class="sous">Colle une playlist, écoute, et décide : vert, le morceau entre sur le site ; rouge, il sort. Ajoute un mot si tu veux : il suivra le morceau.</p>
     </div>
     <div class="tete-droite">
       <div class="compteurs" id="compteurs" hidden>
@@ -128,6 +226,9 @@
         <span class="compteur" title="Déjà sur le site ou déjà trié dans une autre playlist">Déjà vus <b id="n-deja">0</b></span>
         <span class="compteur">Restants <b id="n-reste">0</b></span>
       </div>
+      <button class="objectif" id="objectif" title="Touche pour changer l'objectif du jour"><span id="objectif-texte"></span></button>
+      <button class="bouton-menu" id="ouvrir-charger" hidden>Playlists</button>
+      <button class="bouton-menu" id="ouvrir-revue">Revue</button>
       <button class="bascule-theme" id="theme"></button>
     </div>
   </div>
@@ -139,22 +240,48 @@
       <button class="bouton" id="bouton-charger" disabled>Préparation du lecteur…</button>
       <button class="bouton bouton-clair" id="trier-site">Trier aussi les morceaux déjà sur le site</button>
     </div>
-    <p class="memoire" id="memoire">Tes choix sont enregistrés au fur et à mesure dans ce navigateur. Un morceau déjà trié, ou déjà sur le site, n'est jamais reproposé, même dans une autre playlist.</p>
+    <p class="memoire" id="memoire">Tes choix et tes commentaires sont enregistrés au fur et à mesure dans ce navigateur. Un morceau déjà trié, ou déjà sur le site, n'est jamais reproposé, même dans une autre playlist.</p>
     <p class="memoire" id="avis-ios" hidden>Sur iPhone, Safari cache ton compte YouTube aux vidéos intégrées : même avec YouTube Premium, tu as les pubs. Pour trier sans pub : utilise un ordinateur avec Chrome connecté à YouTube. Ou, sur l'iPhone, connecte-toi sur youtube.com dans Safari et coupe « Empêcher le suivi intersites » (Réglages, Apps, Safari) le temps du tri.</p>
     <div class="listes" id="listes"></div>
+    <p class="memoire">Tu changes d'appareil ? <button class="lien" id="restaurer-1">Restaurer une sauvegarde</button></p>
   </section>
 
   <section class="table" id="table" hidden>
-    <div>
+    <div class="gauche">
       <div class="ecran" id="ecran"><div id="yt"></div><div class="verdict-flash" id="flash"></div></div>
     </div>
+    <div class="frise-bloc" id="frise-bloc">
+      <div class="frise-tete"><span>La playlist, morceau par morceau</span><span id="frise-legende"></span></div>
+      <div class="frise" id="frise" aria-hidden="true"></div>
+    </div>
     <div class="fiche">
-      <p class="position" id="position"></p>
-      <h2 id="titre">…</h2>
-      <p class="artiste" id="artiste"></p>
-      <p class="chaine" id="chaine" hidden></p>
-      <p class="deja" id="deja" hidden>Ce morceau est déjà sur le site. Vert, il reste ; rouge, il sort.</p>
-      <p class="refus" id="refus" hidden>Ce morceau refuse d'être lu hors de YouTube : sur le site, on n'entendrait qu'un extrait de 30 s. <a id="lien-yt" target="_blank" rel="noopener">L'écouter sur YouTube</a></p>
+      <div class="manche">
+        <div class="manche-segments" id="manche" aria-hidden="true"></div>
+        <p class="position"><span id="position"></span><span class="choix-actuel" id="choix-actuel" hidden></span></p>
+      </div>
+      <div class="carte" id="carte">
+        <h2 id="titre">…</h2>
+        <p class="artiste" id="artiste"></p>
+        <p class="chaine" id="chaine" hidden></p>
+        <p class="deja" id="deja" hidden>Ce morceau est déjà sur le site. Vert, il reste ; rouge, il sort.</p>
+        <p class="refus" id="refus" hidden>Ce morceau refuse d'être lu hors de YouTube : sur le site, on n'entendrait qu'un extrait de 30 s. <a id="lien-yt" target="_blank" rel="noopener">L'écouter sur YouTube</a></p>
+      </div>
+      <div class="mot">
+        <div class="mot-ligne">
+          <label for="note">Ton commentaire sur ce morceau</label>
+          <button class="coeur" id="coeur" aria-pressed="false" title="Pour les morceaux que tu veux mettre en avant (touche C)">☆ Coup de cœur</button>
+        </div>
+        <textarea id="note" rows="2" placeholder="Un mot, une phrase, un souvenir. Facultatif : il apparaîtra sur la fiche du morceau."></textarea>
+        <details class="ressenti" id="ressenti">
+          <summary>Régler le ressenti (facultatif)</summary>
+          <div class="curseurs">
+            <label class="curseur"><span>Énergie</span><input type="range" min="0" max="10" step="1" value="5" data-r="energie"><output>·</output></label>
+            <label class="curseur"><span>Étrange</span><input type="range" min="0" max="10" step="1" value="5" data-r="etrange"><output>·</output></label>
+            <label class="curseur"><span>Danse</span><input type="range" min="0" max="10" step="1" value="5" data-r="danse"><output>·</output></label>
+            <div class="curseurs-pied"><span>Sans réglage, c'est Claude qui estime.</span><button class="lien" id="ressenti-effacer">Effacer</button></div>
+          </div>
+        </details>
+      </div>
       <div class="transport">
         <button id="t-lecture">Pause</button>
         <button id="t-recul">−10 s</button>
@@ -168,9 +295,20 @@
       <div class="options">
         <label><input type="checkbox" id="opt-intro" checked> Sauter l'intro (démarrer à 0:40)</label>
         <label><input type="checkbox" id="opt-hasard"> Ordre aléatoire</label>
+        <label><input type="checkbox" id="opt-bilan" checked> Bilan toutes les 10 écoutes</label>
         <button class="lien" id="t-passer">Pas sûr, je reviendrai</button>
       </div>
-      <p class="raccourcis">Clavier : <kbd>→</kbd> oui, <kbd>←</kbd> non, <kbd>↓</kbd> plus tard, <kbd>Espace</kbd> pause, <kbd>↑</kbd> +30 s, <kbd>Z</kbd> annuler. Sur téléphone, fais glisser la fiche à droite (oui) ou à gauche (non).</p>
+      <p class="raccourcis">Clavier : <kbd>→</kbd> oui, <kbd>←</kbd> non, <kbd>↓</kbd> plus tard, <kbd>C</kbd> coup de cœur, <kbd>Espace</kbd> pause, <kbd>↑</kbd> +30 s, <kbd>Z</kbd> annuler, <kbd>Échap</kbd> sort du commentaire. Sur téléphone ou à la souris, fais glisser la carte à droite (oui) ou à gauche (non).</p>
+    </div>
+  </section>
+
+  <section class="bilan" id="bilan" hidden>
+    <h2 id="bilan-titre">Manche terminée</h2>
+    <p class="sous" id="bilan-texte"></p>
+    <ul id="bilan-liste"></ul>
+    <div class="ligne">
+      <button class="bouton" id="bilan-suite">Manche suivante</button>
+      <button class="bouton bouton-clair" id="bilan-revue">Ouvrir la revue</button>
     </div>
   </section>
 
@@ -190,18 +328,43 @@
 
   <section class="export" id="export" hidden>
     <h2 id="export-titre">Tes oui, prêts à entrer sur le site</h2>
-    <p class="sous" id="export-aide">Clique sur « Copier pour Claude », puis colle le texte dans la conversation : Claude les ajoute au site et règle leur énergie, leur étrangeté et leur côté dansant.</p>
+    <p class="sous" id="export-aide"></p>
     <div class="ligne">
       <button class="bouton" id="copier">Copier pour Claude</button>
+      <button class="bouton bouton-clair" id="copier-code">Copier au format data.js</button>
       <button class="bouton bouton-clair" id="telecharger">Télécharger la liste</button>
       <button class="lien" id="revoir-passes">Revoir les « pas sûr »</button>
     </div>
     <ol id="liste-oui"></ol>
   </section>
 </main>
-<div class="toast" id="toast"></div>
+
+<div class="voile" id="voile" hidden>
+  <aside class="panneau" role="dialog" aria-modal="true" aria-labelledby="revue-titre">
+    <div class="panneau-tete">
+      <h2 id="revue-titre">Revue</h2>
+      <button class="bouton bouton-clair" id="fermer-revue">Fermer</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="filtres" id="filtres"></div>
+    <ul class="revue" id="revue"></ul>
+    <div class="ligne">
+      <button class="bouton bouton-clair" id="plus-revue" hidden>Afficher la suite</button>
+    </div>
+    <div class="sous">
+      <p><strong>Sauvegarde</strong></p>
+      <p class="petit">Un seul fichier avec tous tes choix, commentaires, coups de cœur et réglages. Utile pour changer d'appareil ou ne rien perdre si tu vides ton navigateur.</p>
+      <div class="ligne" style="margin-top:10px">
+        <button class="bouton bouton-clair" id="sauvegarder">Télécharger la sauvegarde</button>
+        <button class="bouton bouton-clair" id="restaurer-2">Restaurer une sauvegarde</button>
+      </div>
+    </div>
+  </aside>
+</div>
+<input type="file" id="fichier-sauvegarde" accept="application/json,.json" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="data.js?v=12"></script>
-<script src="tri.js?v=13"></script>
+<script src="tri.js?v=14"></script>
 </body>
 </html>

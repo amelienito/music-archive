@@ -371,7 +371,9 @@ function tirerSuite(ref, { exclure = [], pasDeCoup = false } = {}) {
   }
   // de temps en temps, un coup de cœur tout seul : le plus proche de ce que tes choix dessinent
   if (!pasDeCoup && S.tour > 0 && S.tour % 7 === 0) {
-    const m = [...pool].sort((x, y) => distance(x, S.cible) - distance(y, S.cible))[0];
+    // un morceau marqué `coeur: true` dans data.js passe en priorité
+    const favoris = pool.filter(x => x.coeur);
+    const m = [...(favoris.length ? favoris : pool)].sort((x, y) => distance(x, S.cible) - distance(y, S.cible))[0];
     if (m) return { type: 'coup', options: [{ id: m.id, dir: 'coup' }] };
   }
   // A : dans la même veine (un lien choisi à la main dans data.js passe en premier)
