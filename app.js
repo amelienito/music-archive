@@ -84,7 +84,13 @@ const S = {
   source: (s => ['radio', 'selection'].includes(s) ? s : 'radio')(memoire.lire('md-source', 'radio')),
   suite: [], historique: memoire.lire('md-historique', []).filter(id => parId[id]), echecs: 0,
   epure: memoire.lire('md-epure', false),
-  cap: null, capVise: null,              // la direction demandée pour le prochain morceau
+  pente: null,            // une direction qui tient : { dir, force, neuf, vise, joues }
+  cote: false,            // « un pas de côté », pour le prochain morceau seulement
+  devine: memoire.lire('md-devine', false),       // le petit jeu « devine l'époque »
+  score: memoire.lire('md-score', { bons: 0, total: 0 }),
+  devoile: null,          // la suite mystère dévoilée
+  fidget: Object.assign({ lcd: 'origine', eq: 'barres', vitesse: '33', loudness: false }, memoire.lire('md-fidget', {})),
+  demo: false,
   aime: new Set(memoire.lire('md-aime', [])),
   aimePas: new Set(memoire.lire('md-aime-pas', [])),
   // le reste
@@ -808,7 +814,8 @@ function construireSuite(depuis, n = 6) {
   if (!depuis && cur) { suite.push(cur.id); pool = pool.filter(m => m !== cur); }
   while (suite.length < n && pool.length) {
     let x = null;
-    if (!suite.length && S.cap && cur) x = Moteur.versDirection(cur, S.cap, pool, val);
+    if (cur && S.pente) x = Moteur.suivantPente(cur, S.pente.dir, pool, val, { premier: !suite.length && S.pente.neuf, force: S.pente.force });
+    else if (cur && S.cote && !suite.length) x = Moteur.versDirection(cur, 'cote', pool, val);
     if (!x) x = parmiDeux(pool.map(m => [m, score(cur, m)]).sort((a, b) => a[1] - b[1]).map(p => p[0]));
     if (!x) break;
     suite.push(x.id);
@@ -829,6 +836,28 @@ function disqueHTML(k, extra = '') {
   if (k === 'radio') return `<span class="disque disque-hasard ${extra}"><span class="disque-nom">La radio<small>Music Discovery</small></span></span>`;
   return `<span class="disque disque-vide ${extra}"></span>`;
 }
+/* le disque imprimé : la pochette du morceau qui passe, en picture disc */
+function majDisque() {
+  const d = $('#disque-tiroir');
+  const m = parId[S.joue];
+  const img = m && Pochettes.image(m);
+  if (!d) return;
+  d.classList.toggle('disque-image', !!img);
+  d.classList.toggle('disque-yt', !!(img && img.yt));
+  if (img) d.style.setProperty('--pochette', `url("${img.src.replace(/"/g, '%22')}")`);
+  else d.style.removeProperty('--pochette');
+}
+// une spirale, pour la vitesse « hypno »
+(function () {
+  let p = 'M50 50';
+  for (let a = 0; a < Math.PI * 2 * 7; a += 0.12) { const r = 2 + a * 1.08; p += `L${(50 + r * Math.cos(a)).toFixed(1)} ${(50 + r * Math.sin(a)).toFixed(1)}`; }
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='${p}' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'/></svg>`;
+  let dots = '';
+  for (let k = 0; k < 60; k++) { const a = k / 60 * Math.PI * 2; dots += `<circle cx='${(50 + 48.6 * Math.cos(a)).toFixed(2)}' cy='${(50 + 48.6 * Math.sin(a)).toFixed(2)}' r='${k % 5 ? 0.55 : 0.85}'/>`; }
+  const strobe = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='rgba(255,255,255,.85)'>${dots}</svg>`;
+  document.documentElement.style.setProperty('--strobe', `url("data:image/svg+xml,${encodeURIComponent(strobe)}")`);
+  document.documentElement.style.setProperty('--spirale', `url("data:image/svg+xml,${encodeURIComponent(svg)}")`);
+})();
 let tiroirMin = [];
 function poserDisque(k) {
   const d = $('#disque-tiroir');
@@ -837,6 +866,7 @@ function poserDisque(k) {
   const nv = tmp.firstElementChild;
   nv.id = 'disque-tiroir';
   d.replaceWith(nv);
+  majDisque();
 }
 function chargerTiroir(k) {
   tiroirMin.forEach(clearTimeout); tiroirMin = [];
@@ -861,7 +891,7 @@ function choisirSource(k) {
   if (k === 'selection' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur « Ajouter à ma sélection » quand un morceau te plaît.', 4200); return; }
   S.source = k;
   memoire.ecrire('md-source', k);
-  S.cap = null;
+  S.pente = null; S.cote = false;
   const premier = construireSuite(null, 1)[0];
   chargerTiroir(k);
   if (premier) jouerRadio(premier);
@@ -876,10 +906,16 @@ function jouerRadio(id) {
   if (S.historique[S.historique.length - 1] !== m.id) S.historique.push(m.id);
   memoire.ecrire('md-historique', S.historique.slice(-60));
   jouerMorceau(m);
-  S.cap = S.capVise === m.id ? null : S.cap;
-  S.capVise = null;
+  // la direction : le premier pas est fait quand le morceau visé passe ; elle tient ensuite six morceaux
+  if (S.pente) {
+    if (S.pente.neuf && S.pente.vise === m.id) S.pente.neuf = false;
+    else if (!S.pente.neuf) S.pente.joues++;
+    if (S.pente.joues >= 6) { toast(`${nomCap(S.pente.dir)} : on laisse filer la radio, maintenant.`); S.pente = null; }
+  }
+  S.cote = false;
+  S.devoile = null;
   S.suite = construireSuite(m);
-  if (S.cap) S.capVise = S.suite[0];
+  if (S.pente && S.pente.neuf) S.pente.vise = S.suite[0];
   rendrePupitre();
   majMachine();
 }
@@ -944,18 +980,97 @@ function pasAime(id) {
   S.suite = construireSuite(parId[id]);
   radioSuivant();
 }
+/* orienter : une direction tient sur plusieurs morceaux (sans jamais revenir en arrière).
+   Appuyer encore dessus va plus loin ; « Laisser filer » rend la main à la radio. */
 function orienter(dir) {
   if (!S.joue) return;
-  S.cap = S.cap === dir ? null : dir;
-  S.suite = construireSuite(parId[S.joue]);
-  S.capVise = S.cap ? S.suite[0] : null;
+  const cur = parId[S.joue];
+  let msg = '';
+  if (dir === 'libre') { S.pente = null; S.cote = false; msg = 'La radio reprend son fil.'; }
+  else if (dir === 'cote') { S.cote = true; msg = 'Un pas de côté'; }
+  else if (S.pente && S.pente.dir === dir) {
+    S.pente.force = Math.min(3, S.pente.force + 1); S.pente.neuf = true; S.pente.joues = 0;
+    msg = `Encore ${nomCap(dir).toLowerCase()}`;
+  } else S.pente = { dir, force: 1, neuf: true, vise: null, joues: 0 }, msg = nomCap(dir);
+  S.suite = construireSuite(cur);
+  if (S.pente && S.pente.neuf) S.pente.vise = S.suite[0];
+  S.devoile = null;
   rendrePupitre();
   majAfficheur();
   const p = parId[S.suite[0]];
-  if (S.cap && p) toast(`${nomCap(dir)} : ensuite, « ${p.affiche} ».`);
+  if (p && dir !== 'libre') toast(`${msg} : ensuite, ${indice(p).toLowerCase()}.`);
+  else if (msg) toast(msg);
   clic(1500, 0.03, 0.06);
 }
-
+/* les petits réglages inutiles : couleur de l'écran, égaliseur, vitesse, loudness */
+function appliquerFidget() {
+  const f = S.fidget;
+  document.documentElement.dataset.lcd = f.lcd;
+  document.body.dataset.eq = f.eq;
+  document.body.dataset.vitesse = f.vitesse;
+  document.body.classList.toggle('loudness', !!f.loudness);
+  $$('#trappe [data-action="fidget"]').forEach(b => {
+    const v = b.dataset.cle === 'loudness' ? String(!!f.loudness) : String(f[b.dataset.cle] === b.dataset.val);
+    b.setAttribute(b.getAttribute('role') === 'radio' ? 'aria-checked' : 'aria-pressed', v);
+  });
+  const g = $('.glissiere'); if (g) g.style.setProperty('--pos', ['33', '45', 'hypno'].indexOf(f.vitesse));
+  const bd = $('#bouton-devine'); if (bd) bd.setAttribute('aria-pressed', !!S.devine);
+}
+function bidouiller(b) {
+  const cle = b.dataset.cle;
+  if (cle === 'loudness') S.fidget.loudness = !S.fidget.loudness;
+  else S.fidget[cle] = b.dataset.val;
+  memoire.ecrire('md-fidget', S.fidget);
+  appliquerFidget();
+  const sons = { lcd: [2200, 0.02, 0.05], eq: [1500, 0.03, 0.05], vitesse: [420, 0.07, 0.07], loudness: [180, 0.09, 0.08] };
+  clic(...(sons[cle] || [1500, 0.03, 0.05]));
+  if (cle === 'vitesse' && !S.enLecture) toast('Lance un morceau pour voir le disque tourner.');
+}
+let demoMin = null;
+function lancerDemo() {
+  if (S.demo) return;
+  S.demo = true;
+  document.body.classList.add('demo');
+  texteLCD($('#lcd-texte'), '✦ MUSIC DISCOVERY ✦ DEMO ✦ DEMO ✦ DEMO ✦');
+  $('#lcd-etat').textContent = 'DEMO';
+  lancerSpectre();
+  [0, 1, 2, 3].forEach(i => setTimeout(() => clic(880 + i * 220, 0.06, 0.05), i * 110));
+  clearTimeout(demoMin);
+  demoMin = setTimeout(() => { S.demo = false; document.body.classList.remove('demo'); majAfficheur(); }, 6000);
+}
+/* devine l'époque : on cache la décennie, on propose quatre réponses */
+const EPOQUES = ['XVIIIᵉ siècle', 'XIXᵉ siècle', 'début du XXᵉ siècle', 'années 50', 'années 60', 'années 70', 'années 80', 'années 90', 'années 2000', 'années 2010', 'années 2020'];
+const devinettes = {};
+function choixEpoques(m) {
+  if (devinettes[m.id]) return devinettes[m.id];
+  const k = EPOQUES.indexOf(decennie(m.annee));
+  if (k < 0) return null;
+  const autour = EPOQUES.map((e, i) => [e, Math.abs(i - k)]).filter(([e, d]) => d > 0 && d <= 3).map(([e]) => e);
+  const opts = melanger([EPOQUES[k], ...melanger(autour).slice(0, 3)]);
+  return (devinettes[m.id] = { opts, bonne: EPOQUES[k], reponse: null });
+}
+function deviner(rep) {
+  const m = parId[S.joue]; if (!m) return;
+  const d = choixEpoques(m); if (!d || d.reponse) return;
+  d.reponse = rep;
+  S.score.total++;
+  if (rep === d.bonne) { S.score.bons++; clic(1320, 0.08, 0.07); setTimeout(() => clic(1760, 0.08, 0.06), 90); }
+  else clic(260, 0.12, 0.06);
+  memoire.ecrire('md-score', S.score);
+  rendreDevinette(m);
+}
+function rendreDevinette(m) {
+  const box = $('#devinette');
+  const st = $('.maintenant-style');
+  if (!box || !st) return;
+  const d = S.devine && m ? choixEpoques(m) : null;
+  st.textContent = d && !d.reponse ? (m.style || 'Devine…') : indice(m);
+  box.hidden = !d;
+  if (!d) return;
+  const juste = d.reponse && d.reponse === d.bonne;
+  box.innerHTML = `<p class="devinette-question">${d.reponse ? (juste ? 'Bien vu.' : `Raté : ${d.bonne}.`) : 'De quelle époque ?'} <span class="devinette-score">Ton oreille : ${S.score.bons} sur ${S.score.total}</span></p>
+    <div class="devinette-choix">${d.opts.map(o => `<button class="devinette-option${d.reponse ? (o === d.bonne ? ' bonne' : o === d.reponse ? ' fausse' : '') : ''}" data-action="deviner" data-rep="${E(o)}"${d.reponse ? ' disabled' : ''}>${E(o)}</button>`).join('')}</div>`;
+}
 /* le pupitre : le morceau qui passe, sa mini-chronique, l'avis, la suite */
 function rendrePupitre() {
   const m = parId[S.joue];
@@ -970,6 +1085,7 @@ function rendrePupitre() {
         <p class="maintenant-style">${E(indice(m))}</p>
         <h2 class="maintenant-titre">${E(m.affiche)}</h2>
         <p class="maintenant-artiste">${E(m.artiste)}</p>
+        <div class="devinette" id="devinette" hidden></div>
         ${m.note ? `<p class="maintenant-note">${E(m.note).replace(/\n/g, '<br>')}</p>` : ''}
         <p class="maintenant-chronique" data-chronique="${m.id}"></p>
         <div class="avis-boutons">
@@ -980,14 +1096,25 @@ function rendrePupitre() {
         <button class="lien-bouton" data-action="radio-raconte">Plus d'infos sur l'album et l'artiste</button>
       </div>`;
     remplirChronique(m);
+    rendreDevinette(m);
   }
   if (m) {
     const a = $('.avis-aime', el);
     if (a) { a.setAttribute('aria-pressed', S.aime.has(m.id)); a.classList.toggle('actif', S.aime.has(m.id)); }
   }
-  $('#caps').innerHTML = CAPS.map(d => `<button class="cap" data-action="cap" data-dir="${d}" aria-pressed="${S.cap === d}"${m ? '' : ' disabled'}>${E(nomCap(d))}</button>`).join('');
+  const pool = poolSource().filter(x => !m || x.id !== m.id);
+  $('#caps').innerHTML = CAPS.map(d => {
+    const actif = (S.pente && S.pente.dir === d) || (d === 'cote' && S.cote);
+    const dispo = m && (actif || d === 'cote' || Moteur.possible(m, d, pool, val));
+    const label = actif && S.pente && S.pente.force > 1 ? `${nomCap(d)} ×${S.pente.force}` : nomCap(d);
+    return `<button class="cap" data-action="cap" data-dir="${d}" aria-pressed="${!!actif}"${dispo ? '' : ` disabled title="Rien dans cette direction qui colle à ce morceau"`}>${E(label)}</button>`;
+  }).join('') + (S.pente || S.cote ? `<button class="cap cap-libre" data-action="cap" data-dir="libre">Laisser filer</button>` : '');
   const p = parId[S.suite[0]];
-  $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span><button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>${S.cap ? `<span class="file-cap">${E(nomCap(S.cap))}</span>` : ''}`
+  const vu = p && S.devoile === p.id;
+  $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span>${vu
+      ? `<button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>`
+      : `<span class="ensuite-mystere">${E(indice(p))}</span><button class="lien-bouton" data-action="devoiler">Dévoiler</button>`}
+      <button class="lien-bouton ensuite-maintenant" data-action="jouer-id" data-id="${p.id}">L'écouter maintenant</button>`
     + (S.source === 'selection' ? `<span class="ensuite-source">Tu écoutes ta sélection. <button class="lien-bouton" data-action="source-chaine" data-source="radio">Revenir à la radio</button></span>` : '') : '';
   majGarde();
 }
@@ -1022,6 +1149,8 @@ function majMachine() {
   majAfficheur();
   majGarde();
   S.suite.slice(0, 4).forEach(x => Pochettes.demander(parId[x]));
+  majDisque();
+  if (m) Pochettes.demander(m, () => { if (S.joue === m.id) majDisque(); });
   rendreLivret('machine', m);
   placerEcranVideo();
 }
@@ -1039,11 +1168,12 @@ function majAfficheur() {
   const lecture = document.body.classList.contains('lecture-disque');
   $('#lcd-disque').textContent = SOURCES[S.source].nom.toUpperCase();
   $('#lcd-piste').textContent = m ? deux(S.historique.length) : '--';
+  if (S.demo) { lancerSpectre(); return; }
   const texte = lecture ? 'READING' : m ? `${m.affiche} · ${m.artiste}${active && S.lecture === 'extrait' ? ' (extrait)' : ''}` : 'APPUIE SUR LECTURE';
   texteLCD($('#lcd-texte'), texte);
   $('#lcd-etat').textContent = lecture ? 'READ' : !active ? 'STOP' : S.bloque ? 'APPUIE SUR ▶' : S.enLecture ? '▶ PLAY' : S.aJoue ? 'II PAUSE' : 'LOAD';
   const ensuite = parId[S.suite[0]];
-  $('#lcd-ensuite').textContent = ensuite && !lecture ? `ENSUITE ${ensuite.affiche}` : '';
+  $('#lcd-ensuite').textContent = ensuite && !lecture ? `ENSUITE ${S.devoile === ensuite.id ? ensuite.affiche : '? ' + (ensuite.style || 'SURPRISE')}` : '';
   if (!active) $('#lcd-temps').textContent = '--:--';
   const ms = $('#machine-source');
   const src = active && S.lecture === 'extrait' ? Pochettes.source(m) : null;
@@ -1064,11 +1194,11 @@ const pics = new Array(BARRES).fill(0);
 let spectreRAF = null, spectreDernier = 0;
 function lancerSpectre() {
   if (spectreRAF || reduitMouvement) return;
-  if (S.vue !== 'machine' || !S.enLecture) return;
+  if (S.vue !== 'machine' || (!S.enLecture && !S.demo)) return;
   spectreRAF = requestAnimationFrame(animerSpectre);
 }
 function animerSpectre(t) {
-  if (S.vue !== 'machine' || !S.enLecture) {
+  if (S.vue !== 'machine' || (!S.enLecture && !S.demo)) {
     spectreRAF = null;
     barres.forEach((b, i) => { b.style.setProperty('--h', '0.06'); pics[i] = 0; b.style.setProperty('--pic', 0); });
     return;
@@ -1076,8 +1206,16 @@ function animerSpectre(t) {
   spectreRAF = requestAnimationFrame(animerSpectre);
   if (t - spectreDernier < 55) return;
   spectreDernier = t;
+  if (S.demo) { // la démo des magasins hi-fi : une vague qui balaie l'écran
+    barres.forEach((b, i) => {
+      const h = 0.5 + 0.48 * Math.sin(t / 160 - i * 0.55) * Math.cos(t / 900 + i * 0.12);
+      pics[i] = Math.max(h, pics[i] - 0.03);
+      b.style.setProperty('--h', h.toFixed(2)); b.style.setProperty('--pic', ((pics[i] - h) * 52).toFixed(1));
+    });
+    return;
+  }
   const m = parId[S.joue] || {};
-  const bpm = m.bpm || 100, e = num(m.energie, 5) / 10;
+  const bpm = m.bpm || 100, e = Math.min(1, num(m.energie, 5) / 10 + (S.fidget.loudness ? 0.18 : 0));
   const temps = (t / 60000) * (bpm > 150 ? bpm / 2 : bpm);
   const coup = Math.pow(1 - (temps % 1), 3);
   barres.forEach((b, i) => {
@@ -1213,6 +1351,12 @@ const ACTIONS = {
   'aime': () => aimer(S.joue),
   'pas-aime': () => pasAime(S.joue),
   'cap': b => orienter(b.dataset.dir),
+  'fidget': b => bidouiller(b),
+  'demo': () => lancerDemo(),
+  'trappe': b => { const p = $('#trappe-panneau'); const ouvre = p.hidden; p.hidden = !ouvre; b.setAttribute('aria-expanded', ouvre); $('#trappe').classList.toggle('ouverte', ouvre); clic(ouvre ? 520 : 380, 0.08, 0.06); },
+  'deviner': b => deviner(b.dataset.rep),
+  'devoiler': () => { S.devoile = S.suite[0]; rendrePupitre(); majAfficheur(); clic(1100, 0.05, 0.05); },
+  'jeu-devine': () => { S.devine = !S.devine; memoire.ecrire('md-devine', S.devine); $('#bouton-devine').setAttribute('aria-pressed', S.devine); rendreDevinette(parId[S.joue]); clic(1300, 0.03, 0.05); },
   'source-chaine': b => choisirSource(b.dataset.source),
   'lecture': () => basculerLecture(),
   'suivant': () => radioSuivant(),
@@ -1278,6 +1422,7 @@ document.addEventListener('keydown', e => {
 
 /* ─────────────────────────────── démarrage ─────────────────────────────── */
 appliquerTeinte(teinteActive, false);
+appliquerFidget();
 majMolettes();
 majSon();
 majGarde();

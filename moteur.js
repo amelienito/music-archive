@@ -117,7 +117,32 @@ const Moteur = (() => {
     confidentiel: { etiquette: 'Plus confidentiel', court: 'Plus confidentiel', cle: 'etrange', sens: 1 },
     cote:         { etiquette: 'Un pas de côté', court: 'Pas de côté' },
   };
-  function versDirection(ref, dir, pool, val) {
+  /* Chaque direction a un pas minimum et, pour la danse, un seuil absolu :
+     « plus dansant » depuis un morceau de piano doit vraiment faire danser,
+     pas juste un peu moins immobile. Si rien de cohérent n'existe (trop loin
+     du morceau en cours), la direction est indisponible plutôt que farfelue. */
+  const REGLES = {
+    energique:    { cle: 'energie', sens: 1, pas: 1.5 },
+    calme:        { cle: 'energie', sens: -1, pas: 1.5 },
+    dansant:      { cle: 'danse', sens: 1, pas: 2, plancher: 4 },
+    pose:         { cle: 'danse', sens: -1, pas: 2, plafond: 5 },
+    connu:        { cle: 'etrange', sens: -1, pas: 1.5 },
+    confidentiel: { cle: 'etrange', sens: 1, pas: 1.5 },
+  };
+  const QUALITE = 6.5; // au-delà, le morceau proposé n'a plus rien à voir avec celui en cours
+  function candidatsDirection(ref, dir, pool, val, force = 1) {
+    const R = REGLES[dir];
+    const ecart = x => (val(x, R.cle) - val(ref, R.cle)) * R.sens;
+    const ok = x => ecart(x) >= R.pas * force - 0.01
+      && (R.plancher === undefined || val(x, R.cle) >= R.plancher)
+      && (R.plafond === undefined || val(x, R.cle) <= R.plafond)
+      && (x.ambiance === ref.ambiance || voisines(ref.ambiance, x.ambiance));
+    const sans = R.cle === 'etrange' ? null : R.cle;
+    const cible = R.pas * force + 0.8;
+    return pool.filter(ok).map(x => [x, distance(ref, x, { sans }) + 0.35 * Math.abs(ecart(x) - cible)])
+      .filter(p => p[1] <= QUALITE).sort((a, b) => a[1] - b[1]).map(p => p[0]);
+  }
+  function versDirection(ref, dir, pool, val, { force = 1 } = {}) {
     if (!ref || !pool.length) return null;
     if (dir === 'veine') return parmiLesMeilleurs(lesPlusProches(ref, pool), 2);
     if (dir === 'cote') {
@@ -126,27 +151,30 @@ const Moteur = (() => {
       const c = voisins.length ? voisins : pool.filter(x => x.ambiance !== ref.ambiance);
       return parmiLesMeilleurs(lesPlusProches(ref, c), 2);
     }
-    const D = DIRECTIONS[dir];
-    if (!D || !D.cle) return null;
-    const ecart = x => (val(x, D.cle) - val(ref, D.cle)) * D.sens;
-    // d'abord dans la même ambiance, puis un peu moins loin, puis chez les voisines : on change d'intensité, pas de monde
-    const meme = x => x.ambiance === ref.ambiance;
-    const proche = x => meme(x) || voisines(ref.ambiance, x.ambiance);
-    const paliers = [x => proche(x) && ecart(x) >= (meme(x) ? 1 : 1.5), x => ecart(x) >= 1.5];
-    let c = [];
-    for (const p of paliers) { c = pool.filter(p); if (c.length) break; }
-    if (!c.length) return null;
-    const sans = D.cle === 'etrange' ? null : D.cle;
-    const score = x => distance(ref, x, { sans }) + 0.35 * Math.abs(ecart(x) - 2.5);
-    return parmiLesMeilleurs(c.map(x => [x, score(x)]).sort((p, q) => p[1] - q[1]).map(p => p[0]), 2);
+    if (!REGLES[dir]) return null;
+    // on essaie le pas demandé, puis un pas plus petit si l'on est déjà tout au bout
+    for (let f = force; f >= 1; f--) {
+      const c = candidatsDirection(ref, dir, pool, val, f);
+      if (c.length) return parmiLesMeilleurs(c, 2);
+    }
+    return null;
   }
-  // peut-on aller dans cette direction depuis ce morceau ?
+  // peut-on aller dans cette direction depuis ce morceau, sans tomber sur n'importe quoi ?
   function possible(ref, dir, pool, val) {
-    const D = DIRECTIONS[dir];
-    if (!D || !D.cle) return pool.length > 0;
-    return pool.some(x => (val(x, D.cle) - val(ref, D.cle)) * D.sens >= (x.ambiance === ref.ambiance ? 1 : 1.5));
+    if (!REGLES[dir]) return pool.length > 0;
+    return candidatsDirection(ref, dir, pool, val, 1).length > 0;
   }
-
+  /* la pente : une direction qui tient sur plusieurs morceaux. Le premier fait le pas,
+     les suivants ne reviennent jamais en arrière (plus énergique reste au moins aussi énergique) */
+  function suivantPente(ref, dir, pool, val, { premier = false, force = 1 } = {}) {
+    const R = REGLES[dir];
+    if (!R) return null;
+    if (premier) { const x = versDirection(ref, dir, pool, val, { force }); if (x) return x; }
+    const ecart = x => (val(x, R.cle) - val(ref, R.cle)) * R.sens;
+    const c = pool.filter(x => ecart(x) >= 0 && (x.ambiance === ref.ambiance || voisines(ref.ambiance, x.ambiance)))
+      .map(x => [x, distance(ref, x) - 0.25 * Math.min(ecart(x), 3)]).sort((a, b) => a[1] - b[1]).map(p => p[0]);
+    return c.length ? parmiLesMeilleurs(c, 2) : null;
+  }
   /* l'ordre d'un disque : chaque morceau mène au plus proche, puis on
      décroise les enchaînements maladroits (comme un DJ qui prépare son set) */
   function longueur(o) { let s = 0; for (let i = 1; i < o.length; i++) s += distance(o[i - 1], o[i]); return s; }
@@ -186,6 +214,6 @@ const Moteur = (() => {
       .sort((p, q) => p[1] - q[1]).slice(0, n).map(p => p[0]);
   }
 
-  return { AMBIANCES, ORDRE, DIRECTIONS, distance, ressemblance, versDirection, possible, sequencer, representatifs, longueur, lesPlusProches };
+  return { AMBIANCES, ORDRE, DIRECTIONS, REGLES, distance, ressemblance, versDirection, possible, suivantPente, sequencer, representatifs, longueur, lesPlusProches };
 })();
 if (typeof module !== 'undefined') module.exports = Moteur;

@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=17">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
@@ -101,7 +101,7 @@
 
           <!-- le tiroir : il s'ouvre, le disque s'y pose, il se referme -->
           <div class="tiroir" id="tiroir" aria-hidden="true">
-            <div class="tiroir-plateau"><span class="tiroir-creux"></span><span class="disque disque-tiroir" id="disque-tiroir"></span></div>
+            <div class="tiroir-plateau"><span class="tiroir-creux"></span><span class="disque disque-tiroir" id="disque-tiroir"></span><span class="plateau-reflet"></span></div>
             <div class="tiroir-facade"><span class="tiroir-logo">COMPACT<br>disc</span><span class="tiroir-fente"></span></div>
           </div>
 
@@ -140,6 +140,47 @@
                 <span class="molette-repere"></span>
               </div>
               <span class="bouton-rotatif-nom">Volume</span>
+            </div>
+          </div>
+
+          <!-- la trappe : des petits réglages qui ne servent à rien, sauf à faire plaisir -->
+          <div class="trappe" id="trappe">
+            <button class="trappe-poignee" data-action="trappe" aria-expanded="false" aria-controls="trappe-panneau"><span>Petits réglages inutiles</span><i aria-hidden="true"></i></button>
+            <div class="trappe-panneau" id="trappe-panneau" hidden>
+              <div class="bidouille">
+                <span class="bidouille-nom">Couleur de l'écran</span>
+                <div class="leds" role="radiogroup" aria-label="Couleur de l'écran">
+                  <button class="led-choix" role="radio" data-action="fidget" data-cle="lcd" data-val="origine" title="D'origine" aria-label="D'origine"></button>
+                  <button class="led-choix" role="radio" data-action="fidget" data-cle="lcd" data-val="glacier" title="Glacier" aria-label="Glacier"></button>
+                  <button class="led-choix" role="radio" data-action="fidget" data-cle="lcd" data-val="ambre" title="Ambre" aria-label="Ambre"></button>
+                  <button class="led-choix" role="radio" data-action="fidget" data-cle="lcd" data-val="menthe" title="Menthe" aria-label="Menthe"></button>
+                  <button class="led-choix" role="radio" data-action="fidget" data-cle="lcd" data-val="rose" title="Rose" aria-label="Rose"></button>
+                  <button class="led-choix" role="radio" data-action="fidget" data-cle="lcd" data-val="blanc" title="Blanc" aria-label="Blanc"></button>
+                </div>
+              </div>
+              <div class="bidouille">
+                <span class="bidouille-nom">Égaliseur</span>
+                <div class="segments" role="radiogroup" aria-label="Égaliseur">
+                  <button role="radio" data-action="fidget" data-cle="eq" data-val="barres">Barres</button>
+                  <button role="radio" data-action="fidget" data-cle="eq" data-val="points">Points</button>
+                  <button role="radio" data-action="fidget" data-cle="eq" data-val="miroir">Miroir</button>
+                  <button role="radio" data-action="fidget" data-cle="eq" data-val="eteint">Éteint</button>
+                </div>
+              </div>
+              <div class="bidouille">
+                <span class="bidouille-nom">Vitesse du disque</span>
+                <div class="glissiere" role="radiogroup" aria-label="Vitesse du disque">
+                  <button role="radio" data-action="fidget" data-cle="vitesse" data-val="33">33</button>
+                  <button role="radio" data-action="fidget" data-cle="vitesse" data-val="45">45</button>
+                  <button role="radio" data-action="fidget" data-cle="vitesse" data-val="hypno">Hypno</button>
+                  <span class="glissiere-curseur" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="bidouille bidouille-ligne">
+                <button class="interrupteur-mini" data-action="fidget" data-cle="loudness" aria-pressed="false"><span class="led" aria-hidden="true"></span>Loudness</button>
+                <button class="bouton-demo" data-action="demo">Démo</button>
+                <button class="interrupteur-mini" data-action="jeu-devine" id="bouton-devine" aria-pressed="false"><span class="led" aria-hidden="true"></span>Devine l'époque</button>
+              </div>
             </div>
           </div>
         </div>
@@ -232,10 +273,10 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <audio id="extrait" preload="none" playsinline></audio>
 
-  <script src="data.js?v=14"></script>
-  <script src="moteur.js?v=1"></script>
+  <script src="data.js?v=15"></script>
+  <script src="moteur.js?v=2"></script>
   <script src="pochettes.js?v=12"></script>
   <script src="infos.js?v=13"></script>
-  <script src="app.js?v=17"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>

@@ -1219,3 +1219,140 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 body.epure .pupitre, body.epure .avis-machine, body.epure .livret-machine, body.epure .machine-source { display: none !important; }
 body.epure .ecran-machine { align-content: center; min-height: calc(100vh - 76px); }
 #bouton-epure[aria-pressed="true"] { color: var(--lcd-encre); }
+
+/* ─────────────────────────────── LE PICTURE DISC ───────────────────────────────
+   La pochette du morceau imprimée sur le disque, des sillons, un anneau stroboscopique
+   sur la tranche. Le reflet irisé ne tourne pas avec le disque : il reste sous la
+   lumière pendant que l'image file dessous, et c'est ça qui hypnotise. */
+.disque-image { background:
+  radial-gradient(circle, transparent 0 7%, rgba(255,255,255,.9) 7.4% 8.4%, rgba(160,170,180,.6) 8.6% 15.5%, rgba(255,255,255,.75) 15.7% 16.4%, transparent 16.6%),
+  radial-gradient(circle, transparent 0 16.5%, rgba(0,0,0,.35) 16.6% 17.3%, transparent 17.6%),
+  var(--pochette) center / cover no-repeat, #222; }
+.disque-image.disque-yt { background:
+  radial-gradient(circle, transparent 0 7%, rgba(255,255,255,.9) 7.4% 8.4%, rgba(160,170,180,.6) 8.6% 15.5%, rgba(255,255,255,.75) 15.7% 16.4%, transparent 16.6%),
+  radial-gradient(circle, transparent 0 16.5%, rgba(0,0,0,.35) 16.6% 17.3%, transparent 17.6%),
+  var(--pochette) center / auto 134% no-repeat, #222; }
+.disque-image > * { display: none; }
+.disque-image::before { /* sillons + anneau stroboscopique sur la tranche */
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background:
+    var(--strobe) center / 100% 100% no-repeat,
+    radial-gradient(circle, transparent 0 94.5%, rgba(10,10,12,.82) 95% 100%),
+    radial-gradient(circle, transparent 0 17.6%, rgba(255,255,255,.18) 17.8% 18.3%, transparent 18.6% 61%, rgba(0,0,0,.22) 61.2% 61.7%, transparent 62%),
+    repeating-radial-gradient(circle, rgba(255,255,255,.06) 0 1px, rgba(0,0,0,.08) 1px 2.6px);
+}
+.plateau-reflet {
+  position: absolute; width: 96%; aspect-ratio: 1 / 1; border-radius: 50%; pointer-events: none;
+  background:
+    conic-gradient(from 0deg, transparent 0 6%, rgba(255,120,200,.55) 10%, rgba(120,200,255,.6) 14%, rgba(160,255,190,.5) 18%, transparent 24% 52%, rgba(255,230,140,.45) 57%, rgba(200,140,255,.5) 61%, transparent 67%),
+    radial-gradient(90% 60% at 30% 22%, rgba(255,255,255,.35), transparent 60%);
+  mix-blend-mode: screen; opacity: .55;
+  -webkit-mask: radial-gradient(circle, transparent 0 16.6%, #000 17%); mask: radial-gradient(circle, transparent 0 16.6%, #000 17%);
+  animation: balayage 14s linear infinite; animation-play-state: paused;
+}
+body.cd-tourne .plateau-reflet, body.demo .plateau-reflet { animation-play-state: running; }
+@keyframes balayage { to { transform: rotate(-360deg); } }
+.tiroir.ouvert .plateau-reflet, .tiroir.pose .plateau-reflet { opacity: 0; }
+/* vitesse du disque */
+body[data-vitesse="33"].cd-tourne .disque-tiroir { animation-duration: 1.8s; }
+body[data-vitesse="45"].cd-tourne .disque-tiroir { animation-duration: 1.33s; }
+body[data-vitesse="hypno"].cd-tourne .disque-tiroir { animation-duration: 5.5s; }
+body[data-vitesse="hypno"] .disque-tiroir::after { /* une spirale qui semble s'enfoncer */
+  background: var(--spirale) center / 100% 100% no-repeat;
+  mix-blend-mode: overlay; opacity: .6;
+}
+body[data-vitesse="hypno"] .plateau-reflet { opacity: .8; animation-duration: 9s; }
+body.demo .disque-tiroir { animation: tourne .5s linear infinite !important; }
+body.demo .lcd { animation: arc-en-ciel 2s linear infinite; }
+@keyframes arc-en-ciel { to { filter: hue-rotate(360deg); } }
+
+/* la couleur de l'écran */
+html[data-lcd="glacier"] { --lcd-encre: #8fdcff; --lcd-halo: rgba(110, 200, 255, .55); }
+html[data-lcd="ambre"]   { --lcd-encre: #ffb35c; --lcd-halo: rgba(255, 160, 70, .55); }
+html[data-lcd="menthe"]  { --lcd-encre: #8dffc4; --lcd-halo: rgba(90, 255, 170, .5); }
+html[data-lcd="rose"]    { --lcd-encre: #ff9bd2; --lcd-halo: rgba(255, 110, 190, .55); }
+html[data-lcd="blanc"]   { --lcd-encre: #f4f6ff; --lcd-halo: rgba(230, 236, 255, .45); }
+/* l'égaliseur */
+body[data-eq="points"] .lcd-spectre i { background: none; }
+body[data-eq="points"] .lcd-spectre i::before { height: 4px; border-radius: 2px; opacity: 1; transform: none; margin-top: 0; }
+body[data-eq="points"] .lcd-spectre i { display: flex; flex-direction: column; justify-content: flex-start; }
+body[data-eq="miroir"] .lcd-spectre { align-items: center; }
+body[data-eq="miroir"] .lcd-spectre i { background: repeating-linear-gradient(90deg, currentColor 0 100%), linear-gradient(currentColor, currentColor); background: currentColor; border-radius: 2px; opacity: .9; }
+body[data-eq="miroir"] .lcd-spectre i::before { display: none; }
+body[data-eq="eteint"] .lcd-spectre { visibility: hidden; }
+/* loudness : les enceintes poussent plus fort */
+body.loudness.cd-tourne .hp-boomer { animation-name: basse-fort; }
+@keyframes basse-fort { to { transform: scale(1.075); filter: brightness(1.22); } }
+
+/* ─────────────────────────────── LA TRAPPE ─────────────────────────────── */
+.trappe { grid-column: 1 / -1; display: grid; gap: 0; margin-top: -4px; }
+.trappe-poignee {
+  justify-self: center; display: inline-flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 16px;
+  font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--hifi-encre); opacity: .6;
+  border-radius: 0 0 10px 10px; transition: opacity .2s;
+}
+.trappe-poignee:hover, .trappe.ouverte .trappe-poignee { opacity: 1; }
+.trappe-poignee i { width: 22px; height: 4px; border-radius: 2px; background: var(--hifi-trait); box-shadow: inset 0 1px 2px rgba(0,0,0,.35); position: relative; }
+.trappe-poignee i::after { content: ""; position: absolute; left: 50%; top: -5px; width: 7px; height: 7px; margin-left: -3.5px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .3s; opacity: .7; }
+.trappe.ouverte .trappe-poignee i::after { transform: translateY(5px) rotate(225deg); }
+.trappe-panneau {
+  display: flex; flex-wrap: wrap; align-items: end; gap: 16px 28px; padding: 16px 18px 18px; border-radius: 12px;
+  background: var(--hifi-creux); color: #e9eaee; box-shadow: inset 0 3px 12px rgba(0,0,0,.5);
+  transform-origin: top; animation: trappe .38s cubic-bezier(.2,.9,.3,1.15) both;
+}
+@keyframes trappe { from { transform: perspective(600px) rotateX(-70deg); opacity: 0; } }
+.bidouille { display: grid; gap: 8px; }
+.bidouille-ligne { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.bidouille-nom { font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; opacity: .6; }
+.leds { display: flex; gap: 9px; }
+.led-choix { --c: #888; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--c) 40%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 60%, #000)); box-shadow: 0 0 0 2px #0b0c0e, 0 1px 0 3px rgba(255,255,255,.08); transition: transform .12s, box-shadow .2s; }
+.led-choix:hover { transform: scale(1.1); }
+.led-choix:active { transform: scale(.9); }
+.led-choix[aria-checked="true"] { box-shadow: 0 0 0 2px #0b0c0e, 0 0 0 4px var(--c), 0 0 14px 3px var(--c); }
+.led-choix[data-val="origine"] { --c: #9aa0a8; background: conic-gradient(#8fdcff 0 50%, #ffb35c 50%); }
+.led-choix[data-val="glacier"] { --c: #8fdcff; } .led-choix[data-val="ambre"] { --c: #ffb35c; } .led-choix[data-val="menthe"] { --c: #8dffc4; }
+.led-choix[data-val="rose"] { --c: #ff9bd2; } .led-choix[data-val="blanc"] { --c: #f4f6ff; }
+.segments { display: inline-flex; padding: 3px; border-radius: 9px; background: #0b0c0e; gap: 2px; }
+.segments button { min-height: 32px; padding: 0 11px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #b9bcc4; transition: background-color .15s, color .15s; }
+.segments button[aria-checked="true"] { background: linear-gradient(#4a4d55, #34363c); color: var(--lcd-encre); text-shadow: 0 0 6px var(--lcd-halo); box-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 2px 4px rgba(0,0,0,.4); }
+.glissiere { --pos: 0; position: relative; display: grid; grid-template-columns: repeat(3, 56px); height: 34px; border-radius: 17px; background: #0b0c0e; box-shadow: inset 0 2px 5px rgba(0,0,0,.6); }
+.glissiere button { position: relative; z-index: 1; font-size: 12px; font-weight: 700; color: #8d9098; transition: color .2s; }
+.glissiere button[aria-checked="true"] { color: #111; }
+.glissiere-curseur { position: absolute; top: 3px; left: 3px; width: 50px; height: 28px; border-radius: 14px; background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 1px, transparent 1px 3px), linear-gradient(#f3f4f6, #b9bdc4); box-shadow: 0 2px 4px rgba(0,0,0,.5), inset 0 1px 0 #fff; transform: translateX(calc(var(--pos) * 56px)); transition: transform .28s cubic-bezier(.3,1.4,.5,1); }
+.interrupteur-mini { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #d9dbe0; background: linear-gradient(#3e4148, #2a2c31); box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, 0 3px 0 #0b0c0e, 0 4px 6px rgba(0,0,0,.4); transition: transform .08s, box-shadow .08s; }
+.interrupteur-mini:active, .interrupteur-mini[aria-pressed="true"] { transform: translateY(2px); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 1px 0 #0b0c0e, 0 1px 2px rgba(0,0,0,.4); }
+.interrupteur-mini .led { width: 7px; height: 7px; border-radius: 50%; background: #3a1714; transition: background .2s, box-shadow .2s; }
+.interrupteur-mini[aria-pressed="true"] .led { background: #ff5a3c; box-shadow: 0 0 8px 1px rgba(255,90,60,.8); }
+.bouton-demo { min-height: 36px; padding: 0 16px; border-radius: 18px; font-size: 12px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #111; background: linear-gradient(#ffd56b, #e9a93a); box-shadow: 0 3px 0 #8a5a12, 0 5px 8px rgba(0,0,0,.4); transition: transform .08s, box-shadow .08s; }
+.bouton-demo:active, body.demo .bouton-demo { transform: translateY(2px); box-shadow: 0 1px 0 #8a5a12, 0 2px 3px rgba(0,0,0,.4); }
+body.demo .bouton-demo { animation: arc-en-ciel 1.2s linear infinite; }
+body.epure .trappe { display: none; }
+
+/* ─────────────────────────────── LA CURIOSITÉ ─────────────────────────────── */
+.ensuite-mystere { font-weight: 600; font-style: italic; color: var(--encre); }
+.ensuite-mystere::before { content: "? "; font-style: normal; color: var(--aiguille); }
+.ensuite-maintenant { font-size: 14px; color: var(--encre-2); }
+.cap-libre { background: transparent; box-shadow: inset 0 0 0 1.5px var(--encre-3); color: var(--encre-2); }
+.devinette { display: grid; gap: 8px; margin: 6px 0 2px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--aiguille) 8%, var(--fond)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--aiguille) 30%, transparent); animation: sortie .4s cubic-bezier(.2,.9,.3,1.1) both; }
+.devinette-question { font-weight: 700; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.devinette-score { font-weight: 500; font-size: 13px; color: var(--encre-2); }
+.devinette-choix { display: flex; flex-wrap: wrap; gap: 6px; }
+.devinette-option { min-height: 38px; padding: 0 13px; border-radius: 999px; font-size: 14px; font-weight: 600; background: var(--fond); box-shadow: inset 0 0 0 1.5px var(--trait); transition: background-color .2s, color .2s, transform .1s; }
+.devinette-option:not(:disabled):hover { transform: translateY(-1px); box-shadow: inset 0 0 0 1.5px var(--encre-3); }
+.devinette-option.bonne { background: var(--aiguille); color: var(--sur-aiguille); box-shadow: none; animation: bien-vu .5s cubic-bezier(.3,1.6,.5,1); }
+.devinette-option.fausse { text-decoration: line-through; opacity: .6; }
+.devinette-option:disabled:not(.bonne):not(.fausse) { opacity: .45; }
+@keyframes bien-vu { 40% { transform: scale(1.12); } }
+@media (max-width: 640px) {
+  .devinette { grid-column: 1 / -1; }
+  .trappe-panneau { gap: 14px 18px; padding: 14px; }
+  .glissiere { grid-template-columns: repeat(3, 52px); }
+  .glissiere-curseur { width: 46px; transform: translateX(calc(var(--pos) * 52px)); }
+}
+@media (prefers-reduced-motion: reduce) { .plateau-reflet { animation: none; } }
+/* trois pilules + le volume sur une seule ligne */
+@media (min-width: 761px) {
+  .hifi-commandes { column-gap: 18px; }
+  .hifi-actions .pilule { padding: 0 15px; }
+}
+@media (min-width: 761px) and (max-width: 1640px) { .bouton-rotatif-hifi .bouton-rotatif-nom { display: none; } }
