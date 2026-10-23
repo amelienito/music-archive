@@ -672,8 +672,8 @@ const MORCEAUX = [
 
   { titre: "264bpm Song", artiste: "Andrew Baena", album: "",
     lien: "https://music.youtube.com/watch?v=kSF0hIIDofM", note: "",
-    ambiance: "ailleurs", style: "Électro frénétique", annee: 2023, bpm: 264, voix: "instru",
-    tags: ["electro", "expérimental", "rapide", "hyperpop"],
+    ambiance: "electrique", style: "Metal à 264 bpm", annee: 2023, bpm: 264, voix: "instru",
+    tags: ["metal", "guitares", "rapide", "expérimental"],
     energie: 9, etrange: 8, danse: 6 },
 
   { titre: "Hooked (Remastered)", artiste: "D.R.I.", album: "",
