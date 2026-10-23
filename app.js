@@ -81,8 +81,9 @@ const S = {
   aJoue: false,           // le morceau en cours a-t-il déjà démarré ?
   mode: 'radio',
   // la chaîne
-  source: (s => ['radio', 'fond', 'selection'].includes(s) ? s : 'radio')(memoire.lire('md-source', 'radio')),
-  suite: [], historique: [], echecs: 0,
+  source: (s => ['radio', 'selection'].includes(s) ? s : 'radio')(memoire.lire('md-source', 'radio')),
+  suite: [], historique: memoire.lire('md-historique', []).filter(id => parId[id]), echecs: 0,
+  epure: memoire.lire('md-epure', false),
   cap: null, capVise: null,              // la direction demandée pour le prochain morceau
   aime: new Set(memoire.lire('md-aime', [])),
   aimePas: new Set(memoire.lire('md-aime-pas', [])),
@@ -699,10 +700,14 @@ function tempsActuel() {
 /* Règles du lecteur YouTube, respectées ici : la vidéo est toujours visible
    pendant qu'elle joue (jamais de lecture cachée), dans un cadre d'au moins
    200 × 200 pixels, sans rien posé par-dessus. */
+let chaineVue = true;
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver(es => { const v = es[0].isIntersecting; if (v !== chaineVue) { chaineVue = v; majPoste(); } }, { threshold: 0.35 }).observe($('.hifi'));
+}
 function majPoste() {
   const p = $('#poste');
   const yt = S.lecture === 'yt';
-  const visible = !!S.joue && S.vue !== 'allumage' && S.vue !== 'machine';
+  const visible = !!S.joue && S.vue !== 'allumage' && !(S.vue === 'machine' && chaineVue);
   p.hidden = !visible;
   p.classList.toggle('avec-video', visible && yt && !S.posteReduit);
   p.classList.toggle('reduit', visible && yt && S.posteReduit);
@@ -726,7 +731,7 @@ function majPoste() {
 let suiviRAF = null;
 function emplacementCible() {
   if (!S.joue || S.lecture !== 'yt') return null;
-  if (S.vue === 'machine') return $('[data-emplacement="machine"]');
+  if (S.vue === 'machine' && chaineVue) return $('[data-emplacement="machine"]');
   if (!$('#poste').hidden && !S.posteReduit) return $('[data-emplacement="poste"]');
   return null;
 }
@@ -768,7 +773,6 @@ setInterval(() => {
    que chaque morceau mène au plus proche. */
 const SOURCES = {
   radio:     { nom: 'La radio', sous: 'Toute la sélection, d\'un morceau proche à l\'autre' },
-  fond:      { nom: 'Le fond du bac', sous: 'Les disques les plus enfouis' },
   selection: { nom: 'Ma sélection', sous: 'Ce que tu as gardé' },
 };
 const CAPS = ['calme', 'energique', 'dansant', 'pose', 'connu', 'confidentiel', 'cote'];
@@ -776,11 +780,7 @@ const nomCap = d => d === 'connu' ? 'Plus mainstream' : (Moteur.DIRECTIONS[d] ||
 function poolSource() {
   let p;
   if (S.source === 'selection') p = S.gardes.map(id => parId[id]).filter(Boolean);
-  else if (S.source === 'fond') {
-    // les plus confidentiels, et ceux qui sortent le plus des sentiers battus
-    const tri = BANQUE.filter(m => !m.connu).map(m => [m, conf(m) + m.etrange * 0.6]).sort((a, b) => b[1] - a[1]);
-    p = tri.slice(0, Math.max(14, Math.round(BANQUE.length * 0.28))).map(x => x[0]);
-  } else p = BANQUE;
+  else p = BANQUE;
   const ok = p.filter(ecoutable);
   return ok.length >= 3 ? ok : p;
 }
@@ -826,7 +826,6 @@ function rafraichirSuite() {
 /* le disque dans le tiroir : la radio (holographique), le fond du bac (noir), ma sélection (CD-R) */
 function disqueHTML(k, extra = '') {
   if (k === 'selection') return `<span class="disque disque-compil ${extra}"><span class="disque-main">Ma sélection</span></span>`;
-  if (k === 'fond') return `<span class="disque disque-fond ${extra}"><span class="disque-nom">Le fond du bac</span></span>`;
   if (k === 'radio') return `<span class="disque disque-hasard ${extra}"><span class="disque-nom">La radio<small>Music Discovery</small></span></span>`;
   return `<span class="disque disque-vide ${extra}"></span>`;
 }
@@ -851,15 +850,11 @@ function chargerTiroir(k) {
   tiroirMin.push(setTimeout(() => { t.classList.remove('pose'); document.body.classList.remove('lecture-disque'); majAfficheur(); }, 1650));
   majAfficheur();
 }
+// la touche d'éjection change de disque : la radio, ou ta sélection
 function ejecter() {
-  const t = $('#tiroir');
-  if (t.classList.contains('ouvert')) { t.classList.remove('ouvert'); clic(320, 0.16, 0.05); return; }
-  t.classList.add('ouvert');
-  clic(300, 0.18, 0.05);
-  const s = $('.sources');
-  s.classList.remove('appel'); void s.offsetWidth; s.classList.add('appel');
-  s.scrollIntoView({ behavior: doux, block: 'center' });
-  tiroirMin.push(setTimeout(() => t.classList.remove('ouvert'), 3500));
+  if (S.source === 'radio' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur « Ajouter à ma sélection » quand un morceau te plaît.', 4200); return; }
+  choisirSource(S.source === 'radio' ? 'selection' : 'radio');
+  toast(S.source === 'selection' ? 'Ta sélection est dans la chaîne.' : 'Retour à la radio.');
 }
 function choisirSource(k) {
   if (!SOURCES[k]) return;
@@ -879,6 +874,7 @@ function jouerRadio(id) {
   S.mode = 'radio';
   croiser(m.id);
   if (S.historique[S.historique.length - 1] !== m.id) S.historique.push(m.id);
+  memoire.ecrire('md-historique', S.historique.slice(-60));
   jouerMorceau(m);
   S.cap = S.capVise === m.id ? null : S.cap;
   S.capVise = null;
@@ -977,7 +973,7 @@ function rendrePupitre() {
         ${m.note ? `<p class="maintenant-note">${E(m.note).replace(/\n/g, '<br>')}</p>` : ''}
         <p class="maintenant-chronique" data-chronique="${m.id}"></p>
         <div class="avis-boutons">
-          <button class="avis-bouton" data-action="pas-aime" aria-label="Pas trop comme ça : on passe et on s'en éloigne"><span aria-hidden="true">✕</span> Pas trop comme ça</button>
+          <button class="avis-bouton" data-action="pas-aime" aria-label="Pas trop comme ça : on passe et on s'en éloigne"><span aria-hidden="true">↷</span> Pas trop comme ça</button>
           <button class="avis-bouton avis-aime" data-action="aime" aria-pressed="false"><span aria-hidden="true">♥</span> Ça, j'aime bien</button>
           <button class="avis-bouton avis-garder" data-action="garder-joue" data-garder="${m.id}" aria-pressed="false"><span aria-hidden="true">+</span> <span class="avis-garder-texte">Ajouter à ma sélection</span></button>
         </div>
@@ -990,37 +986,30 @@ function rendrePupitre() {
     if (a) { a.setAttribute('aria-pressed', S.aime.has(m.id)); a.classList.toggle('actif', S.aime.has(m.id)); }
   }
   $('#caps').innerHTML = CAPS.map(d => `<button class="cap" data-action="cap" data-dir="${d}" aria-pressed="${S.cap === d}"${m ? '' : ' disabled'}>${E(nomCap(d))}</button>`).join('');
-  $('#file').innerHTML = S.suite.slice(0, 5).map((id, i) => {
-    const x = parId[id];
-    return `<li><button class="file-titre" data-action="jouer-id" data-id="${x.id}">
-      ${Pochettes.html(x, 'pochette-file')}
-      <span class="file-texte"><span class="file-nom">${E(x.affiche)}</span><span class="file-artiste">${E(x.artiste)}</span><span class="file-style">${E(indice(x))}</span></span>
-      ${i === 0 && S.cap ? `<span class="file-cap">${E(nomCap(S.cap))}</span>` : ''}
-    </button></li>`;
-  }).join('') || '<li class="file-vide">La suite s\'affichera ici.</li>';
-  $('#sources').innerHTML = Object.entries(SOURCES).map(([k, s]) => {
-    const vide = k === 'selection' && !S.gardes.length;
-    return `<button class="source" role="radio" aria-checked="${S.source === k}" data-action="source-chaine" data-source="${k}"${vide ? ' data-vide' : ''}>
-      <span class="source-galette">${disqueHTML(k)}</span>
-      <span class="source-nom">${E(s.nom)}</span><span class="source-sous">${E(k === 'selection' && S.gardes.length ? `${S.gardes.length} morceau${S.gardes.length > 1 ? 'x' : ''}` : s.sous)}</span>
-    </button>`;
-  }).join('');
+  const p = parId[S.suite[0]];
+  $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span><button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>${S.cap ? `<span class="file-cap">${E(nomCap(S.cap))}</span>` : ''}`
+    + (S.source === 'selection' ? `<span class="ensuite-source">Tu écoutes ta sélection. <button class="lien-bouton" data-action="source-chaine" data-source="radio">Revenir à la radio</button></span>` : '') : '';
   majGarde();
 }
-// quelques mots sur l'album, comme une petite chronique : Wikipédia d'abord, sinon ce que disent les catalogues, sinon la fiche
+// quelques mots sur le titre, sinon l'album, sinon l'artiste : en français, sans les phrases de catalogue
 function remplirChronique(m) {
-  const ecrire = t => { const p = $(`[data-chronique="${m.id}"]`); if (p && t) { p.textContent = t; p.classList.add('pret'); } };
-  const premieres = (t, n = 2) => (String(t).match(/[^.!?]+[.!?]+/g) || [t]).slice(0, n).join(' ').trim();
-  Pochettes.album(m).then(a => {
-    const repli = () => {
-      if (a) return ecrire(phraseAlbum(a));
-      Infos.artiste(m.artiste, f => ecrire(f ? premieres(f.extrait, 1) : `${m.style || 'Un morceau à part'}${m.annee ? `, ${m.annee}` : ''}.`));
-    };
-    if (!a) return repli();
-    Infos.oeuvre(a.titre || m.album || m.titre, a.artiste || m.artiste, a.type === 'single' ? 'chanson' : 'album', w => {
-      if (w && w.extrait) ecrire(premieres(w.extrait)); else repli();
-    });
-  });
+  Pochettes.album(m).then(a => Infos.chronique(m, a && a.titre, c => {
+    const p = $(`[data-chronique="${m.id}"]`);
+    if (!p || !c) return;
+    p.innerHTML = `${E(c.texte)} <a class="chronique-source" href="${E(c.url)}" target="_blank" rel="noopener">Sur ${E(c.de)}, d'après Wikipédia</a>`;
+    p.classList.add('pret');
+  }));
+}
+// « Juste la musique » : la chaîne seule, rien d'autre
+function basculerEpure(force) {
+  S.epure = typeof force === 'boolean' ? force : !S.epure;
+  memoire.ecrire('md-epure', S.epure);
+  document.body.classList.toggle('epure', S.epure);
+  const b = $('#bouton-epure');
+  b.setAttribute('aria-pressed', S.epure);
+  b.textContent = S.epure ? 'Tout afficher' : 'Juste la musique';
+  clic(1300, 0.03, 0.05);
+  majPoste();
 }
 function entrerMachine() {
   rendrePupitre();
@@ -1197,7 +1186,10 @@ function allumer() {
   setTimeout(() => clic(2600, 0.02, 0.04), 140);
   document.body.classList.add('allume');
   // le geste « Commencer » autorise le son : la chaîne démarre sur le morceau du jour
-  const m = S.source === 'radio' ? morceauDuJour() : parId[construireSuite(null, 1)[0]];
+  const jour = morceauDuJour();
+  const dejaCeJour = memoire.lire('md-jour-joue', '') === dateDuJour();
+  const m = S.source === 'radio' && !dejaCeJour && jour ? jour : parId[construireSuite(null, 1)[0]];
+  if (m === jour) memoire.ecrire('md-jour-joue', dateDuJour());
   entrerMachine();
   if (m) jouerRadio(m.id);
 }
@@ -1224,7 +1216,8 @@ const ACTIONS = {
   'source-chaine': b => choisirSource(b.dataset.source),
   'lecture': () => basculerLecture(),
   'suivant': () => radioSuivant(),
-  'retour-morceau': () => entrerMachine(),
+  'retour-morceau': () => { entrerMachine(); window.scrollTo({ top: 0, behavior: doux }); },
+  'epure': () => basculerEpure(),
   'livret': b => {
     const m = parId[S.joue];
     if (!m) return;
@@ -1289,6 +1282,7 @@ majMolettes();
 majSon();
 majGarde();
 S.suite = construireSuite(null);
+if (S.epure) { document.body.classList.add('epure'); $('#bouton-epure').setAttribute('aria-pressed', 'true'); $('#bouton-epure').textContent = 'Tout afficher'; }
 poserDisque(S.source);
 rendrePupitre();
 majAfficheur();

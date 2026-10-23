@@ -122,5 +122,36 @@ const Infos = (() => {
     trouver(`${sorte}:${norm(titre)}:${norm(Pochettes.artistePrincipal(artisteNom))}`, langue => chercherOeuvre(titre, artisteNom, sorte, langue), cb);
   }
 
-  return { artiste, oeuvre };
+  /* la petite chronique d'un morceau, en français seulement :
+     d'abord ce qu'on sait du titre, sinon de l'album, sinon de l'artiste.
+     Les phrases de catalogue (« sorti le…, contient treize titres… ») sont écartées. */
+  const CREUX = /(\b(est|était) (un|une|le|la|l')\s*(\w+(ième|ier|ière)\s+)?(album|single|chanson|titre|morceau|ep|maxi|disque|compilation|mixtape)\b|\bsorti(e|s)? (le|en|chez|sur)\b|\bparu(e)? (le|en)\b|\bcontient\b|\bcomprend\b|\bcomposé(e)? de\b|\b\d+ (titres|morceaux|pistes|chansons)\b|\blabel\b|\benregistré(e)?\b|\bproduit(e)? par\b|\bextrait de l'album\b|\bpiste\b|\bclassement\b|\bcertifié)/i;
+  const phrasesDe = t => (String(t || '').match(/[^.!?]+[.!?]+(\s|$)/g) || []).map(x => x.trim()).filter(Boolean);
+  function utile(t) {
+    const garde = phrasesDe(t).filter(p => p.length > 50 && !CREUX.test(p));
+    return garde.length ? garde.slice(0, 2).join(' ') : null;
+  }
+  function chronique(m, albumTitre, cb) {
+    const art = Pochettes.artistePrincipal(m.artiste);
+    const album = albumTitre || m.album || '';
+    const etapes = [
+      ['le titre', l => chercherOeuvre(m.titre, m.artiste, 'chanson', l), utile],
+      ['l\'album', l => album ? chercherOeuvre(album, m.artiste, 'album', l) : Promise.resolve(null), utile],
+      ['l\'artiste', l => chercherArtiste(art, l), t => phrasesDe(t).slice(0, 2).join(' ') || null],
+    ];
+    (async () => {
+      for (const [de, chercher, filtre] of etapes) {
+        const cle = `fr:${de}:${norm(de === 'l\'artiste' ? art : de === 'l\'album' ? album + '|' + art : m.titre + '|' + art)}`;
+        let f = cache[cle];
+        if (f === undefined) {
+          try { f = await chercher('fr'); cache[cle] = f || null; sauver(); } catch (e) { f = null; }
+        }
+        const texte = f && filtre(f.extrait);
+        if (texte) return cb({ texte, de, url: f.url });
+      }
+      cb(null);
+    })();
+  }
+
+  return { artiste, oeuvre, chronique };
 })();

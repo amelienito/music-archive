@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=16">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
@@ -132,6 +132,7 @@
             <div class="hifi-actions">
               <button class="pilule cd-garder" data-action="radio-garder" id="radio-garder" aria-pressed="false"><span class="led" aria-hidden="true"></span><span class="cd-garder-texte">Ajouter à ma sélection</span></button>
               <button class="pilule" data-action="radio-raconte" aria-controls="livret-machine">Plus d'infos</button>
+              <button class="pilule" data-action="epure" id="bouton-epure" aria-pressed="false">Juste la musique</button>
             </div>
             <div class="bouton-rotatif bouton-rotatif-hifi seulement-sans-ios" data-molette="volume">
               <div class="molette" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100">
@@ -155,14 +156,7 @@
             <h2 class="pupitre-titre">Oriente la suite</h2>
             <div class="caps" id="caps" role="group" aria-label="Orienter le prochain morceau"></div>
           </div>
-          <div class="a-suivre">
-            <h2 class="pupitre-titre">À suivre <span class="pupitre-aide">touche un titre pour l'écouter tout de suite</span></h2>
-            <ol class="file" id="file"></ol>
-          </div>
-          <div class="sources">
-            <h2 class="pupitre-titre">Dans la chaîne</h2>
-            <div class="sources-choix" id="sources" role="radiogroup" aria-label="Ce que la chaîne diffuse"></div>
-          </div>
+          <p class="ensuite" id="ensuite"></p>
         </div>
       </section>
       <p class="machine-source" id="machine-source" hidden></p>
@@ -241,7 +235,7 @@
   <script src="data.js?v=14"></script>
   <script src="moteur.js?v=1"></script>
   <script src="pochettes.js?v=12"></script>
-  <script src="infos.js?v=12"></script>
-  <script src="app.js?v=16"></script>
+  <script src="infos.js?v=13"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>

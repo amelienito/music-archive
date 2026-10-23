@@ -1206,3 +1206,16 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .caps::-webkit-scrollbar { display: none; }
   .cap { flex: none; }
 }
+
+/* la ligne « ensuite » : un seul titre, qu'on peut lancer tout de suite */
+.ensuite { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding-top: 16px; border-top: 1px solid var(--trait); font-size: 15px; }
+.ensuite-mot { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--encre-2); }
+.ensuite-titre { font-weight: 600; text-align: left; text-decoration: underline; text-decoration-color: var(--encre-3); text-underline-offset: 4px; }
+.ensuite-titre em { font-style: normal; font-weight: 500; color: var(--encre-2); }
+.ensuite-titre:hover { text-decoration-color: currentColor; }
+.ensuite-source { flex-basis: 100%; font-size: 14px; color: var(--encre-2); }
+.chronique-source { display: inline-block; margin-left: 4px; font-size: 13px; color: var(--encre-2); text-decoration: underline; text-decoration-color: var(--encre-3); text-underline-offset: 3px; white-space: nowrap; }
+/* « Juste la musique » : la chaîne, rien d'autre */
+body.epure .pupitre, body.epure .avis-machine, body.epure .livret-machine, body.epure .machine-source { display: none !important; }
+body.epure .ecran-machine { align-content: center; min-height: calc(100vh - 76px); }
+#bouton-epure[aria-pressed="true"] { color: var(--lcd-encre); }
