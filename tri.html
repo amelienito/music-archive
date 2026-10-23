@@ -218,6 +218,33 @@
       .frise { max-height: 140px; }
       .curseur { grid-template-columns: 56px 1fr 24px; }
     }
+    /* le mode révision : écouter et commenter, sans trier */
+    .revision-barre { display: none; gap: 10px; padding: 14px 16px; border-radius: 16px; background: var(--mur-2); box-shadow: inset 0 0 0 1.5px var(--klein); }
+    .revision-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .revision-tete b { font-family: "Unbounded", sans-serif; font-size: 15px; color: var(--klein); }
+    #rv-position { font-size: 14px; color: var(--encre-2); font-variant-numeric: tabular-nums; margin-left: 6px; }
+    .revision-nav { display: none; grid-template-columns: 1fr 2fr; gap: 12px; }
+    .v-prec { background: var(--carte); color: var(--encre); box-shadow: 0 6px 0 rgba(0,0,0,.25), inset 0 0 0 1px var(--trait); }
+    .v-suiv { background: var(--klein); color: var(--sur-klein); }
+    .revision-options { display: none; gap: 10px 18px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--encre-2); }
+    body.revision .manche, body.revision .frise-bloc, body.revision .verdicts, body.revision .options,
+    body.revision .raccourcis:not(.revision-raccourcis), body.revision #t-annuler, body.revision #deja,
+    body.revision #compteurs, body.revision #objectif { display: none !important; }
+    .revision-raccourcis { display: none; }
+    body.revision .revision-raccourcis { display: block; }
+    body.revision .revision-barre, body.revision .revision-nav { display: grid; }
+    body.revision .revision-options { display: flex; }
+    body.revision .mot textarea { min-height: 120px; font-size: 17px; }
+    body.revision .tete .sous { display: none; }
+    body.revision #ouvrir-revision { background: var(--klein); color: var(--sur-klein); }
+    .v-suiv.fin { background: var(--oui); }
+    @media (max-width: 760px) {
+      body.revision .revision-nav { position: sticky; bottom: 10px; z-index: 5; }
+      body.revision.ecrit .revision-nav { position: static; }
+      body.revision .revision-raccourcis { display: none !important; }
+      .revision-barre .filtres { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+      .revision-barre .filtre { flex: none; white-space: nowrap; }
+    }
     @media (prefers-reduced-motion: reduce) {
       .carte.entre { animation: none; }
       .carte.retour, .carte.envol { transition: none; }
@@ -240,6 +267,7 @@
       </div>
       <button class="objectif" id="objectif" title="Touche pour changer l'objectif du jour"><span id="objectif-texte"></span></button>
       <button class="bouton-menu" id="ouvrir-charger" hidden>Playlists</button>
+      <button class="bouton-menu" id="ouvrir-revision" title="Réécouter tes morceaux un par un, pour écrire ou retoucher tes commentaires">Révision</button>
       <button class="bouton-menu" id="ouvrir-revue">Revue</button>
       <button class="bascule-theme" id="theme"></button>
     </div>
@@ -267,6 +295,14 @@
       <div class="frise" id="frise" aria-hidden="true"></div>
     </div>
     <div class="fiche">
+      <div class="revision-barre" id="revision-barre">
+        <div class="revision-tete">
+          <p><b>Mode révision</b> <span id="rv-position"></span></p>
+          <button class="lien" id="rv-quitter">Quitter la révision</button>
+        </div>
+        <div class="filtres" id="rv-sources" aria-label="Quels morceaux"></div>
+        <div class="filtres" id="rv-filtres" aria-label="Lesquels"></div>
+      </div>
       <div class="manche">
         <div class="manche-segments" id="manche" aria-hidden="true"></div>
         <p class="position"><span id="position"></span><span class="choix-actuel" id="choix-actuel" hidden></span></p>
@@ -300,6 +336,15 @@
         <button id="t-avance">+30 s</button>
         <button id="t-annuler">Annuler le dernier choix</button>
       </div>
+      <div class="revision-nav" id="revision-nav">
+        <button class="v v-prec" id="rv-prec">←<small>précédent</small></button>
+        <button class="v v-suiv" id="rv-suiv">Suivant →<small>ton commentaire est enregistré</small></button>
+      </div>
+      <div class="revision-options" id="revision-options">
+        <label><input type="checkbox" id="rv-auto" checked> Enchaîner tout seul à la fin du morceau</label>
+        <button class="lien" id="rv-copier">Copier mes commentaires pour Claude</button>
+      </div>
+      <p class="raccourcis revision-raccourcis">Clavier : <kbd>→</kbd> suivant, <kbd>←</kbd> précédent, <kbd>Entrée</kbd> écrire, <kbd>Échap</kbd> sortir du commentaire, <kbd>C</kbd> coup de cœur, <kbd>Espace</kbd> pause, <kbd>↑</kbd> +30 s.</p>
       <div class="verdicts">
         <button class="v v-non" id="v-non">Non<small>il sort</small></button>
         <button class="v-coeur" id="v-coeur" aria-pressed="false" aria-label="Coup de cœur">☆</button>
@@ -378,6 +423,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="data.js?v=15"></script>
-<script src="tri.js?v=16"></script>
+<script src="tri.js?v=17"></script>
 </body>
 </html>

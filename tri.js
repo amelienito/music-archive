@@ -70,6 +70,7 @@ let toastMin = null;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('visible'); clearTimeout(toastMin); toastMin = setTimeout(() => el.classList.remove('visible'), 2800); }
 
 /* ─────────── lecteur ─────────── */
+let R = { actif: false }; // le mode révision (rempli plus bas)
 let lecteur = null, pret = false, attenteCue = null, courant = null, saut = false, debutFiche = 0;
 window.onYouTubeIframeAPIReady = () => {
   lecteur = new YT.Player('yt', {
@@ -81,7 +82,7 @@ window.onYouTubeIframeAPIReady = () => {
         if (e.data === YT.PlayerState.CUED && attenteCue) { const f = attenteCue; attenteCue = null; f(); }
         if (e.data === YT.PlayerState.PLAYING) { lireInfos(); $('#t-lecture').textContent = 'Pause'; }
         if (e.data === YT.PlayerState.PAUSED) $('#t-lecture').textContent = 'Lecture';
-        if (e.data === YT.PlayerState.ENDED) $('#t-lecture').textContent = 'Relancer';
+        if (e.data === YT.PlayerState.ENDED) { $('#t-lecture').textContent = 'Relancer'; if (R.actif && $('#rv-auto').checked) revisionSuivant(); }
       },
       onError: () => {
         if (!courant) return;
@@ -357,7 +358,7 @@ function majManche(juges) {
 let saveNote = null;
 function majMot() {
   const n = $('#note');
-  n.value = T.notes[courant] !== undefined ? T.notes[courant] : (T.active === SITE ? (NOTE_SITE[courant] || '') : '');
+  n.value = T.notes[courant] !== undefined ? T.notes[courant] : (NOTE_SITE[courant] || '');
   ajusterNote();
   majCoeur();
   const r = T.ressentis[courant];
@@ -379,9 +380,9 @@ $('#note').addEventListener('input', () => {
   if (!courant) return;
   const v = $('#note').value;
   T.notes[courant] = v;                    // vide aussi : on garde « j'ai effacé » face au texte du site
-  if (!v.trim() && !(T.active === SITE && NOTE_SITE[courant])) delete T.notes[courant];
+  if (!v.trim() && !NOTE_SITE[courant]) delete T.notes[courant];
   ajusterNote();
-  clearTimeout(saveNote); saveNote = setTimeout(() => { sauver(); rendreFrise(); }, 350);
+  clearTimeout(saveNote); saveNote = setTimeout(() => { sauver(); rendreFrise(); if (R.actif) majRevisionBarre(); }, 350);
 });
 // pendant qu'on écrit, les gros boutons ne masquent plus le champ (clavier du téléphone)
 $('#note').addEventListener('focus', () => document.body.classList.add('ecrit'));
@@ -694,7 +695,7 @@ function rendreRevue(garder) {
   $('#plus-revue').hidden = ids.length <= revueMax;
   cible.innerHTML = montres.length ? montres.map(id => {
     const m = nomDe(id), d = l.decisions[id];
-    const note = T.notes[id] !== undefined ? T.notes[id] : (T.active === SITE ? NOTE_SITE[id] || '' : '');
+    const note = T.notes[id] !== undefined ? T.notes[id] : (NOTE_SITE[id] || '');
     return `<li data-id="${id}">
       <div class="r-nom"><b>${esc(m.titre)}</b><span>${esc(m.artiste)}</span></div>
       <div class="r-actions">
@@ -742,7 +743,7 @@ $('#revue').addEventListener('input', e => {
   const t = e.target.closest('[data-note]'); if (!t) return;
   const id = t.closest('[data-id]').dataset.id;
   T.notes[id] = t.value;
-  if (!t.value.trim() && !(T.active === SITE && NOTE_SITE[id])) delete T.notes[id];
+  if (!t.value.trim() && !NOTE_SITE[id]) delete T.notes[id];
   clearTimeout(saveNote); saveNote = setTimeout(sauver, 350);
 });
 
@@ -843,6 +844,15 @@ document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (!$('#voile').hidden) return;
   const k = e.key;
+  if (R.actif) {
+    if (k === 'ArrowRight') { e.preventDefault(); revisionSuivant(); }
+    else if (k === 'ArrowLeft') { e.preventDefault(); revisionPrecedent(); }
+    else if (k === 'Enter') { e.preventDefault(); const n = $('#note'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }
+    else if (k === 'c' || k === 'C') { e.preventDefault(); basculerCoeur(); majRevisionBarre(); }
+    else if (k === ' ') { e.preventDefault(); $('#t-lecture').click(); }
+    else if (k === 'ArrowUp') { e.preventDefault(); $('#t-avance').click(); }
+    return;
+  }
   if (!$('#bilan').hidden) { if (k === 'Enter' && e.target.tagName !== 'LI') { e.preventDefault(); $('#bilan-suite').click(); } return; }
   if ($('#table').hidden) return;
   if (k === 'ArrowRight' || k === 'o' || k === 'O') { e.preventDefault(); decider('oui'); }
@@ -907,6 +917,155 @@ try { $('#opt-hasard').checked = localStorage.getItem('md-tri-hasard') === '1'; 
 $('#opt-hasard').addEventListener('change', () => { try { localStorage.setItem('md-tri-hasard', $('#opt-hasard').checked ? '1' : '0'); } catch (e) {} chargerTout(); });
 // une playlist marquée « finie » à 200 morceaux (avant le miroir) : on retente la suite à la prochaine reprise
 Object.values(T.listes).forEach(l => { if (l.list && l.ids.length >= 199 && l.ids.length <= 200 && l.complet && !l.total) l.complet = false; });
+/* ─────────── le mode révision : réécouter ses morceaux un par un et les commenter ───────────
+   Les morceaux du site et tes « oui » de toutes les playlists. Pas de vert ni de rouge ici :
+   on écoute, on écrit, on passe au suivant. */
+const RV_SOURCES = [['tout', 'Tout'], ['site', 'Le site'], ['oui', 'Mes oui']];
+const RV_FILTRES = [['sans', 'Sans commentaire'], ['avec', 'Avec commentaire'], ['coeur', '★ Coups de cœur'], ['tous', 'Tous']];
+Object.assign(R, (() => { try { return JSON.parse(localStorage.getItem('md-tri-revision')) || {}; } catch (e) { return {}; } })(), { actif: false, file: [], i: 0, infos: {} });
+R.source = R.source || 'tout'; R.filtre = R.filtre || 'sans';
+const sauverR = () => { try { localStorage.setItem('md-tri-revision', JSON.stringify({ source: R.source, filtre: R.filtre, dernier: R.dernier || null })); } catch (e) {} };
+const noteDe = id => T.notes[id] !== undefined ? T.notes[id] : (NOTE_SITE[id] || '');
+function poolRevision(source) {
+  const infos = {}, ids = [];
+  const ajoute = (id, i) => { if (!id || infos[id]) return; infos[id] = i; ids.push(id); };
+  if (source !== 'oui') {
+    const sl = T.listes[SITE];
+    MORC.forEach(m => { const id = idDe(m.lien); if (id && !(sl && sl.decisions[id] === 'non')) ajoute(id, { titre: m.titre, artiste: m.artiste, site: true }); });
+  }
+  if (source !== 'site') {
+    Object.entries(T.listes).forEach(([k, l]) => {
+      if (k === SITE) return;
+      l.ids.forEach(id => { if (l.decisions[id] === 'oui') ajoute(id, l.infos[id] || {}); });
+    });
+  }
+  return { ids, infos };
+}
+function fileRevision() {
+  const { ids, infos } = poolRevision(R.source);
+  R.infos = infos;
+  return ids.filter(id => R.filtre === 'sans' ? !aplati(noteDe(id)) : R.filtre === 'avec' ? !!aplati(noteDe(id)) : R.filtre === 'coeur' ? !!T.coeurs[id] : true);
+}
+function majRevisionBarre() {
+  const compte = src => poolRevision(src).ids.length;
+  $('#rv-sources').innerHTML = RV_SOURCES.map(([k, nom]) => `<button class="filtre" data-rv-source="${k}" aria-pressed="${R.source === k}">${nom} (${compte(k)})</button>`).join('');
+  $('#rv-filtres').innerHTML = RV_FILTRES.map(([k, nom]) => `<button class="filtre" data-rv-filtre="${k}" aria-pressed="${R.filtre === k}">${nom}</button>`).join('');
+  const n = R.file.length;
+  $('#rv-position').textContent = n && R.i < n ? `${R.i + 1} sur ${n}` : '';
+  const dernier = R.i >= n - 1;
+  $('#rv-suiv').classList.toggle('fin', dernier);
+  $('#rv-suiv').firstChild.textContent = dernier ? 'Terminer ' : 'Suivant → ';
+  $('#rv-prec').disabled = R.i <= 0;
+}
+function entrerRevision() {
+  if (!pret) return toast('Le lecteur se prépare, une seconde.');
+  R.actif = true;
+  R.file = fileRevision();
+  const k = R.file.indexOf(R.dernier);
+  R.i = k >= 0 ? k : 0;
+  document.body.classList.add('revision');
+  replierCharger(true);
+  $('#bilan').hidden = true; $('#fin').hidden = true; $('#export').hidden = true; $('#table').hidden = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (!R.file.length) return videRevision();
+  ouvrirRevision();
+}
+function ouvrirRevision() {
+  const id = R.file[R.i];
+  if (!id) return videRevision();
+  courant = id; R.dernier = id; sauverR();
+  const i = R.infos[id] || {};
+  lecteur.loadVideoById({ videoId: id, startSeconds: 0 });
+  $('#titre').textContent = i.titre || i.brut || id;
+  $('#artiste').textContent = i.artiste || '';
+  $('#chaine').hidden = true;
+  $('#refus').hidden = !i.refus;
+  $('#lien-yt').href = `https://www.youtube.com/watch?v=${id}`;
+  const c = $('#carte'); c.classList.remove('entre'); void c.offsetWidth; c.classList.add('entre');
+  majMot();
+  majRevisionBarre();
+}
+function videRevision() {
+  courant = null;
+  try { lecteur.stopVideo(); } catch (e) {}
+  $('#titre').textContent = R.filtre === 'sans' ? 'Tout est commenté ici.' : 'Rien ici pour l\'instant.';
+  $('#artiste').textContent = 'Choisis un autre filtre au-dessus.';
+  $('#refus').hidden = true;
+  $('#note').value = '';
+  majRevisionBarre();
+}
+function revisionSuivant() {
+  if (!R.actif) return;
+  clearTimeout(saveNote); sauver();
+  if (R.i >= R.file.length - 1) return finRevision();
+  R.i++; ouvrirRevision();
+}
+function revisionPrecedent() {
+  if (!R.actif || R.i <= 0) return;
+  clearTimeout(saveNote); sauver();
+  R.i = Math.min(R.i, R.file.length) - 1; ouvrirRevision();
+}
+function finRevision() {
+  courant = null;
+  try { lecteur.stopVideo(); } catch (e) {}
+  const n = changementsRevision().length;
+  $('#titre').textContent = 'Révision terminée.';
+  $('#artiste').textContent = n ? `${n} morceau${n > 1 ? 'x' : ''} avec un commentaire nouveau ou retouché. Touche « Copier mes commentaires pour Claude », puis colle-le dans la conversation.` : 'Rien de changé cette fois-ci.';
+  $('#note').value = '';
+  R.dernier = null; sauverR();
+  R.i = R.file.length;
+  majRevisionBarre();
+}
+function quitterRevision() {
+  clearTimeout(saveNote); sauver();
+  R.actif = false;
+  document.body.classList.remove('revision');
+  try { lecteur.pauseVideo(); } catch (e) {}
+  if (L()) ouvrirTable();
+  else { courant = null; $('#table').hidden = true; replierCharger(false); }
+}
+// ce qui a changé : commentaire écrit ou retouché, coup de cœur, ressenti
+function changementsRevision() {
+  const { ids, infos } = poolRevision('tout');
+  return ids.filter(id => aplati(noteDe(id)) !== aplati(NOTE_SITE[id]) || T.coeurs[id] || T.ressentis[id]).map(id => ({ id, ...infos[id] }));
+}
+function texteRevision() {
+  const l = changementsRevision();
+  return `Commentaires de la révision (${l.length}) :\n` + l.map(m => {
+    const n = aplati(noteDe(m.id));
+    const p = [n ? `note : « ${n} »` : (NOTE_SITE[m.id] ? 'note effacée' : '')];
+    if (T.coeurs[m.id]) p.push('★ coup de cœur');
+    const r = T.ressentis[m.id]; if (r) p.push(`énergie ${r.energie}, étrange ${r.etrange}, danse ${r.danse}`);
+    return `${m.artiste || '?'} | ${m.titre || m.brut || '?'} | https://music.youtube.com/watch?v=${m.id}${m.site ? '' : ' | (pas encore sur le site)'} | ${p.filter(Boolean).join(' | ')}`;
+  }).join('\n');
+}
+$('#ouvrir-revision').addEventListener('click', () => R.actif ? quitterRevision() : entrerRevision());
+$('#rv-quitter').addEventListener('click', quitterRevision);
+$('#rv-suiv').addEventListener('click', revisionSuivant);
+$('#rv-prec').addEventListener('click', revisionPrecedent);
+$('#coeur').addEventListener('click', () => { if (R.actif) majRevisionBarre(); });
+$('#v-coeur').addEventListener('click', () => { if (R.actif) majRevisionBarre(); });
+$('#rv-auto').checked = (() => { try { return localStorage.getItem('md-tri-rv-auto') !== '0'; } catch (e) { return true; } })();
+$('#rv-auto').addEventListener('change', () => { try { localStorage.setItem('md-tri-rv-auto', $('#rv-auto').checked ? '1' : '0'); } catch (e) {} });
+$('#revision-barre').addEventListener('click', e => {
+  const s = e.target.closest('[data-rv-source]'), f = e.target.closest('[data-rv-filtre]');
+  if (!s && !f) return;
+  if (s) R.source = s.dataset.rvSource;
+  if (f) R.filtre = f.dataset.rvFiltre;
+  sauverR();
+  const garde = courant;
+  R.file = fileRevision();
+  const k = R.file.indexOf(garde);
+  if (k >= 0) { R.i = k; majRevisionBarre(); }       // le morceau en cours reste : on ne coupe pas l'écoute
+  else { R.i = 0; R.file.length ? ouvrirRevision() : videRevision(); }
+});
+$('#rv-copier').addEventListener('click', async () => {
+  if (!changementsRevision().length) return toast('Aucun commentaire nouveau pour l\'instant.');
+  const t = texteRevision();
+  try { await navigator.clipboard.writeText(t); toast('Copié. Colle-le dans la conversation avec Claude.'); }
+  catch (e) { telecharger('music-discovery-commentaires.txt', t); toast('Copie impossible : le fichier est téléchargé à la place.'); }
+});
+
 // reprise : ce qui est déjà en mémoire
 rendreListes();
 majObjectif();
