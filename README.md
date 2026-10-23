@@ -2,7 +2,7 @@
 
 J'ai fouillé pendant des années. Fais-toi une compil avec ce que j'ai trouvé.
 
-Site en ligne : https://amelienito.github.io/music-archive/
+Site en ligne : https://amelienito.github.io/music-discovery/
 
 ---
 
@@ -23,7 +23,7 @@ Trois étapes, comme chez le disquaire : **fouiller les bacs**, **graver sa comp
 
 ## La table de tri
 
-**https://amelienito.github.io/music-archive/tri.html**
+**https://amelienito.github.io/music-discovery/tri.html**
 
 1. Colle le lien d'une playlist YouTube ou YouTube Music (ou des liens de morceaux, un par ligne), clique sur Charger. Le formulaire se replie pendant le tri ; le bouton **Playlists** le rouvre.
 2. Chaque morceau se lance (à 0:40 pour sauter l'intro, décochable). Bouton **vert = oui**, il entre sur le site. **Rouge = non**, il sort. « Pas sûr » le met de côté pour plus tard. On peut aussi **faire glisser la carte** du morceau : à droite pour oui, à gauche pour non.
@@ -79,7 +79,7 @@ Dans `data.js`, copie un bloc, colle-le avant le `];` final, remplis :
 
 ## Vérifier que tous les morceaux se lisent
 
-Ouvre **https://amelienito.github.io/music-archive/verif.html** et clique sur « Lancer la vérification ». La page teste chaque morceau et te dit lesquels refusent d'être lus sur un autre site, avec un lien pour chercher une autre version. Remplace le lien dans `data.js`, c'est tout.
+Ouvre **https://amelienito.github.io/music-discovery/verif.html** et clique sur « Lancer la vérification ». La page teste chaque morceau et te dit lesquels refusent d'être lus sur un autre site, avec un lien pour chercher une autre version. Remplace le lien dans `data.js`, c'est tout.
 
 ## Dans les clous
 
