@@ -1712,3 +1712,7 @@ body.sans-selection .bouton-trouvailles { display: none; }
   .pupitre-tete .pupitre-aide { display: none; }
   .pupitre { gap: 14px; }
 }
+.pupitre-tete { display: grid; gap: 4px; }
+.pupitre-consigne { font-size: 15px; color: var(--encre); }
+.pupitre-tete .pupitre-aide { font-size: 13px; color: var(--encre-2); }
+@media (max-width: 640px) { .pupitre-tete .pupitre-aide { display: block; } .pupitre-consigne { font-size: 14px; } }

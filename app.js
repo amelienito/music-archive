@@ -812,7 +812,7 @@ const SOURCES = {
   selection: { nom: 'Ma sélection', sous: 'Ce que tu as gardé' },
 };
 const CAPS = ['calme', 'energique', 'dansant', 'pose', 'connu', 'confidentiel', 'cote'];
-const nomCap = d => d === 'connu' ? 'Plus mainstream' : d === 'pose' ? 'Moins dansant' : (Moteur.DIRECTIONS[d] || {}).etiquette || '';
+const nomCap = d => d === 'connu' ? 'Plus mainstream' : d === 'pose' ? 'Moins de groove' : d === 'dansant' ? 'Plus de groove' : (Moteur.DIRECTIONS[d] || {}).etiquette || '';
 function poolSource() {
   let p;
   if (S.source === 'selection') p = S.gardes.map(id => parId[id]).filter(Boolean);
@@ -1079,7 +1079,7 @@ function bidouiller(b) {
    le rond, le suivant. On pousse d'un côté ou de l'autre, la suite suit. */
 const AXES = [
   ['Énergie', 'calme', 'energique', 'energie'],
-  ['Danse', 'pose', 'dansant', 'danse'],
+  ['Groove', 'pose', 'dansant', 'danse'],
   ['Notoriété', 'connu', 'confidentiel', 'etrange'],
 ];
 const POUCE = '<svg class="pouce" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.7a2 2 0 0 0-2 1.7l-1.4 9A2 2 0 0 0 4.3 15H10Zm7-13h2.7A2.3 2.3 0 0 1 22 4.3v6.4a2.3 2.3 0 0 1-2.3 2.3H17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -1112,7 +1112,6 @@ function rendrePupitre() {
     </div>`;
   }).join('');
   $('#autres').innerHTML = `
-    <button class="autre-choix" data-action="cap" data-dir="cote" aria-pressed="${!!S.cote}"${m ? '' : ' disabled'}><span aria-hidden="true">↯</span> Un pas de côté</button>
     <button class="autre-choix" data-action="pas-aime"${m ? '' : ' disabled'} title="On passe au suivant, et on s'éloigne de ce genre-là">${POUCE} Pas trop comme ça</button>`;
   const pe = $('#pente');
   pe.hidden = !S.pente;
