@@ -1040,7 +1040,7 @@ function orienter(dir) {
   majAfficheur();
   const p = parId[S.suite[0]];
   if (bout) toast(`On est déjà tout au bout de ce côté-là : la suite reste à ce niveau.`, 3600);
-  else if (p && dir !== 'libre') toast(`${msg} : ensuite, ${indice(p).toLowerCase()}.`);
+  else if (p && dir !== 'libre') toast(`${msg} : ensuite, ${indice(p).charAt(0).toLowerCase() + indice(p).slice(1)}.`);
   else if (msg) toast(msg);
   clic(1500, 0.03, 0.06);
 }
@@ -1098,19 +1098,14 @@ function rendrePupitre() {
     const nom = nomCap(d) + (actif && S.pente.force > 1 ? ` ×${S.pente.force}` : '');
     return `<button class="rail-bout rail-${cote}${dispo ? '' : ' a-bout'}" data-action="cap" data-dir="${d}" aria-pressed="${!!actif}"${m ? '' : ' disabled'}>${cote === 'g' ? '<span aria-hidden="true">←</span> ' : ''}${E(nom)}${cote === 'd' ? ' <span aria-hidden="true">→</span>' : ''}</button>`;
   };
-  $('#rails').innerHTML = AXES.map(([nom, g, d, cle]) => {
-    const pousse = S.pente && (S.pente.dir === g ? 'g' : S.pente.dir === d ? 'd' : '');
-    return `<div class="rail-ligne">
-      ${bout(g, 'g')}
-      <div class="rail${pousse ? ' pousse-' + pousse : ''}" data-g="${g}" data-d="${d}" title="${nom} : touche un côté pour pousser la suite">
-        <span class="rail-nom">${nom}</span>
-        <span class="rail-piste"><span class="rail-ensuite" style="left:${position(p, cle)}%"></span><span class="rail-actuel" style="left:${position(m, cle)}%"></span></span>
-      </div>
-      ${bout(d, 'd')}
+  $('#rails').innerHTML = AXES.map(([nom, g, d]) => `<div class="reglage">
+      <span class="reglage-nom">${nom}</span>
+      <div class="reglage-paire">${bout(g, 'g')}${bout(d, 'd')}</div>
+    </div>`).join('') + `<div class="reglage">
+      <span class="reglage-nom">Ce morceau</span>
+      <button class="rail-bout rail-passer" data-action="pas-aime"${m ? '' : ' disabled'} title="On passe au suivant, et on s'éloigne de ce genre-là">${POUCE} Pas trop comme ça</button>
     </div>`;
-  }).join('');
-  $('#autres').innerHTML = `
-    <button class="autre-choix" data-action="pas-aime"${m ? '' : ' disabled'} title="On passe au suivant, et on s'éloigne de ce genre-là">${POUCE} Pas trop comme ça</button>`;
+  $('#autres').innerHTML = '';
   const pe = $('#pente');
   pe.hidden = !S.pente;
   if (S.pente) pe.innerHTML = `En ce moment : <b>${E(nomCap(S.pente.dir))}${S.pente.force > 1 ? ` ×${S.pente.force}` : ''}</b>, encore ${Math.max(1, 6 - S.pente.joues)} morceau${6 - S.pente.joues > 1 ? 'x' : ''}. Rappuie pour aller plus loin. <button class="lien-bouton" data-action="cap" data-dir="libre">Laisser filer</button>`;
@@ -1118,13 +1113,6 @@ function rendrePupitre() {
   majPostIt(m);
   majGarde();
 }
-// toucher la réglette elle-même : le côté gauche ou droit pousse dans ce sens
-document.addEventListener('click', e => {
-  const r = e.target.closest('.rail');
-  if (!r || e.target.closest('button')) return;
-  const b = r.getBoundingClientRect();
-  orienter(e.clientX < b.left + b.width / 2 ? r.dataset.g : r.dataset.d);
-});
 // ton mot sur le morceau : un post-it collé sur la chaîne, qui arrive avec le morceau
 function majPostIt(m) {
   const el = $('#post-it');
