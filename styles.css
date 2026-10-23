@@ -1217,7 +1217,7 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 .ensuite-source { flex-basis: 100%; font-size: 14px; color: var(--encre-2); }
 .chronique-source { display: inline-block; margin-left: 4px; font-size: 13px; color: var(--encre-2); text-decoration: underline; text-decoration-color: var(--encre-3); text-underline-offset: 3px; white-space: nowrap; }
 /* « Juste la musique » : la chaîne, rien d'autre */
-body.epure .pupitre, body.epure .avis-machine, body.epure .livret-machine, body.epure .machine-source { display: none !important; }
+body.epure .avis-machine, body.epure .livret-machine, body.epure .machine-source, body.epure .trappe, body.epure .lien-infos, body.epure .maintenant-chronique { display: none !important; }
 body.epure .ecran-machine { align-content: center; min-height: calc(100vh - 76px); }
 #bouton-epure[aria-pressed="true"] { box-shadow: inset 0 2px 5px rgba(0,0,0,.25); }
 
@@ -1474,4 +1474,84 @@ body.grilles .hp-grille { transform: none; }
 @media (max-width: 760px) {
   .selecteur-source { width: 100%; }
   .selecteur-source button { flex: 1; justify-content: center; }
+}
+
+/* ═══════════════════════════════ LA CHAÎNE, VERSION RANGÉE ═══════════════════════════════
+   Un afficheur au choix (le disque qui tourne avec son étiquette, ou l'écran LCD), la vidéo
+   à côté, les commandes en dessous. Puis un seul bloc : ton avis, ton mot, et la suite. */
+body .hifi .hifi-corps { grid-template-columns: minmax(0, 1fr); grid-template-areas: "haut" "afficheur" "commandes" "trappe"; }
+body.video-machine .hifi .hifi-corps { grid-template-columns: minmax(0, 1fr) minmax(0, 400px); grid-template-areas: "haut haut" "afficheur ecran" "commandes commandes" "trappe trappe"; }
+body .hifi .emplacement-cd { grid-area: ecran; width: 100%; height: auto; aspect-ratio: 16 / 9; min-height: 200px; align-self: center; justify-self: stretch; }
+.trappe { grid-area: trappe; }
+.afficheur { grid-area: afficheur; display: grid; min-width: 0; align-self: stretch; }
+.afficheur > .tiroir, .afficheur > .lcd { grid-area: auto; }
+body[data-affichage="disque"] .afficheur { grid-template-columns: auto minmax(0, 1fr); gap: clamp(14px, 2vw, 24px); align-items: center; }
+body[data-affichage="disque"] .afficheur > .lcd { display: none; }
+body[data-affichage="ecran"] .afficheur > .tiroir, body[data-affichage="ecran"] .afficheur > .etiquette { display: none; }
+.afficheur > .tiroir { width: clamp(150px, 17vw, 225px); align-self: center; }
+.afficheur > .lcd { min-height: 200px; }
+/* l'étiquette imprimée sur la façade, à côté du disque */
+.etiquette { display: grid; gap: 6px; align-content: center; min-width: 0; color: var(--hifi-encre); }
+.etiquette-haut { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; opacity: .55; font-variant-numeric: tabular-nums; }
+.etiquette-titre { font-family: var(--display); font-weight: var(--display-poids, 700); letter-spacing: var(--display-interlettre, -0.02em); font-size: clamp(1.3rem, 2.1vw, 2rem); line-height: 1.06; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-wrap: balance; }
+.etiquette-artiste { font-size: clamp(.95rem, 1.2vw, 1.1rem); font-weight: 500; opacity: .8; overflow-wrap: anywhere; }
+.etiquette-ensuite { font-size: 13px; opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
+/* le choix d'affichage, en haut de la façade */
+.choix-affichage { margin-left: auto; display: inline-flex; padding: 3px; border-radius: 9px; background: var(--hifi-creux); box-shadow: inset 0 1px 3px rgba(0,0,0,.5); }
+.choix-affichage button { min-height: 28px; padding: 0 11px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #9a9da5; transition: background-color .15s, color .15s; }
+.choix-affichage button[aria-checked="true"] { background: linear-gradient(#4a4d55, #34363c); color: var(--lcd-encre); text-shadow: 0 0 6px var(--lcd-halo); }
+.hifi-haut .hifi-veille { margin-left: 10px; }
+/* le volume : un curseur, comme une table de mixage */
+.fader { display: grid; justify-items: center; gap: 4px; margin-left: auto; }
+.fader input { -webkit-appearance: none; appearance: none; width: 150px; height: 28px; background: transparent; cursor: pointer; --v: 60%; }
+.fader input::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--lcd-encre) var(--v), var(--hifi-creux) var(--v)); box-shadow: inset 0 1px 2px rgba(0,0,0,.5); }
+.fader input::-moz-range-track { height: 6px; border-radius: 3px; background: var(--hifi-creux); }
+.fader input::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--lcd-encre); }
+.fader input::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 28px; margin-top: -11px; border-radius: 4px; background: repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 1px, transparent 1px 3px), linear-gradient(#f3f4f6, #b9bdc4); box-shadow: 0 2px 5px rgba(0,0,0,.45), inset 0 1px 0 #fff; }
+.fader input::-moz-range-thumb { width: 18px; height: 28px; border: 0; border-radius: 4px; background: linear-gradient(#f3f4f6, #b9bdc4); box-shadow: 0 2px 5px rgba(0,0,0,.45); }
+.fader-nom { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--hifi-encre); opacity: .6; }
+.ios .fader { display: none; }
+.pilule-coeur, body.epure .pilule-coeur { display: inline-flex; }
+/* le tiroir ouvert à la main : on voit le disque arrêté */
+.tiroir.ouvert .disque-tiroir { animation-play-state: paused; }
+
+/* le pupitre : un seul bloc */
+.pupitre {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: "onglets onglets" "maintenant orienter";
+  gap: 18px clamp(22px, 3vw, 40px); padding: clamp(18px, 2.2vw, 26px); border-radius: var(--rayon-objet); background: var(--fond-2); box-shadow: var(--relief-fort);
+}
+.pupitre-onglets { grid-area: onglets; display: flex; gap: 6px; padding-bottom: 14px; border-bottom: 1px solid var(--trait); }
+.pupitre-onglets button { min-height: 38px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 15px; color: var(--encre-2); transition: background-color .15s, color .15s; }
+.pupitre-onglets button b { font-size: 12px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: var(--trait); color: var(--encre); }
+.pupitre-onglets button[aria-selected="true"] { background: var(--encre); color: var(--fond); }
+.pupitre-onglets button[aria-selected="true"] b { background: rgba(255,255,255,.2); color: inherit; }
+.pupitre .maintenant { grid-area: maintenant; display: block; padding: 0; background: none; box-shadow: none; border-radius: 0; animation: none; }
+.pupitre .maintenant-texte { display: grid; gap: 8px; justify-items: start; }
+.maintenant-qui { font-size: 15px; color: var(--encre-2); }
+.maintenant-qui b { color: var(--encre); font-weight: 600; }
+.pupitre .maintenant-note { font-size: clamp(1.15rem, 1.6vw, 1.35rem); line-height: 1.4; margin-top: 2px; }
+.pupitre .orienter { grid-area: orienter; display: grid; gap: 12px; align-content: start; }
+.pupitre .pupitre-titre { margin-bottom: 0; }
+.pupitre .ensuite { padding-top: 12px; }
+.cap.a-bout { opacity: .55; }
+body.epure .ecran-machine { min-height: 0; align-content: start; }
+/* fermer, partout */
+.touche-fermer { font-size: 22px; line-height: 1; }
+.livret-machine { position: relative; }
+.livret-fermer { position: absolute; top: 18px; right: 0; width: 40px; height: 40px; border-radius: 50%; font-size: 22px; line-height: 1; background: var(--fond-2); box-shadow: var(--relief); }
+
+@media (max-width: 1100px) {
+  body .hifi .hifi-corps, body.video-machine .hifi .hifi-corps { grid-template-columns: minmax(0, 1fr); grid-template-areas: "haut" "afficheur" "ecran" "commandes" "trappe"; }
+  body.video-machine .hifi .hifi-commandes { flex-direction: row; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--hifi-trait); padding-top: 14px; }
+}
+@media (max-width: 760px) {
+  .afficheur > .tiroir { width: 104px; }
+  .etiquette-titre { font-size: 1.2rem; }
+  .etiquette-ensuite { display: none; }
+  .fader { flex: 1; margin-left: 0; }
+  .fader input { width: 100%; }
+  .hifi-modele, .hifi-haut .hifi-veille { display: none; }
+  .pupitre { grid-template-columns: minmax(0, 1fr); grid-template-areas: "onglets" "maintenant" "orienter"; padding: 16px; }
+  .pupitre-onglets button { flex: 1; padding: 0 10px; }
+  .pupitre .maintenant-style, .pupitre .maintenant-qui { grid-column: auto; }
 }

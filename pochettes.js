@@ -14,7 +14,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const Pochettes = (() => {
-  const CLE = 'md-pochettes-v9';
+  const CLE = 'md-pochettes-v10';
   const CLE_ALBUMS = 'md-albums-v3';
   const lire = cle => { try { return JSON.parse(localStorage.getItem(cle)) || {}; } catch (e) { return {}; } };
   let cache = lire(CLE);
@@ -318,7 +318,11 @@ const Pochettes = (() => {
       const m = file.shift();
       enCours++;
       chercher(m)
-        .then(r => { cache[m.id] = r; sauver(); })
+        .then(r => {
+          // un morceau dont l'extrait de 30 s n'est pas la bonne version : on n'en propose pas
+          if (r && m.sansExtrait) Object.assign(r, { previewDz: null, dzId: null, previewApple: null });
+          cache[m.id] = r; sauver();
+        })
         .catch(() => { /* on retentera à la prochaine visite */ })
         .finally(() => {
           enCours--;
