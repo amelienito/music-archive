@@ -86,10 +86,10 @@ const S = {
   epure: memoire.lire('md-epure', false),
   pente: null,            // une direction qui tient : { dir, force, neuf, vise, joues }
   cote: false,            // « un pas de côté », pour le prochain morceau seulement
-  devine: memoire.lire('md-devine', false),       // le petit jeu « devine l'époque »
+  devine: memoire.lire('md-devine-v2', true),     // de temps en temps, deviner l'époque du morceau
+  reprise: memoire.lire('md-reprise', {}),        // où on en était dans chaque source
   score: memoire.lire('md-score', { bons: 0, total: 0 }),
-  devoile: null,          // la suite mystère dévoilée
-  fidget: Object.assign({ lcd: 'origine', eq: 'barres', vitesse: '33', loudness: false }, memoire.lire('md-fidget', {})),
+  fidget: Object.assign({ lcd: 'origine', eq: 'barres', vitesse: '33', loudness: false, dimmer: '3', lumieres: 'tempo', grilles: false, bip: true }, memoire.lire('md-fidget', {})),
   demo: false,
   aime: new Set(memoire.lire('md-aime', [])),
   aimePas: new Set(memoire.lire('md-aime-pas', [])),
@@ -120,6 +120,7 @@ function audioCtx() {
   return ctxAudio;
 }
 function clic(freq = 1800, duree = 0.035, volume = 0.05) {
+  if (S.fidget && S.fidget.bip === false) return;
   const c = audioCtx(); if (!c) return;
   try {
     const t = c.currentTime, o = c.createOscillator(), g = c.createGain();
@@ -253,19 +254,23 @@ function basculerGarde(id) {
   let ajoute = false;
   if (estGarde(id)) {
     S.gardes = S.gardes.filter(x => x !== id);
+    S.aime.delete(id);
     toast('Retiré de ta sélection.');
   } else {
     ajoute = true;
     S.gardes.unshift(id);
+    S.aimePas.delete(id);
     const n = S.gardes.length;
-    toast(n === 1 ? 'Ajouté à ta sélection. Tu la retrouves en haut, et dans la chaîne.' : `Ajouté à ta sélection (${n}).`, n === 1 ? 4200 : 2400);
+    toast(n === 1 ? 'Noté ♥ Il est dans ta sélection, et la suite va dans ce sens.' : `Noté ♥ Dans ta sélection (${n}).`, n === 1 ? 4200 : 2400);
     clic(900, 0.08, 0.06);
     const b = $('.bouton-trouvailles'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
   }
-  memoire.ecrire('md-gardes', S.gardes);
-  majGarde();
   if (ajoute) S.aime.add(id);
-  rendrePupitre();
+  memoire.ecrire('md-gardes', S.gardes);
+  memoire.ecrire('md-aime', [...S.aime]); memoire.ecrire('md-aime-pas', [...S.aimePas]);
+  majGarde();
+  if (S.source === 'selection' && !S.gardes.length) { choisirSource('radio'); return; }
+  if (S.joue) rafraichirSuite(); else rendrePupitre();
   if (!$('#bac').hidden) rendreBac();
 }
 // tous les boutons Garder de la page se mettent à jour d'un coup
@@ -282,10 +287,10 @@ function majGarde() {
   pg.classList.toggle('est-garde', !!gj); pg.setAttribute('aria-pressed', !!gj);
   pg.setAttribute('aria-label', gj ? 'Retirer de ma sélection' : 'Ajouter à ma sélection');
   const rg = $('#radio-garder');
-  const idRadio = S.joue;
-  const gr = idRadio && estGarde(idRadio);
-  rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr);
-  $('.cd-garder-texte', rg).textContent = gr ? 'Dans ma sélection' : 'Ajouter à ma sélection';
+  const gr = S.joue && estGarde(S.joue);
+  if (rg) { rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr); }
+  $$('.avis-aime').forEach(a => { a.classList.toggle('actif', !!gr); a.setAttribute('aria-pressed', !!gr); const t = $('.avis-aime-texte', a); if (t) t.textContent = gr ? 'Dans ma sélection' : 'Ça, j\'aime bien'; });
+  majSource();
 }
 
 // « Philly soul, années 70 » : de quoi choisir sans avoir à écouter
@@ -424,10 +429,11 @@ function remplirAlbum(el, m) {
       const box = corps.querySelector('[data-wiki]');
       if (!box || !w) return;
       box.hidden = false;
-      box.innerHTML = `<p>${E(w.extrait)}</p><a class="lien-bouton" href="${E(w.url)}" target="_blank" rel="noopener">Lire la suite sur Wikipédia${w.langue === 'en' ? ' (en anglais)' : ''}</a>`;
+      box.innerHTML = `<p>${E(w.extrait)}</p><a class="lien-bouton" href="${E(w.url)}" target="_blank" rel="noopener">Lire la suite sur Wikipédia</a>`;
     });
   });
 }
+const geniusArtiste = nom => `https://genius.com/search?q=${encodeURIComponent(nom)}`;
 function remplirArtiste(el, m) {
   Infos.artiste(m.artiste, f => {
     const corps = el.querySelector(`[data-artiste-pour="${m.id}"]`);
@@ -435,8 +441,9 @@ function remplirArtiste(el, m) {
     const nom = Pochettes.artistePrincipal(m.artiste);
     if (!f) {
       corps.innerHTML = `<p class="livret-nom">${E(nom)}</p>
-        <p class="livret-vide">Pas de fiche Wikipédia fiable sur ${E(nom)}. Les meilleurs se cachent parfois là où personne n'a encore écrit.</p>
-        <p class="livret-liens"><a class="lien-bouton" href="https://music.youtube.com/search?q=${encodeURIComponent(nom)}" target="_blank" rel="noopener">Tout ${E(nom)} sur YouTube Music</a></p>`;
+        <p class="livret-vide">Pas de page Wikipédia en français sur ${E(nom)}. Sa page Genius raconte souvent qui se cache derrière.</p>
+        <p class="livret-liens"><a class="lien-bouton lien-genius" href="${geniusArtiste(nom)}" target="_blank" rel="noopener">Sa page sur Genius</a>
+        <a class="lien-bouton" href="https://music.youtube.com/search?q=${encodeURIComponent(nom)}" target="_blank" rel="noopener">Tout ${E(nom)} sur YouTube Music</a></p>`;
       return;
     }
     corps.innerHTML = `
@@ -446,7 +453,8 @@ function remplirArtiste(el, m) {
       </div>
       <p class="livret-texte">${E(f.extrait)}</p>
       <p class="livret-liens">
-        <a class="lien-bouton" href="${E(f.url)}" target="_blank" rel="noopener">Lire la suite sur Wikipédia${f.langue === 'en' ? ' (en anglais)' : ''}</a>
+        <a class="lien-bouton" href="${E(f.url)}" target="_blank" rel="noopener">Lire la suite sur Wikipédia</a>
+        <a class="lien-bouton" href="${geniusArtiste(nom)}" target="_blank" rel="noopener">Sa page sur Genius</a>
         <a class="lien-bouton" href="https://music.youtube.com/search?q=${encodeURIComponent(nom)}" target="_blank" rel="noopener">Tout ${E(nom)} sur YouTube Music</a>
       </p>`;
   });
@@ -603,7 +611,7 @@ function surveillerDemarrage(m) {
   };
   demarrage = setTimeout(verif, 9000);
 }
-function jouerMorceau(m) {
+function jouerMorceau(m, debut = 0) {
   arreterExtrait();
   clearTimeout(demarrage);
   S.joue = m.id;
@@ -619,7 +627,7 @@ function jouerMorceau(m) {
   $('#ecran-video').hidden = false;
   majPoste();
   if (!lecteurPret) { enAttente = m; chargerAPI(); majEtat(); return; }
-  try { lecteur.loadVideoById(m.yt); } catch (e) {}
+  try { lecteur.loadVideoById(debut ? { videoId: m.yt, startSeconds: debut } : m.yt); } catch (e) {}
   appliquerVolume();
   surveillerDemarrage(m);
   majEtat();
@@ -782,7 +790,7 @@ const SOURCES = {
   selection: { nom: 'Ma sélection', sous: 'Ce que tu as gardé' },
 };
 const CAPS = ['calme', 'energique', 'dansant', 'pose', 'connu', 'confidentiel', 'cote'];
-const nomCap = d => d === 'connu' ? 'Plus mainstream' : (Moteur.DIRECTIONS[d] || {}).etiquette || '';
+const nomCap = d => d === 'connu' ? 'Plus mainstream' : d === 'pose' ? 'Moins dansant' : (Moteur.DIRECTIONS[d] || {}).etiquette || '';
 function poolSource() {
   let p;
   if (S.source === 'selection') p = S.gardes.map(id => parId[id]).filter(Boolean);
@@ -875,37 +883,46 @@ function chargerTiroir(k) {
   document.body.classList.add('lecture-disque');
   t.classList.add('ouvert'); t.classList.remove('pose');
   clic(300, 0.18, 0.05);
-  tiroirMin.push(setTimeout(() => { poserDisque(k); t.classList.add('pose'); clic(700, 0.05, 0.05); }, 420));
-  tiroirMin.push(setTimeout(() => { t.classList.remove('ouvert'); clic(320, 0.16, 0.05); }, 980));
-  tiroirMin.push(setTimeout(() => { t.classList.remove('pose'); document.body.classList.remove('lecture-disque'); majAfficheur(); }, 1650));
+  tiroirMin.push(setTimeout(() => { poserDisque(k); t.classList.add('pose'); clic(700, 0.05, 0.05); }, 330));
+  tiroirMin.push(setTimeout(() => { t.classList.remove('ouvert'); clic(320, 0.16, 0.05); }, 720));
+  tiroirMin.push(setTimeout(() => { t.classList.remove('pose'); document.body.classList.remove('lecture-disque'); majAfficheur(); }, 1150));
   majAfficheur();
 }
 // la touche d'éjection change de disque : la radio, ou ta sélection
 function ejecter() {
-  if (S.source === 'radio' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur « Ajouter à ma sélection » quand un morceau te plaît.', 4200); return; }
+  if (S.source === 'radio' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur ♥ « Ça, j\'aime bien » quand un morceau te plaît.', 4200); return; }
   choisirSource(S.source === 'radio' ? 'selection' : 'radio');
-  toast(S.source === 'selection' ? 'Ta sélection est dans la chaîne.' : 'Retour à la radio.');
 }
 function choisirSource(k) {
   if (!SOURCES[k]) return;
-  if (k === 'selection' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur « Ajouter à ma sélection » quand un morceau te plaît.', 4200); return; }
+  if (k === 'selection' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur ♥ « Ça, j\'aime bien » quand un morceau te plaît.', 4200); return; }
+  if (k === S.source && S.joue) { majSource(); return; }
+  // on note où on en était, pour y revenir pile au même endroit
+  if (S.joue) { const [t] = tempsActuel(); S.reprise[S.source] = { id: S.joue, t: S.lecture === 'yt' && t > 5 ? Math.floor(t) : 0 }; memoire.ecrire('md-reprise', S.reprise); }
   S.source = k;
   memoire.ecrire('md-source', k);
   S.pente = null; S.cote = false;
-  const premier = construireSuite(null, 1)[0];
+  const r = S.reprise[k];
+  const ok = r && parId[r.id] && r.id !== S.joue && (k === 'radio' || S.gardes.includes(r.id));
   chargerTiroir(k);
-  if (premier) jouerRadio(premier);
+  majSource();
+  if (ok) jouerRadio(r.id, { debut: r.t });
+  else { const premier = construireSuite(null, 1)[0]; if (premier) jouerRadio(premier); }
+}
+function majSource() {
+  $$('.selecteur-source [data-source]').forEach(b => b.setAttribute('aria-checked', b.dataset.source === S.source));
+  const n = $('#n-source'); if (n) n.textContent = S.gardes.length;
 }
 
 /* jouer : le morceau passe, la suite se recalcule depuis lui */
-function jouerRadio(id) {
+function jouerRadio(id, { debut = 0 } = {}) {
   const m = parId[id];
   if (!m) return;
   S.mode = 'radio';
   croiser(m.id);
   if (S.historique[S.historique.length - 1] !== m.id) S.historique.push(m.id);
   memoire.ecrire('md-historique', S.historique.slice(-60));
-  jouerMorceau(m);
+  jouerMorceau(m, debut);
   // la direction : le premier pas est fait quand le morceau visé passe ; elle tient ensuite six morceaux
   if (S.pente) {
     if (S.pente.neuf && S.pente.vise === m.id) S.pente.neuf = false;
@@ -913,7 +930,6 @@ function jouerRadio(id) {
     if (S.pente.joues >= 6) { toast(`${nomCap(S.pente.dir)} : on laisse filer la radio, maintenant.`); S.pente = null; }
   }
   S.cote = false;
-  S.devoile = null;
   S.suite = construireSuite(m);
   if (S.pente && S.pente.neuf) S.pente.vise = S.suite[0];
   rendrePupitre();
@@ -965,13 +981,7 @@ function echecRadio(m, raison) {
 }
 
 /* l'avis du visiteur sur le morceau qui passe */
-function aimer(id) {
-  if (!id) return;
-  if (S.aime.has(id)) { S.aime.delete(id); toast('D\'accord, on oublie.'); }
-  else { S.aime.add(id); S.aimePas.delete(id); toast('Noté : la suite va dans ce sens.'); clic(1000, 0.06, 0.05); }
-  memoire.ecrire('md-aime', [...S.aime]); memoire.ecrire('md-aime-pas', [...S.aimePas]);
-  rafraichirSuite();
-}
+function aimer(id) { basculerGarde(id); }
 function pasAime(id) {
   if (!id) return;
   S.aimePas.add(id); S.aime.delete(id);
@@ -994,7 +1004,6 @@ function orienter(dir) {
   } else S.pente = { dir, force: 1, neuf: true, vise: null, joues: 0 }, msg = nomCap(dir);
   S.suite = construireSuite(cur);
   if (S.pente && S.pente.neuf) S.pente.vise = S.suite[0];
-  S.devoile = null;
   rendrePupitre();
   majAfficheur();
   const p = parId[S.suite[0]];
@@ -1009,20 +1018,25 @@ function appliquerFidget() {
   document.body.dataset.eq = f.eq;
   document.body.dataset.vitesse = f.vitesse;
   document.body.classList.toggle('loudness', !!f.loudness);
+  document.body.classList.toggle('grilles', !!f.grilles);
+  document.body.dataset.dimmer = f.dimmer;
+  document.body.dataset.lumieres = f.lumieres;
   $$('#trappe [data-action="fidget"]').forEach(b => {
-    const v = b.dataset.cle === 'loudness' ? String(!!f.loudness) : String(f[b.dataset.cle] === b.dataset.val);
+    const v = INTERRUPTEURS.includes(b.dataset.cle) ? String(!!f[b.dataset.cle]) : String(String(f[b.dataset.cle]) === b.dataset.val);
     b.setAttribute(b.getAttribute('role') === 'radio' ? 'aria-checked' : 'aria-pressed', v);
   });
   const g = $('.glissiere'); if (g) g.style.setProperty('--pos', ['33', '45', 'hypno'].indexOf(f.vitesse));
   const bd = $('#bouton-devine'); if (bd) bd.setAttribute('aria-pressed', !!S.devine);
 }
+const INTERRUPTEURS = ['loudness', 'grilles', 'bip'];
 function bidouiller(b) {
   const cle = b.dataset.cle;
-  if (cle === 'loudness') S.fidget.loudness = !S.fidget.loudness;
+  if (INTERRUPTEURS.includes(cle)) S.fidget[cle] = !S.fidget[cle];
   else S.fidget[cle] = b.dataset.val;
   memoire.ecrire('md-fidget', S.fidget);
   appliquerFidget();
-  const sons = { lcd: [2200, 0.02, 0.05], eq: [1500, 0.03, 0.05], vitesse: [420, 0.07, 0.07], loudness: [180, 0.09, 0.08] };
+  const sons = { lcd: [2200, 0.02, 0.05], eq: [1500, 0.03, 0.05], vitesse: [420, 0.07, 0.07], loudness: [180, 0.09, 0.08], grilles: [260, 0.1, 0.07], dimmer: [1900, 0.02, 0.05], lumieres: [1200, 0.04, 0.05], bip: [2400, 0.03, 0.06] };
+  if (cle === 'bip' && !S.fidget.bip) { S.fidget.bip = true; clic(2400, 0.03, 0.06); S.fidget.bip = false; }
   clic(...(sons[cle] || [1500, 0.03, 0.05]));
   if (cle === 'vitesse' && !S.enLecture) toast('Lance un morceau pour voir le disque tourner.');
 }
@@ -1031,27 +1045,30 @@ function lancerDemo() {
   if (S.demo) return;
   S.demo = true;
   document.body.classList.add('demo');
-  texteLCD($('#lcd-texte'), '✦ MUSIC DISCOVERY ✦ DEMO ✦ DEMO ✦ DEMO ✦');
+  texteLCD($('#lcd-texte'), '✦ DEMO ✦ COMME EN VITRINE ✦ MUSIC DISCOVERY ✦');
   $('#lcd-etat').textContent = 'DEMO';
   lancerSpectre();
   [0, 1, 2, 3].forEach(i => setTimeout(() => clic(880 + i * 220, 0.06, 0.05), i * 110));
   clearTimeout(demoMin);
   demoMin = setTimeout(() => { S.demo = false; document.body.classList.remove('demo'); majAfficheur(); }, 6000);
 }
-/* devine l'époque : on cache la décennie, on propose quatre réponses */
+/* devine l'époque : de temps en temps (un morceau sur trois environ), la décennie se cache
+   derrière un « ? » dans la ligne du style ; on la touche pour proposer trois époques */
 const EPOQUES = ['XVIIIᵉ siècle', 'XIXᵉ siècle', 'début du XXᵉ siècle', 'années 50', 'années 60', 'années 70', 'années 80', 'années 90', 'années 2000', 'années 2010', 'années 2020'];
 const devinettes = {};
+const hache = t => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 function choixEpoques(m) {
   if (devinettes[m.id]) return devinettes[m.id];
   const k = EPOQUES.indexOf(decennie(m.annee));
-  if (k < 0) return null;
-  const autour = EPOQUES.map((e, i) => [e, Math.abs(i - k)]).filter(([e, d]) => d > 0 && d <= 3).map(([e]) => e);
-  const opts = melanger([EPOQUES[k], ...melanger(autour).slice(0, 3)]);
-  return (devinettes[m.id] = { opts, bonne: EPOQUES[k], reponse: null });
+  if (k < 0 || hache(m.id) % 3) return null;
+  const autour = EPOQUES.map((e, i) => [e, Math.abs(i - k)]).filter(([, d]) => d > 0 && d <= 2).map(([e]) => e);
+  const opts = melanger([EPOQUES[k], ...melanger(autour).slice(0, 2)]);
+  return (devinettes[m.id] = { opts, bonne: EPOQUES[k], reponse: null, ouvert: false });
 }
 function deviner(rep) {
   const m = parId[S.joue]; if (!m) return;
   const d = choixEpoques(m); if (!d || d.reponse) return;
+  if (rep === '?') { d.ouvert = true; clic(1500, 0.03, 0.05); rendreDevinette(m); return; }
   d.reponse = rep;
   S.score.total++;
   if (rep === d.bonne) { S.score.bons++; clic(1320, 0.08, 0.07); setTimeout(() => clic(1760, 0.08, 0.06), 90); }
@@ -1059,17 +1076,22 @@ function deviner(rep) {
   memoire.ecrire('md-score', S.score);
   rendreDevinette(m);
 }
+const court = e => e.replace('années ', '').replace('début du ', '');
 function rendreDevinette(m) {
-  const box = $('#devinette');
   const st = $('.maintenant-style');
-  if (!box || !st) return;
-  const d = S.devine && m ? choixEpoques(m) : null;
-  st.textContent = d && !d.reponse ? (m.style || 'Devine…') : indice(m);
-  box.hidden = !d;
-  if (!d) return;
-  const juste = d.reponse && d.reponse === d.bonne;
-  box.innerHTML = `<p class="devinette-question">${d.reponse ? (juste ? 'Bien vu.' : `Raté : ${d.bonne}.`) : 'De quelle époque ?'} <span class="devinette-score">Ton oreille : ${S.score.bons} sur ${S.score.total}</span></p>
-    <div class="devinette-choix">${d.opts.map(o => `<button class="devinette-option${d.reponse ? (o === d.bonne ? ' bonne' : o === d.reponse ? ' fausse' : '') : ''}" data-action="deviner" data-rep="${E(o)}"${d.reponse ? ' disabled' : ''}>${E(o)}</button>`).join('')}</div>`;
+  if (!st || !m) return;
+  const d = S.devine ? choixEpoques(m) : null;
+  if (!d) { st.textContent = indice(m); return; }
+  const style = m.style ? `${E(m.style)}, ` : '';
+  const ep = d.bonne.startsWith('années') ? 'années ' : '';
+  if (!d.reponse && !d.ouvert)
+    st.innerHTML = `${style}<button class="devine-ici" data-action="deviner" data-rep="?" title="Devine l'époque">${ep || 'époque '}?</button>`;
+  else if (!d.reponse)
+    st.innerHTML = `${style}${ep}<span class="devine-choix">${d.opts.map(o => `<button class="devine-option" data-action="deviner" data-rep="${E(o)}">${E(ep ? court(o) : o)}</button>`).join('')}</span>`;
+  else {
+    const juste = d.reponse === d.bonne;
+    st.innerHTML = `${style}<span class="devine-reponse${juste ? ' bonne' : ''}">${E(d.bonne)}</span> <span class="devine-verdict">${juste ? 'bien vu' : 'raté'} · ton oreille ${S.score.bons}/${S.score.total}</span>`;
+  }
 }
 /* le pupitre : le morceau qui passe, sa mini-chronique, l'avis, la suite */
 function rendrePupitre() {
@@ -1085,22 +1107,16 @@ function rendrePupitre() {
         <p class="maintenant-style">${E(indice(m))}</p>
         <h2 class="maintenant-titre">${E(m.affiche)}</h2>
         <p class="maintenant-artiste">${E(m.artiste)}</p>
-        <div class="devinette" id="devinette" hidden></div>
         ${m.note ? `<p class="maintenant-note">${E(m.note).replace(/\n/g, '<br>')}</p>` : ''}
         <p class="maintenant-chronique" data-chronique="${m.id}"></p>
         <div class="avis-boutons">
           <button class="avis-bouton" data-action="pas-aime" aria-label="Pas trop comme ça : on passe et on s'en éloigne"><span aria-hidden="true">↷</span> Pas trop comme ça</button>
-          <button class="avis-bouton avis-aime" data-action="aime" aria-pressed="false"><span aria-hidden="true">♥</span> Ça, j'aime bien</button>
-          <button class="avis-bouton avis-garder" data-action="garder-joue" data-garder="${m.id}" aria-pressed="false"><span aria-hidden="true">+</span> <span class="avis-garder-texte">Ajouter à ma sélection</span></button>
+          <button class="avis-bouton avis-aime" data-action="aime" aria-pressed="false" title="Ça part dans ta sélection, et la suite va dans ce sens"><span aria-hidden="true">♥</span> <span class="avis-aime-texte">Ça, j'aime bien</span></button>
         </div>
         <button class="lien-bouton" data-action="radio-raconte">Plus d'infos sur l'album et l'artiste</button>
       </div>`;
     remplirChronique(m);
     rendreDevinette(m);
-  }
-  if (m) {
-    const a = $('.avis-aime', el);
-    if (a) { a.setAttribute('aria-pressed', S.aime.has(m.id)); a.classList.toggle('actif', S.aime.has(m.id)); }
   }
   const pool = poolSource().filter(x => !m || x.id !== m.id);
   $('#caps').innerHTML = CAPS.map(d => {
@@ -1110,11 +1126,7 @@ function rendrePupitre() {
     return `<button class="cap" data-action="cap" data-dir="${d}" aria-pressed="${!!actif}"${dispo ? '' : ` disabled title="Rien dans cette direction qui colle à ce morceau"`}>${E(label)}</button>`;
   }).join('') + (S.pente || S.cote ? `<button class="cap cap-libre" data-action="cap" data-dir="libre">Laisser filer</button>` : '');
   const p = parId[S.suite[0]];
-  const vu = p && S.devoile === p.id;
-  $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span>${vu
-      ? `<button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>`
-      : `<span class="ensuite-mystere">${E(indice(p))}</span><button class="lien-bouton" data-action="devoiler">Dévoiler</button>`}
-      <button class="lien-bouton ensuite-maintenant" data-action="jouer-id" data-id="${p.id}">L'écouter maintenant</button>`
+  $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span><button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>`
     + (S.source === 'selection' ? `<span class="ensuite-source">Tu écoutes ta sélection. <button class="lien-bouton" data-action="source-chaine" data-source="radio">Revenir à la radio</button></span>` : '') : '';
   majGarde();
 }
@@ -1173,7 +1185,7 @@ function majAfficheur() {
   texteLCD($('#lcd-texte'), texte);
   $('#lcd-etat').textContent = lecture ? 'READ' : !active ? 'STOP' : S.bloque ? 'APPUIE SUR ▶' : S.enLecture ? '▶ PLAY' : S.aJoue ? 'II PAUSE' : 'LOAD';
   const ensuite = parId[S.suite[0]];
-  $('#lcd-ensuite').textContent = ensuite && !lecture ? `ENSUITE ${S.devoile === ensuite.id ? ensuite.affiche : '? ' + (ensuite.style || 'SURPRISE')}` : '';
+  $('#lcd-ensuite').textContent = ensuite && !lecture ? `ENSUITE ${ensuite.affiche}` : '';
   if (!active) $('#lcd-temps').textContent = '--:--';
   const ms = $('#machine-source');
   const src = active && S.lecture === 'extrait' ? Pochettes.source(m) : null;
@@ -1201,6 +1213,7 @@ function animerSpectre(t) {
   if (S.vue !== 'machine' || (!S.enLecture && !S.demo)) {
     spectreRAF = null;
     barres.forEach((b, i) => { b.style.setProperty('--h', '0.06'); pics[i] = 0; b.style.setProperty('--pic', 0); });
+    majVU(0, 0);
     return;
   }
   spectreRAF = requestAnimationFrame(animerSpectre);
@@ -1212,6 +1225,7 @@ function animerSpectre(t) {
       pics[i] = Math.max(h, pics[i] - 0.03);
       b.style.setProperty('--h', h.toFixed(2)); b.style.setProperty('--pic', ((pics[i] - h) * 52).toFixed(1));
     });
+    majVU(...niveaux());
     return;
   }
   const m = parId[S.joue] || {};
@@ -1226,6 +1240,20 @@ function animerSpectre(t) {
     pics[i] = Math.max(h, pics[i] - 0.035);
     b.style.setProperty('--h', h.toFixed(2));
     b.style.setProperty('--pic', ((pics[i] - h) * 52).toFixed(1));
+  });
+  majVU(...niveaux());
+}
+// les vumètres des enceintes : les graves à gauche, les aigus à droite
+const vus = $$('.hp-vu').map(v => [...v.children]);
+function niveaux() {
+  const h = barres.map(b => +b.style.getPropertyValue('--h') || 0);
+  const moy = a => a.reduce((x, y) => x + y, 0) / (a.length || 1);
+  return [moy(h.slice(0, 6)), moy(h.slice(9))];
+}
+function majVU(g, d) {
+  vus.forEach((segs, k) => {
+    const n = Math.round(Math.min(1, (k ? d : g) * 1.15) * segs.length);
+    segs.forEach((b, i) => b.classList.toggle('on', i < n));
   });
 }
 /* ─────────────────────────────── MES TROUVAILLES / RÉGLAGES (panneaux) ─────────────────────────────── */
@@ -1355,8 +1383,7 @@ const ACTIONS = {
   'demo': () => lancerDemo(),
   'trappe': b => { const p = $('#trappe-panneau'); const ouvre = p.hidden; p.hidden = !ouvre; b.setAttribute('aria-expanded', ouvre); $('#trappe').classList.toggle('ouverte', ouvre); clic(ouvre ? 520 : 380, 0.08, 0.06); },
   'deviner': b => deviner(b.dataset.rep),
-  'devoiler': () => { S.devoile = S.suite[0]; rendrePupitre(); majAfficheur(); clic(1100, 0.05, 0.05); },
-  'jeu-devine': () => { S.devine = !S.devine; memoire.ecrire('md-devine', S.devine); $('#bouton-devine').setAttribute('aria-pressed', S.devine); rendreDevinette(parId[S.joue]); clic(1300, 0.03, 0.05); },
+  'jeu-devine': () => { S.devine = !S.devine; memoire.ecrire('md-devine-v2', S.devine); $('#bouton-devine').setAttribute('aria-pressed', S.devine); rendreDevinette(parId[S.joue]); clic(1300, 0.03, 0.05); },
   'source-chaine': b => choisirSource(b.dataset.source),
   'lecture': () => basculerLecture(),
   'suivant': () => radioSuivant(),
@@ -1374,7 +1401,6 @@ const ACTIONS = {
   'radio-suivant': radioSuivant,
   'radio-precedent': radioPrecedent,
   'radio-stop': radioStop,
-  'radio-garder': () => basculerGarde(S.joue),
   'radio-raconte': () => { const m = parId[S.joue]; if (m) ouvrirLivret('machine', m); },
   'ejecter': ejecter,
   'ecouter-selection': () => { fermerPanneaux(); choisirSource('selection'); window.scrollTo({ top: 0, behavior: doux }); },
@@ -1414,8 +1440,7 @@ document.addEventListener('keydown', e => {
   if (!libre || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === ' ' && S.joue) { e.preventDefault(); basculerLecture(); return; }
   if (!S.joue) return;
-  if (e.key === 'g' || e.key === 'G') { e.preventDefault(); basculerGarde(S.joue); }
-  else if (e.key === 'j' || e.key === 'J') { e.preventDefault(); aimer(S.joue); }
+  if ('gGjJ'.includes(e.key)) { e.preventDefault(); aimer(S.joue); }
   else if (e.key === 'x' || e.key === 'X') { e.preventDefault(); pasAime(S.joue); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); radioSuivant(); }
 });

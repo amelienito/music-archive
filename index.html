@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="styles.css?v=18">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
@@ -59,13 +59,12 @@
     <section class="ecran ecran-allumage" data-ecran="allumage">
       <div class="allumage-texte">
         <p class="surtitre">Music Discovery</p>
-        <h1>J'ai fouillé pendant des années.</h1>
-        <p class="allumage-sous">Allume la chaîne. Oriente-la, garde ce qui te plaît.</p>
+        <h1><span class="ligne">J'ai fouillé la&nbsp;musique d'Internet</span> <span class="ligne">pendant des&nbsp;années pour&nbsp;ce&nbsp;site.</span></h1>
       </div>
       <ol class="etapes" aria-label="Comment ça marche">
-        <li><b>1</b><span>La chaîne joue</span></li>
-        <li><b>2</b><span>Tu orientes la suite</span></li>
-        <li><b>3</b><span>Tu gardes ce qui te plaît</span></li>
+        <li><b>1</b><span>Allume la chaîne</span></li>
+        <li><b>2</b><span>Oriente la suite</span></li>
+        <li><b>3</b><span>Garde ce qui te&nbsp;plaît</span></li>
       </ol>
       <div class="panneau-allumage">
         <div class="bouton-rotatif bouton-rotatif-grand" data-molette="volume">
@@ -80,9 +79,9 @@
           <span class="interrupteur-label">Commencer</span>
         </button>
       </div>
-      <p class="allumage-conseil" id="allumage-conseil">Règle le volume d'abord : attrape la molette et tourne-la, ou touche l'anneau à la hauteur voulue.</p>
+      <p class="allumage-conseil" id="allumage-conseil">Conseil&nbsp;: Règle d'abord le volume grâce à&nbsp;cette super&nbsp;molette.</p>
       <p class="allumage-retour" id="allumage-retour" hidden></p>
-      <p class="allumage-libre">Pas de compte, pas d'inscription. Tout reste dans ton navigateur.</p>
+      <p class="allumage-libre">Logiquement, tes choix restent enregistrés dans ton navigateur pour la prochaine&nbsp;fois.</p>
     </section>
 
     <!-- ═════════════ ÉTAPE 3 : LA CHAÎNE ═════════════
@@ -90,7 +89,14 @@
          écran à cristaux liquides, et un rack de disques de couleur. -->
     <section class="ecran ecran-machine" data-ecran="machine" hidden>
       <div class="hifi" id="hifi">
-        <div class="hifi-enceinte" aria-hidden="true"><span class="hp-tweeter"></span><span class="hp-boomer"><i></i></span><span class="hifi-enceinte-pied">BASS REFLEX</span></div>
+        <div class="hifi-enceinte hifi-enceinte-g" aria-hidden="true">
+          <span class="hp-plaque">MD-08<small>2 voies</small></span>
+          <span class="hp-tweeter"><i></i></span>
+          <span class="hp-boomer"><span class="hp-cone"></span><i></i></span>
+          <span class="hp-vu"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
+          <span class="hp-event"></span>
+          <span class="hp-grille"></span>
+        </div>
 
         <div class="hifi-corps">
           <div class="hifi-haut">
@@ -129,9 +135,13 @@
               <button class="rond" data-action="radio-suivant" aria-label="Morceau suivant"><span class="icone icone-suiv"></span></button>
               <button class="rond rond-ejecter" data-action="ejecter" aria-label="Ouvrir le tiroir et changer de disque"><span class="icone-ejecter"></span></button>
             </div>
+            <div class="selecteur-source" role="radiogroup" aria-label="Ce qui passe dans la chaîne">
+              <span class="selecteur-source-nom">Source</span>
+              <button role="radio" data-action="source-chaine" data-source="radio" aria-checked="true"><span class="led" aria-hidden="true"></span>Radio</button>
+              <button role="radio" data-action="source-chaine" data-source="selection" aria-checked="false"><span class="led" aria-hidden="true"></span>Ma sélection <b id="n-source">0</b></button>
+            </div>
             <div class="hifi-actions">
-              <button class="pilule cd-garder" data-action="radio-garder" id="radio-garder" aria-pressed="false"><span class="led" aria-hidden="true"></span><span class="cd-garder-texte">Ajouter à ma sélection</span></button>
-              <button class="pilule" data-action="radio-raconte" aria-controls="livret-machine">Plus d'infos</button>
+              <button class="pilule pilule-coeur" data-action="aime" id="radio-garder" aria-pressed="false" aria-label="Ça, j'aime bien (et dans ma sélection)" title="Ça, j'aime bien"><span aria-hidden="true">♥</span></button>
               <button class="pilule" data-action="epure" id="bouton-epure" aria-pressed="false">Juste la musique</button>
             </div>
             <div class="bouton-rotatif bouton-rotatif-hifi seulement-sans-ios" data-molette="volume">
@@ -143,10 +153,10 @@
             </div>
           </div>
 
-          <!-- la trappe : des petits réglages qui ne servent à rien, sauf à faire plaisir -->
+          <!-- les petits réglages : ils ne servent à rien, sauf à faire plaisir -->
           <div class="trappe" id="trappe">
-            <button class="trappe-poignee" data-action="trappe" aria-expanded="false" aria-controls="trappe-panneau"><span>Petits réglages inutiles</span><i aria-hidden="true"></i></button>
-            <div class="trappe-panneau" id="trappe-panneau" hidden>
+            <p class="trappe-titre">Petits réglages inutiles</p>
+            <div class="trappe-panneau" id="trappe-panneau">
               <div class="bidouille">
                 <span class="bidouille-nom">Couleur de l'écran</span>
                 <div class="leds" role="radiogroup" aria-label="Couleur de l'écran">
@@ -176,16 +186,41 @@
                   <span class="glissiere-curseur" aria-hidden="true"></span>
                 </div>
               </div>
+              <div class="bidouille">
+                <span class="bidouille-nom">Rétroéclairage</span>
+                <div class="segments" role="radiogroup" aria-label="Rétroéclairage">
+                  <button role="radio" data-action="fidget" data-cle="dimmer" data-val="3">Plein</button>
+                  <button role="radio" data-action="fidget" data-cle="dimmer" data-val="2">Doux</button>
+                  <button role="radio" data-action="fidget" data-cle="dimmer" data-val="1">Nuit</button>
+                </div>
+              </div>
+              <div class="bidouille">
+                <span class="bidouille-nom">Lumières des enceintes</span>
+                <div class="segments" role="radiogroup" aria-label="Lumières des enceintes">
+                  <button role="radio" data-action="fidget" data-cle="lumieres" data-val="eteint">Éteintes</button>
+                  <button role="radio" data-action="fidget" data-cle="lumieres" data-val="tempo">Au tempo</button>
+                  <button role="radio" data-action="fidget" data-cle="lumieres" data-val="arc">Arc-en-ciel</button>
+                </div>
+              </div>
               <div class="bidouille bidouille-ligne">
                 <button class="interrupteur-mini" data-action="fidget" data-cle="loudness" aria-pressed="false"><span class="led" aria-hidden="true"></span>Loudness</button>
-                <button class="bouton-demo" data-action="demo">Démo</button>
-                <button class="interrupteur-mini" data-action="jeu-devine" id="bouton-devine" aria-pressed="false"><span class="led" aria-hidden="true"></span>Devine l'époque</button>
+                <button class="interrupteur-mini" data-action="fidget" data-cle="grilles" aria-pressed="false"><span class="led" aria-hidden="true"></span>Grilles</button>
+                <button class="interrupteur-mini" data-action="fidget" data-cle="bip" aria-pressed="true"><span class="led" aria-hidden="true"></span>Bip des touches</button>
+                <button class="interrupteur-mini" data-action="jeu-devine" id="bouton-devine" aria-pressed="true"><span class="led" aria-hidden="true"></span>Devinettes</button>
+                <button class="bouton-demo" data-action="demo" title="Comme les chaînes en vitrine des magasins hi-fi : six secondes de spectacle">Démo vitrine</button>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="hifi-enceinte" aria-hidden="true"><span class="hp-tweeter"></span><span class="hp-boomer"><i></i></span><span class="hifi-enceinte-pied">BASS REFLEX</span></div>
+        <div class="hifi-enceinte hifi-enceinte-d" aria-hidden="true">
+          <span class="hp-plaque">MD-08<small>2 voies</small></span>
+          <span class="hp-tweeter"><i></i></span>
+          <span class="hp-boomer"><span class="hp-cone"></span><i></i></span>
+          <span class="hp-vu"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
+          <span class="hp-event"></span>
+          <span class="hp-grille"></span>
+        </div>
       </div>
 
       <div class="avis-pub avis-machine" data-avis hidden></div>
@@ -214,7 +249,7 @@
       <span class="poste-artiste" id="poste-artiste"></span>
     </button>
     <div class="poste-touches">
-      <button class="touche touche-mini" data-action="garder-joue" id="poste-garder" aria-label="Ajouter à ma sélection" aria-pressed="false"><span class="icone-garder"></span></button>
+      <button class="touche touche-mini" data-action="garder-joue" id="poste-garder" aria-label="Ça, j'aime bien (et dans ma sélection)" aria-pressed="false"><span class="icone-coeur" aria-hidden="true">♥</span></button>
       <button class="touche touche-mini" data-action="lecture" aria-label="Lecture / pause"><span class="icone icone-lecture" id="poste-icone"></span></button>
       <button class="touche touche-mini" data-action="suivant" aria-label="Morceau suivant"><span class="icone icone-suiv"></span></button>
       <button class="touche touche-mini touche-reduire" data-action="reduire-poste" id="poste-reduire" aria-label="Réduire le lecteur (met en pause)" hidden><span class="icone-chevron"></span></button>
@@ -275,8 +310,8 @@
 
   <script src="data.js?v=15"></script>
   <script src="moteur.js?v=2"></script>
-  <script src="pochettes.js?v=12"></script>
-  <script src="infos.js?v=13"></script>
-  <script src="app.js?v=18"></script>
+  <script src="pochettes.js?v=13"></script>
+  <script src="infos.js?v=14"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>

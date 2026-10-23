@@ -14,8 +14,8 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const Pochettes = (() => {
-  const CLE = 'md-pochettes-v8';
-  const CLE_ALBUMS = 'md-albums-v2';
+  const CLE = 'md-pochettes-v9';
+  const CLE_ALBUMS = 'md-albums-v3';
   const lire = cle => { try { return JSON.parse(localStorage.getItem(cle)) || {}; } catch (e) { return {}; } };
   let cache = lire(CLE);
   let albums = lire(CLE_ALBUMS);
@@ -68,12 +68,13 @@ const Pochettes = (() => {
     const t = normaliser(m.titre);
     const rt = normaliser(titreRes);
     const memeArtiste = a && ra && (ra.includes(a) || a.includes(ra));
-    const memeTitre = t && rt && (rt === t || rt.includes(t) || t.includes(rt));
+    const mot = (x, y) => ` ${x} `.includes(` ${y} `);
+    const memeTitre = t && rt && (rt === t || mot(rt, t) || mot(t, rt));
     const motCommun = a.split(' ').some(w => w.length > 2 && ra.split(' ').includes(w));
     // bonus quand l'album correspond à celui noté dans data.js : la bonne édition, pas une compilation
     const bonus = m.album && albumRes && normaliser(albumRes).startsWith(normaliser(m.album)) ? 0.5 : 0;
+    // le même artiste ne suffit pas : sinon on prend la pochette et l'extrait d'un autre morceau
     if (memeArtiste && memeTitre) return 3 + bonus;
-    if (memeArtiste) return 2 + bonus;
     if (memeTitre && motCommun) return 1 + bonus;
     return 0;
   }
@@ -284,12 +285,16 @@ const Pochettes = (() => {
     if (!c) return null;
     const cle = c.idAlbumApple ? 'ap' + c.idAlbumApple : c.idAlbumDeezer ? 'dz' + c.idAlbumDeezer : null;
     if (!cle) return null;
-    if (albums[cle]) return albums[cle];
+    if (cle in albums) return albums[cle];
     let ap = null, dz = null;
     if (c.idAlbumApple) { try { ap = await lookupApple(c.idAlbumApple); } catch (e) {} }
     if (c.idAlbumDeezer) { try { dz = await lookupDeezer(c.idAlbumDeezer); } catch (e) {} }
     if (!ap && !dz) return null;
     const pistes = ap && ap.pistes.length ? ap.pistes : dz ? dz.pistes : [];
+    // l'album doit vraiment contenir le morceau, sinon on ne raconte pas le mauvais disque
+    const t = normaliser(m.titre).replace(/\s*\(.*$/, '');
+    const dedans = !pistes.length || pistes.some(p => { const pt = normaliser(p.titre); return pt && t && (pt === t || pt.includes(t) || t.includes(pt.replace(/\s*\(.*$/, ''))); });
+    if (!dedans) { albums[cle] = null; sauverAlbums(); return null; }
     // on garde aussi l'identifiant Deezer de chaque titre, pour retrouver un extrait si Apple n'en a pas
     if (ap && dz) pistes.forEach(p => { const x = dz.pistes.find(q => normaliser(q.titre) === normaliser(p.titre)); if (x) p.dzId = x.dzId; });
     const info = {

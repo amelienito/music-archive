@@ -7,7 +7,7 @@
    ════════════════════════════════════════════════════════════════════ */
 
 const Infos = (() => {
-  const CLE = 'md-wiki-v2';
+  const CLE = 'md-wiki-v3';
   let cache = {};
   try { cache = JSON.parse(localStorage.getItem(CLE)) || {}; } catch (e) { cache = {}; }
   const sauver = () => { try { localStorage.setItem(CLE, JSON.stringify(cache)); } catch (e) {} };
@@ -105,7 +105,7 @@ const Infos = (() => {
     (async () => {
       let f = null, panne = false;
       try { f = await chercher('fr'); } catch (e) { panne = true; }
-      if (!f) { try { f = await chercher('en'); } catch (e) { panne = true; } }
+      // en français seulement : pas de fiche française, on renvoie vers Genius plutôt qu'en anglais
       // en cas de souci réseau, on ne mémorise pas l'échec : on retentera
       if (f || !panne) { cache[cle] = f; sauver(); }
       enCours[cle].forEach(fn => fn(f));
