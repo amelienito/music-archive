@@ -177,11 +177,23 @@ async function suiteParMiroir(l) {
         // on a déjà le titre et la chaîne : la fiche s'affiche tout de suite
         if (!l.infos[v.videoId]) l.infos[v.videoId] = Object.assign(analyser({ title: v.title, author: v.author }), { brut: v.title, chaine: v.author || '' });
       });
+      if (j.videoCount) l.total = j.videoCount;
       if (j.videoCount && l.ids.length >= j.videoCount) l.complet = true;
       return l.ids.length - avant;
     } catch (e) {}
   }
   return 0;
+}
+// en ordre aléatoire, on charge toute la playlist en fond : le hasard porte sur l'ensemble, pas sur les 200 premiers
+let chargementFond = false;
+async function chargerTout() {
+  const l = L();
+  if (chargementFond || !l || !l.list || l.complet || l.ids.length < 199 || !$('#opt-hasard').checked) return;
+  chargementFond = true;
+  try {
+    for (let k = 0; k < 40 && !l.complet; k++) { if (!(await suiteParMiroir(l))) break; sauver(); }
+    if (courant) { afficherFiche(); majCompteurs(); }
+  } finally { chargementFond = false; }
 }
 // le lecteur YouTube ne donne que 200 morceaux à la fois : on lui redemande la suite à partir du dernier
 async function chargerSuite() {
@@ -235,7 +247,7 @@ async function demarrer() {
   ouvrirTable();
 }
 // pendant le tri, le formulaire de chargement se replie : le morceau reste en haut de l'écran
-function replierCharger(oui) { $('#charger').hidden = oui; $('#ouvrir-charger').hidden = false; }
+function replierCharger(oui) { $('#charger').hidden = oui; $('#ouvrir-charger').hidden = false; document.body.classList.toggle('en-tri', oui); }
 $('#ouvrir-charger').addEventListener('click', () => { const h = $('#charger').hidden; $('#charger').hidden = !h; if (h) { rendreListes(); $('#charger').scrollIntoView({ behavior: 'smooth' }); } });
 function ouvrirTable() {
   replierCharger(true);
@@ -244,6 +256,7 @@ function ouvrirTable() {
   $('#compteurs').hidden = false;
   rendreListes();
   suivant();
+  chargerTout();
 }
 
 /* ─────────── le tri ─────────── */
@@ -358,6 +371,8 @@ function majCoeur() {
   const on = !!T.coeurs[courant];
   $('#coeur').setAttribute('aria-pressed', on);
   $('#coeur').textContent = (on ? '★' : '☆') + ' Coup de cœur';
+  $('#v-coeur').setAttribute('aria-pressed', on);
+  $('#v-coeur').textContent = on ? '★' : '☆';
 }
 $('#note').addEventListener('input', () => {
   if (!courant) return;
@@ -372,6 +387,7 @@ $('#note').addEventListener('focus', () => document.body.classList.add('ecrit'))
 $('#note').addEventListener('blur', () => document.body.classList.remove('ecrit'));
 $('#note').addEventListener('keydown', e => { if (e.key === 'Escape') $('#note').blur(); });
 $('#coeur').addEventListener('click', basculerCoeur);
+$('#v-coeur').addEventListener('click', basculerCoeur);
 function basculerCoeur() {
   if (!courant) return;
   if (T.coeurs[courant]) delete T.coeurs[courant]; else { T.coeurs[courant] = true; vibre(8); }
@@ -887,9 +903,9 @@ window.addEventListener('pagehide', () => { clearTimeout(saveNote); sauver(); })
 if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) $('#avis-ios').hidden = false;
 // l'option « ordre aléatoire » est retenue
 try { $('#opt-hasard').checked = localStorage.getItem('md-tri-hasard') === '1'; } catch (e) {}
-$('#opt-hasard').addEventListener('change', () => { try { localStorage.setItem('md-tri-hasard', $('#opt-hasard').checked ? '1' : '0'); } catch (e) {} });
-// une playlist marquée « finie » à 200 morceaux : on retente la suite à la prochaine reprise
-Object.values(T.listes).forEach(l => { if (l.list && l.ids.length >= 199 && l.complet) l.complet = false; });
+$('#opt-hasard').addEventListener('change', () => { try { localStorage.setItem('md-tri-hasard', $('#opt-hasard').checked ? '1' : '0'); } catch (e) {} chargerTout(); });
+// une playlist marquée « finie » à 200 morceaux (avant le miroir) : on retente la suite à la prochaine reprise
+Object.values(T.listes).forEach(l => { if (l.list && l.ids.length >= 199 && l.ids.length <= 200 && l.complet && !l.total) l.complet = false; });
 // reprise : ce qui est déjà en mémoire
 rendreListes();
 majObjectif();

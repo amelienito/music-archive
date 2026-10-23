@@ -39,7 +39,7 @@
     body { margin: 0; min-height: 100vh; overflow-x: hidden; background: var(--fond); background-attachment: fixed; color: var(--encre); font: 16px/1.5 "Familjen Grotesk", system-ui, sans-serif; -webkit-font-smoothing: antialiased; transition: color .3s; }
     button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
     h1, h2, .gros { font-family: "Unbounded", system-ui, sans-serif; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; margin: 0; }
-    main { max-width: 980px; margin: 0 auto; padding: 24px 18px 140px; padding-top: max(24px, env(safe-area-inset-top)); display: grid; gap: 22px; }
+    main { max-width: 980px; margin: 0 auto; padding: 24px 18px 140px; padding-top: max(24px, env(safe-area-inset-top)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
     p { margin: 0; }
     .sous { color: var(--encre-2); max-width: 60ch; }
     a { color: var(--klein); }
@@ -136,6 +136,7 @@
     .v:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
     .v small { display: block; font-family: "Familjen Grotesk", sans-serif; font-size: 13px; font-weight: 500; opacity: .85; }
     .v-non { background: var(--non); } .v-oui { background: var(--oui); }
+    .v-coeur { display: none; }
     .options { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--encre-2); }
     .options label { display: inline-flex; gap: 8px; align-items: center; }
     .lien { text-decoration: underline; text-underline-offset: 4px; font-size: 14px; color: var(--encre-2); }
@@ -201,7 +202,18 @@
       .table { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ecran" "fiche" "frise"; grid-template-rows: none; }
       .raccourcis { display: none; }
       .v { min-height: 76px; font-size: 1.3rem; }
-      .verdicts { position: sticky; bottom: 10px; z-index: 5; }
+      .verdicts { position: sticky; bottom: 10px; z-index: 5; grid-template-columns: 1fr 52px 1fr; gap: 8px; }
+      .v-coeur { display: grid; place-items: center; border-radius: 16px; font-size: 1.5rem; background: var(--carte); color: var(--encre-2); box-shadow: 0 6px 0 rgba(0,0,0,.25), inset 0 0 0 1px var(--trait); }
+      .v-coeur[aria-pressed="true"] { background: var(--coeur-fond); color: var(--coeur); box-shadow: 0 6px 0 rgba(0,0,0,.25), inset 0 0 0 1.5px var(--coeur); }
+      .mot-ligne .coeur { display: none; }
+      /* pendant le tri, l'en-tête se fait discret : le morceau d'abord */
+      body.en-tri .tete .sous { display: none; }
+      body.en-tri .tete h1 { font-size: 1.35rem; }
+      .tete { display: grid; grid-template-columns: minmax(0, 1fr); }
+      .tete-droite { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 2px 18px; min-width: 0; }
+      .tete-droite::-webkit-scrollbar { display: none; }
+      .compteurs { flex-wrap: nowrap; }
+      .compteur, .objectif, .bouton-menu, .bascule-theme { flex: none; white-space: nowrap; }
       body.ecrit .verdicts { position: static; }
       .frise { max-height: 140px; }
       .curseur { grid-template-columns: 56px 1fr 24px; }
@@ -241,7 +253,7 @@
       <button class="bouton bouton-clair" id="trier-site">Trier aussi les morceaux déjà sur le site</button>
     </div>
     <p class="memoire" id="memoire">Tes choix et tes commentaires sont enregistrés au fur et à mesure dans ce navigateur. Un morceau déjà trié, ou déjà sur le site, n'est jamais reproposé, même dans une autre playlist.</p>
-    <p class="memoire" id="avis-ios" hidden>Sur iPhone, Safari cache ton compte YouTube aux vidéos intégrées : même avec YouTube Premium, tu as les pubs. Pour trier sans pub : utilise un ordinateur avec Chrome connecté à YouTube. Ou, sur l'iPhone, connecte-toi sur youtube.com dans Safari et coupe « Empêcher le suivi intersites » (Réglages, Apps, Safari) le temps du tri.</p>
+    <p class="memoire" id="avis-ios" hidden>Sur iPhone, Safari comme Chrome cachent ton compte YouTube aux vidéos intégrées : même avec YouTube Premium, tu as les pubs. Pour trier sans pub : utilise un ordinateur avec Chrome connecté à YouTube. Ou, sur l'iPhone, connecte-toi sur youtube.com dans Safari et coupe « Empêcher le suivi intersites » (Réglages, Apps, Safari) le temps du tri.</p>
     <div class="listes" id="listes"></div>
     <p class="memoire">Tu changes d'appareil ? <button class="lien" id="restaurer-1">Restaurer une sauvegarde</button></p>
   </section>
@@ -290,6 +302,7 @@
       </div>
       <div class="verdicts">
         <button class="v v-non" id="v-non">Non<small>il sort</small></button>
+        <button class="v-coeur" id="v-coeur" aria-pressed="false" aria-label="Coup de cœur">☆</button>
         <button class="v v-oui" id="v-oui">Oui<small>il entre sur le site</small></button>
       </div>
       <div class="options">
@@ -365,6 +378,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="data.js?v=12"></script>
-<script src="tri.js?v=14"></script>
+<script src="tri.js?v=15"></script>
 </body>
 </html>
