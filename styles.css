@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════════
-   MUSIC DISCOVERY — la structure et les objets (v0.7)
+   MUSIC DISCOVERY — la structure et les objets (v1.0)
    Les couleurs et polices viennent de teintes.css (une teinte = un skin).
    ════════════════════════════════════════════════════════════════════ */
 
@@ -183,32 +183,78 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 }
 .lien-bouton:hover { color: var(--encre); }
 
-/* ─────────────────────────────── DÉCOUVRIR : par où commencer ─────────────────────────────── */
+
+/* le petit CD-R du bouton « Ma compil » */
+.mini-cdr { width: 18px; height: 18px; border-radius: 50%; flex: none; background: radial-gradient(circle, var(--fond-2) 0 16%, rgba(0,0,0,.25) 17% 20%, transparent 21%), conic-gradient(#e9ecef, #c4cad1, #f7f8f9, #c8ced5, #e9ecef); box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); }
+.bouton-trouvailles.pulse .mini-cdr { animation: tourne .8s cubic-bezier(.3,.6,.3,1); }
+
+/* les petits repères d'étape : 1 fouiller, 2 graver, 3 écouter */
+.surtitre { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--encre-2); }
+.etape-puce { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--encre); color: var(--fond); font-size: 12px; letter-spacing: 0; }
+.etapes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; }
+.etapes li { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+.etapes b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--fond-2); box-shadow: var(--relief); font-size: 13px; }
+.etapes li + li::before { content: ""; width: 26px; height: 1px; margin-right: 14px; background: var(--encre-3); }
+.allumage-texte .surtitre { margin-bottom: 18px; }
+.allumage-libre { font-size: 13px; color: var(--encre-2); }
+
+/* ─────────────────────────────── DÉCOUVRIR : les bacs ───────────────────────────────
+   Un bac par ambiance, comme chez le disquaire : l'intercalaire de couleur
+   devant, les pochettes qui dépassent derrière. */
 .ecran-accueil {
-  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr);
-  gap: clamp(32px, 6vw, 96px); align-items: center; align-content: center;
-  max-width: 1180px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  grid-template-areas: "tete jour" "bacs jour";
+  gap: clamp(22px, 3vw, 40px) clamp(32px, 5vw, 80px); align-items: start; align-content: center;
+  max-width: 1320px; margin: 0 auto;
 }
-.envie { display: grid; gap: 22px; justify-items: start; }
-.envie-titre { font-size: clamp(2.6rem, 7vw, 6.2rem); line-height: .98; max-width: 9ch; }
-.envie-choix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; width: 100%; max-width: 640px; }
-.choix-envie {
-  display: grid; gap: 18px; align-content: space-between; min-height: 150px; padding: 20px 22px 20px;
-  text-align: left; border-radius: var(--rayon-objet);
-  background: var(--fond-2); box-shadow: var(--relief);
-  transition: transform .2s cubic-bezier(.2,.9,.3,1.3), box-shadow .2s;
+.bacs-tete { grid-area: tete; display: grid; gap: 14px; justify-items: start; }
+.envie-titre { font-size: clamp(2.3rem, 5.6vw, 5rem); line-height: .98; max-width: 13ch; }
+.envie-aide { color: var(--encre-2); max-width: 46ch; font-size: clamp(15px, 1.3vw, 17px); }
+.bacs { grid-area: bacs; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 22px); }
+.bac-couleur {
+  --amb: #888; --amb-sombre: #333; --amb-encre: #fff;
+  position: relative; display: block; aspect-ratio: 4 / 5; text-align: left; isolation: isolate;
+  border-radius: 16px; background: var(--fond-2); box-shadow: var(--relief);
+  animation: sortie .6s calc(var(--i, 0) * 45ms) cubic-bezier(.2,.9,.3,1.1) both;
+  transition: transform .3s cubic-bezier(.2,.9,.3,1.3), box-shadow .3s;
 }
-.choix-envie:hover { transform: translateY(-4px); box-shadow: var(--relief-fort); }
-.choix-envie:active { transform: translateY(1px); box-shadow: var(--relief-enfonce); }
-.choix-envie-onde { width: 100%; max-width: 180px; height: 30px; overflow: visible; transition: transform .6s cubic-bezier(.2,.9,.3,1); }
-.choix-envie-onde path { fill: none; stroke: var(--aiguille); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.choix-envie:hover .choix-envie-onde { transform: translateX(8px); }
-.choix-envie-texte { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); letter-spacing: var(--display-interlettre, -0.02em); font-size: clamp(1.1rem, 1.7vw, 1.45rem); line-height: 1.12; }
-.envie-hasard { font-size: 16px; }
-.envie-aide { color: var(--encre-2); max-width: 44ch; font-size: 15px; }
-.accueil-jour { display: grid; justify-items: start; gap: 10px; }
+.bac-couleur::before { /* le fond du bac, un peu creusé */
+  content: ""; position: absolute; inset: 7px; z-index: -1; border-radius: 11px;
+  background: linear-gradient(180deg, rgba(0,0,0,.08), transparent 60%); box-shadow: inset 0 2px 8px rgba(0,0,0,.12);
+}
+.bac-pochettes { position: absolute; left: 12%; right: 12%; top: 9%; height: 54%; }
+.bac-pochettes .pochette { position: absolute; left: 50%; top: 0; width: 72%; margin-left: -36%; box-shadow: 0 10px 22px rgba(0,0,0,.28); transition: transform .45s cubic-bezier(.2,.9,.3,1.25); }
+.bac-pochettes .pochette:nth-child(1) { transform: translateX(-22%) rotate(-9deg); }
+.bac-pochettes .pochette:nth-child(2) { transform: translateY(-4%) rotate(2deg); z-index: 1; }
+.bac-pochettes .pochette:nth-child(3) { transform: translateX(22%) rotate(10deg); }
+.bac-couleur:hover { transform: translateY(-4px); box-shadow: var(--relief-fort); }
+.bac-couleur:hover .bac-pochettes .pochette:nth-child(1) { transform: translate(-30%, -12%) rotate(-13deg); }
+.bac-couleur:hover .bac-pochettes .pochette:nth-child(2) { transform: translateY(-18%) rotate(0deg); }
+.bac-couleur:hover .bac-pochettes .pochette:nth-child(3) { transform: translate(30%, -10%) rotate(14deg); }
+.bac-couleur:active { transform: translateY(1px) scale(.99); }
+.bac-intercalaire {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 50%;
+  display: grid; align-content: end; gap: 2px; padding: clamp(12px, 1.4vw, 18px);
+  border-radius: 12px 12px 16px 16px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--amb) 92%, #fff) 0%, var(--amb) 40%, color-mix(in srgb, var(--amb) 82%, #000) 100%);
+  color: var(--amb-encre);
+  box-shadow: 0 -10px 20px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.35);
+}
+.bac-intercalaire::before { /* l'onglet de l'intercalaire */
+  content: ""; position: absolute; left: 14px; top: -16px; width: 46%; height: 20px; border-radius: 9px 9px 0 0;
+  background: color-mix(in srgb, var(--amb) 92%, #fff);
+}
+.bac-nom { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); letter-spacing: var(--display-interlettre, -0.02em); font-size: clamp(1.15rem, 1.9vw, 1.6rem); line-height: 1.02; }
+.bac-sous { font-size: clamp(12px, 1.05vw, 14px); opacity: .85; line-height: 1.25; }
+.bac-nombre { margin-top: 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.bac-hasard { --amb: #d9d6cf; --amb-encre: #1c1c21; }
+.bac-hasard .bac-intercalaire { background: conic-gradient(from 210deg at 70% 120%, #f6c1d6, #c7d7ff, #c8f5df, #fff1b8, #f6c1d6); }
+.bac-hasard .bac-intercalaire::before { background: #e7dff0; }
+.bac-hasard .bac-pochettes .pochette { filter: saturate(.9); }
+
+.accueil-jour { grid-area: jour; display: grid; justify-items: start; gap: 10px; align-self: center; }
 .jour-titre { font-size: clamp(1.15rem, 1.7vw, 1.45rem); }
-.accueil-jour .carte-jour { width: min(100%, 330px); }
+.accueil-jour .carte-jour { width: min(100%, 300px); }
 .jour-pied { font-size: 14px; color: var(--encre-2); max-width: 32ch; }
 
 /* ─────────────────────────────── POCHETTES ─────────────────────────────── */
@@ -269,11 +315,11 @@ body.allume .interrupteur-led { background: var(--aiguille); box-shadow: 0 0 12p
 }
 .fouille {
   display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-  grid-template-areas: "platine suite" "platine livret";
+  grid-template-areas: "platine suite" "platine compil" "platine livret";
   gap: clamp(30px, 4vw, 60px) clamp(28px, 4.4vw, 76px); align-items: start;
   max-width: 1320px; margin: 0 auto;
 }
-.fouille.sans-platine { grid-template-columns: minmax(0, 1fr); grid-template-areas: "suite" "livret"; max-width: 940px; }
+.fouille.sans-platine { grid-template-columns: minmax(0, 1fr); grid-template-areas: "suite" "compil" "livret"; max-width: 940px; }
 
 /* le disque qui joue */
 .platine {
@@ -314,57 +360,76 @@ body.video-fouille .platine-pochette { display: none; }
 .platine-info a { color: var(--encre); }
 .platine-info .lien-bouton { font-size: 14px; }
 
-/* les disques pour la suite */
+
+/* les directions pour la suite : sur ordinateur, trois pochettes avec l'étiquette du disquaire ;
+   sur téléphone, trois lignes où la direction passe en premier (pas besoin d'écouter pour choisir) */
 .suite { grid-area: suite; min-width: 0; display: grid; gap: 10px; align-content: start; }
 .suite-titre { font-size: clamp(1.45rem, 2.4vw, 2.1rem); }
 .suite-sous { font-size: 15px; color: var(--encre-2); min-height: 1.5em; }
 .suite-sous .lien-bouton { font-size: 15px; margin-left: 4px; }
 .fouille.sans-platine .suite-titre, .fouille.sans-platine .suite-sous { text-align: center; }
-.fouille.sans-platine .suite-titre { font-size: clamp(1.9rem, 4vw, 3.4rem); }
-.suite-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(18px, 2.6vw, 34px); margin-top: 16px; }
-.fouille.sans-platine .suite-options { gap: clamp(18px, 5vw, 64px); width: 100%; max-width: 760px; margin-inline: auto; }
-.option { display: grid; gap: 3px; align-content: start; min-width: 0; animation: sortie .6s cubic-bezier(.2,.9,.3,1.15) both; }
-.option:nth-child(2) { animation-delay: .08s; }
+.suite-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 1.8vw, 26px); margin-top: 14px; }
+.option {
+  --amb: var(--aiguille); --amb-encre: var(--sur-aiguille);
+  position: relative; display: grid; align-content: start; min-width: 0;
+  animation: sortie .6s cubic-bezier(.2,.9,.3,1.15) both;
+}
+.option:nth-child(2) { animation-delay: .07s; } .option:nth-child(3) { animation-delay: .14s; }
+.option-choix { display: grid; gap: 12px; align-content: start; width: 100%; text-align: left; }
 .option-pochette {
-  position: relative; display: block; width: 100%; margin-bottom: 12px;
+  position: relative; display: block; width: 100%;
   transform: rotate(var(--penche, 0deg));
   transition: transform .4s cubic-bezier(.2,.9,.3,1.25);
 }
 .option-pochette .pochette { box-shadow: var(--ombre-pochette-forte); }
 .option:hover .option-pochette, .option.ecoute .option-pochette, .option.compte .option-pochette { transform: rotate(0deg) translateY(-5px); }
-.option.ecoute .pochette, .option.compte .pochette { box-shadow: var(--ombre-pochette-forte), 0 0 0 3px var(--aiguille); }
-.option-titre { font-weight: 600; font-size: clamp(1rem, 1.4vw, 1.15rem); line-height: 1.2; overflow-wrap: anywhere; }
-.option-artiste { color: var(--encre-2); font-size: 15px; overflow-wrap: anywhere; }
-.option-long { font-size: 13px; color: var(--aiguille); font-weight: 600; margin-top: 2px; }
-.option-extrait { display: grid; justify-items: start; gap: 0; margin-top: 4px; }
+.option.ecoute .pochette, .option.compte .pochette { box-shadow: var(--ombre-pochette-forte), 0 0 0 3px var(--amb); }
+.option-textes { display: grid; gap: 2px; min-width: 0; }
+.option-dir { display: none; }
+.option-style { display: flex; align-items: baseline; gap: 7px; font-size: 13px; font-weight: 600; color: var(--encre-2); line-height: 1.3; }
+.puce-amb { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--amb); box-shadow: 0 0 0 2px color-mix(in srgb, var(--amb) 25%, transparent); transform: translateY(-1px); }
+.option-titre { font-weight: 600; font-size: clamp(.98rem, 1.25vw, 1.1rem); line-height: 1.2; overflow-wrap: anywhere; margin-top: 2px; }
+.option-artiste { color: var(--encre-2); font-size: 14px; overflow-wrap: anywhere; line-height: 1.3; }
+.option-ecoute {
+  justify-self: start; margin-top: 6px; display: inline-flex; align-items: center; gap: 8px;
+  min-height: 34px; padding: 0 12px 0 10px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--encre-2);
+  box-shadow: inset 0 0 0 1px var(--trait);
+}
+.option-ecoute:hover { color: var(--encre); box-shadow: inset 0 0 0 1px var(--encre-3); }
+.option-ecoute.en-cours { color: var(--encre); box-shadow: inset 0 0 0 1.5px var(--amb); }
+.option-ecoute.en-cours .extrait-icone { animation: egaliseur .5s ease-in-out infinite alternate; }
+.option-ecoute[data-etat="inconnu"], .option-ecoute[data-etat="absent"] { opacity: .45; pointer-events: none; }
 
-/* l'étiquette du disquaire, collée sur la pochette : elle dit dans quelle direction ce disque t'emmène */
+/* l'étiquette du disquaire, collée sur la pochette : la direction, dans la couleur de l'ambiance */
 .sticker {
-  position: absolute; z-index: 2; left: -9px; top: 14px; max-width: calc(100% - 4px);
-  padding: 6px 11px 6px 10px; border-radius: 2px;
+  position: absolute; z-index: 2; left: -8px; top: 12px; max-width: calc(100% - 4px);
+  padding: 6px 10px; border-radius: 2px;
   background: var(--etiquette); color: var(--sur-etiquette);
   font-family: var(--texte); font-weight: 600; font-size: 13px; line-height: 1.15; text-align: left;
   transform: rotate(-4deg);
-  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 6px 14px rgba(0,0,0,.2);
+  box-shadow: inset 4px 0 0 var(--amb), 0 1px 0 rgba(0,0,0,.08), 0 6px 14px rgba(0,0,0,.2);
 }
 .option:nth-child(2) .sticker { transform: rotate(3deg); }
-.sticker-coup { background: var(--aiguille); color: var(--sur-aiguille); }
+.option:nth-child(3) .sticker { transform: rotate(-2deg); }
+.sticker-coup { background: var(--aiguille); color: var(--sur-aiguille); box-shadow: 0 6px 14px rgba(0,0,0,.2); }
 /* le compte à rebours de l'enchaînement, sous la première pochette */
-.option-barre { position: absolute; left: 0; right: 0; bottom: -10px; height: 4px; border-radius: 2px; background: var(--aiguille); transform: scaleX(0); transform-origin: left; opacity: 0; }
+.option-barre { position: absolute; left: 0; right: 0; bottom: -9px; height: 4px; border-radius: 2px; background: var(--amb); transform: scaleX(0); transform-origin: left; opacity: 0; }
 .option.compte .option-barre, .coup.compte .option-barre { opacity: 1; animation: remplir 5s linear forwards; }
 @keyframes remplir { to { transform: scaleX(1); } }
-/* la carte mystère se retourne avant de se lancer */
-.option.mystere .option-pochette { transform: rotate(var(--penche, 0deg)); }
-.option.mystere .carte-retournable.retournee { transform: rotate(0deg); }
+/* la carte mystère : on ne voit que son indice, elle se retourne avant de se lancer */
+.option.mystere .option-pochette.carte-retournable { aspect-ratio: 1 / 1; }
+.option.mystere .carte-dos { background: radial-gradient(130% 100% at 28% 18%, color-mix(in srgb, var(--amb) 80%, #fff), var(--amb) 50%, color-mix(in srgb, var(--amb) 60%, #000)); color: var(--amb-encre); }
+.option.mystere .carte-dos-motif { background: repeating-radial-gradient(circle at 50% 50%, transparent 0 9px, currentColor 9px 10px); }
+
 /* le coup de cœur, tout seul */
 .coup { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); gap: clamp(18px, 3vw, 34px); align-items: center; animation: sortie .6s cubic-bezier(.2,.9,.3,1.1) both; }
-.coup .option-pochette { transform: rotate(-2deg); margin-bottom: 0; }
+.coup .option-pochette { transform: rotate(-2deg); }
 .coup:hover .option-pochette, .coup.ecoute .option-pochette { transform: rotate(0deg) translateY(-4px); }
 .coup.ecoute .pochette { box-shadow: var(--ombre-pochette-forte), 0 0 0 3px var(--aiguille); }
 .coup-texte { display: grid; gap: 4px; justify-items: start; min-width: 0; }
 .coup-actions { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; margin-top: 14px; }
 .suite-coup { grid-template-columns: minmax(0, 1fr); }
-.suite-pied { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; margin-top: 14px; }
+.suite-pied { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; margin-top: 12px; }
 .fouille.sans-platine .suite-pied { justify-content: center; }
 .raccourcis { font-size: 13px; color: var(--encre-2); }
 
@@ -375,14 +440,124 @@ body.video-fouille .platine-pochette { display: none; }
   linear-gradient(currentColor, currentColor) 50% 100%/3px 100% no-repeat,
   linear-gradient(currentColor, currentColor) 100% 80%/3px 60% no-repeat; }
 .extrait-bouton.en-cours { color: var(--aiguille); }
-.extrait-bouton .extrait-ok, .extrait-bouton .extrait-inconnu, .extrait-bouton .extrait-absent { display: none; }
-.extrait-bouton[data-etat="ok"] .extrait-ok, .extrait-bouton[data-etat="inconnu"] .extrait-inconnu, .extrait-bouton[data-etat="absent"] .extrait-absent { display: inline; }
-.extrait-bouton[data-etat="inconnu"], .extrait-bouton[data-etat="absent"] { pointer-events: none; opacity: .7; }
-.extrait-bouton[data-etat="absent"] .extrait-icone { display: none; }
 .extrait-bouton.en-cours .extrait-icone { animation: egaliseur .5s ease-in-out infinite alternate; }
 @keyframes egaliseur { to { background-size: 3px 90%, 3px 30%, 3px 100%; } }
-.extrait-lien { font-size: 13px; color: var(--encre-2); text-decoration: underline; text-decoration-color: var(--encre-3); text-underline-offset: 3px; }
-.extrait-lien:hover { color: var(--encre); }
+
+/* ─────────────────────────────── LES DISQUES ───────────────────────────────
+   Un CD imprimé : le trou, l'anneau de plastique transparent, l'étiquette
+   de couleur, et un reflet irisé quand la lumière tourne. */
+.disque {
+  --amb: #c9c9c9; --amb-encre: #15151a;
+  position: relative; display: block; aspect-ratio: 1 / 1; width: 100%; border-radius: 50%; overflow: hidden;
+  container-type: inline-size;
+  background:
+    radial-gradient(circle, transparent 0 7%, rgba(255,255,255,.9) 7.4% 8.4%, rgba(160,170,180,.55) 8.6% 15.5%, rgba(255,255,255,.7) 15.7% 16.4%, transparent 16.6%),
+    radial-gradient(circle, transparent 0 16.5%, var(--amb) 16.6%);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.14), 0 10px 24px -6px rgba(0,0,0,.4);
+  -webkit-mask: radial-gradient(circle, transparent 0 6.8%, #000 7%);
+  mask: radial-gradient(circle, transparent 0 6.8%, #000 7%);
+}
+.disque::after { /* le reflet */
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 200deg, transparent 0 8%, rgba(255,255,255,.32) 13%, transparent 21% 55%, rgba(255,255,255,.22) 61%, transparent 70%);
+  mix-blend-mode: soft-light;
+}
+.disque-nom {
+  position: absolute; left: 50%; top: 17%; transform: translateX(-50%); width: 72%; text-align: center;
+  font-family: var(--display); font-weight: 600; letter-spacing: -0.03em; font-size: 14px; font-size: 12cqw; line-height: 1; color: var(--amb-encre);
+}
+.disque-nom small { display: block; margin-top: .45em; font-family: var(--texte); font-weight: 600; letter-spacing: .14em; font-size: .3em; text-transform: uppercase; opacity: .7; }
+.disque-hasard .disque-nom { font-size: 11px; font-size: 9.5cqw; top: 19%; }
+.disque-amb { background:
+  radial-gradient(circle, transparent 0 7%, rgba(255,255,255,.9) 7.4% 8.4%, rgba(160,170,180,.55) 8.6% 15.5%, rgba(255,255,255,.7) 15.7% 16.4%, transparent 16.6%),
+  radial-gradient(circle, transparent 0 16.5%, rgba(255,255,255,.18) 16.6% 17.4%, transparent 17.6% 46%, rgba(0,0,0,.08) 46.2% 46.8%, transparent 47%),
+  radial-gradient(120% 120% at 30% 20%, color-mix(in srgb, var(--amb) 80%, #fff), var(--amb) 45%, color-mix(in srgb, var(--amb) 70%, #000)); }
+/* la compil : un CD-R argenté, écrit au feutre */
+.disque-compil { --amb-encre: #1a2c8a; background:
+  radial-gradient(circle, transparent 0 7%, rgba(255,255,255,.9) 7.4% 8.4%, rgba(160,170,180,.55) 8.6% 15.5%, rgba(255,255,255,.7) 15.7% 16.4%, transparent 16.6%),
+  repeating-radial-gradient(circle, rgba(255,255,255,.12) 0 1px, rgba(0,0,0,.03) 1px 2px),
+  conic-gradient(from 0deg, #e9ecef, #cfd5db, #f7f8f9, #c8ced5, #eef0f2, #d3d8dd, #f5f6f7, #cdd3d9, #e9ecef); }
+.disque-main {
+  position: absolute; left: 50%; top: 14%; transform: translateX(-50%) rotate(-8deg); white-space: nowrap;
+  font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 16px; font-size: 15cqw; line-height: 1; color: var(--amb-encre);
+}
+.disque-main small { display: block; text-align: center; font-size: .55em; font-weight: 500; opacity: .85; }
+/* surprends-moi : un disque holographique */
+.disque-hasard { --amb-encre: #1c1c21; background:
+  radial-gradient(circle, transparent 0 7%, rgba(255,255,255,.9) 7.4% 8.4%, rgba(160,170,180,.55) 8.6% 15.5%, rgba(255,255,255,.7) 15.7% 16.4%, transparent 16.6%),
+  conic-gradient(from 30deg, #ffd0e4, #c9d5ff, #c4f6df, #fff2b5, #ffd0e4, #d8c9ff, #c4f1ff, #ffe0c4, #ffd0e4); }
+.disque-vide { background: radial-gradient(circle, transparent 0 7%, rgba(0,0,0,.15) 7.4% 98%); box-shadow: inset 0 0 0 2px rgba(0,0,0,.08); }
+@keyframes tourne { to { transform: rotate(360deg); } }
+
+/* ─────────────────────────────── LA COMPIL (étape 2) ───────────────────────────────
+   Le boîtier ouvert : la jaquette où s'écrivent les titres, le CD-R à côté. */
+.compil {
+  grid-area: compil; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(16px, 2vw, 26px); align-items: center;
+  padding: clamp(14px, 1.6vw, 20px); border-radius: var(--rayon-objet);
+  background: var(--fond-2); box-shadow: var(--relief), 0 0 0 1px var(--trait);
+}
+.fouille.sans-platine .compil { display: none; }
+.compil-boitier {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .82fr); align-items: center; gap: 0;
+  padding: 8px; border-radius: 6px;
+  background: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 40%, rgba(255,255,255,.3)), rgba(30,30,40,.06);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.6), 0 12px 26px -10px rgba(0,0,0,.35);
+}
+.compil-papier {
+  position: relative; align-self: stretch; padding: 10px 10px 10px 14px; border-radius: 2px;
+  background: repeating-linear-gradient(180deg, transparent 0 21px, rgba(40,70,160,.18) 21px 22px), #fbfaf6;
+  color: #1a2c8a; box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.compil-papier::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 1px; background: rgba(208,30,80,.3); }
+.compil-liste { list-style: none; margin: 0; padding: 0; counter-reset: c; font-family: "Caveat", "Bradley Hand", cursive; font-size: 17px; line-height: 22px; }
+.compil-liste li { counter-increment: c; display: flex; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compil-liste li::before { content: counter(c) "."; flex: none; width: 1.3em; text-align: right; opacity: .7; }
+.compil-liste li span { overflow: hidden; text-overflow: ellipsis; }
+.compil-liste li em { font-style: normal; opacity: .6; overflow: hidden; text-overflow: ellipsis; }
+.compil-liste li.vide::after { content: ""; flex: 1; }
+.compil-liste li.nouveau { animation: ecrire .7s ease-out both; }
+@keyframes ecrire { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.compil-plateau { position: relative; display: grid; place-items: center; padding: 8%; }
+.compil-plateau::before { content: ""; position: absolute; inset: 4%; border-radius: 50%; background: repeating-conic-gradient(rgba(0,0,0,.05) 0 6deg, transparent 6deg 12deg); box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.compil-plateau .disque { --d: 140px; width: 100%; }
+.compil.ajout .compil-plateau .disque { animation: tourne .9s cubic-bezier(.3,.6,.3,1); }
+.compil-texte { display: grid; gap: 8px; justify-items: start; min-width: 0; }
+.compil-compte { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); letter-spacing: var(--display-interlettre, -0.02em); font-size: clamp(1.25rem, 2vw, 1.7rem); line-height: 1.05; }
+.compil-jauge { width: 100%; max-width: 260px; height: 6px; border-radius: 3px; background: var(--trait); overflow: hidden; }
+.compil-jauge span { display: block; height: 100%; width: calc(var(--p, 0) * 100%); border-radius: inherit; background: var(--aiguille); transition: width .5s cubic-bezier(.2,.9,.3,1); }
+.compil-aide { font-size: 14px; color: var(--encre-2); max-width: 34ch; }
+.compil-texte .gros-bouton { margin-top: 4px; }
+.gros-bouton:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* ─────────────────────────────── LA GRAVURE ─────────────────────────────── */
+.gravure {
+  position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 20px;
+  background: color-mix(in srgb, var(--fond) 82%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+  animation: apparition .35s ease both;
+}
+@keyframes apparition { from { opacity: 0; } }
+.gravure-boite {
+  --avance: 0;
+  display: grid; grid-template-columns: minmax(180px, 300px) minmax(0, 380px); gap: clamp(24px, 4vw, 56px); align-items: center;
+  width: min(820px, 100%); padding: clamp(22px, 4vw, 44px); border-radius: calc(var(--rayon-objet) + 6px);
+  background: var(--fond-2); box-shadow: var(--relief-fort), 0 0 0 1px var(--trait);
+}
+.gravure-disque { position: relative; display: grid; place-items: center; }
+.gravure-disque .disque { --d: 280px; width: 86%; }
+.gravure.en-cours .gravure-disque .disque { animation: tourne .7s linear infinite; }
+.gravure.finie .gravure-disque .disque { animation: tourne 2.4s cubic-bezier(.1,.6,.3,1) 1; }
+.gravure-anneau { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--aiguille) calc(var(--avance) * 360deg), var(--trait) 0); -webkit-mask: radial-gradient(circle closest-side, transparent 0 93%, #000 93.5% 98.5%, transparent 99%); mask: radial-gradient(circle closest-side, transparent 0 93%, #000 93.5% 98.5%, transparent 99%); }
+.gravure-texte { display: grid; gap: 10px; justify-items: start; min-width: 0; }
+.gravure-texte h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); }
+.gravure-etat { color: var(--encre-2); font-variant-numeric: tabular-nums; min-height: 1.5em; }
+.gravure-liste { list-style: none; margin: 4px 0 0; padding: 0; counter-reset: g; display: grid; gap: 2px; width: 100%; max-height: 40vh; overflow: auto; font-family: "Caveat", "Bradley Hand", cursive; font-size: 20px; line-height: 1.25; color: var(--encre); }
+.gravure-liste li { counter-increment: g; display: flex; gap: 8px; min-width: 0; opacity: .14; transition: opacity .25s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gravure-liste li::before { content: counter(g) "."; flex: none; width: 1.4em; text-align: right; opacity: .6; }
+.gravure-liste li em { font-style: normal; opacity: .55; overflow: hidden; text-overflow: ellipsis; }
+.gravure-liste li.ecrit { opacity: 1; animation: ecrire .5s ease-out both; }
+.gravure-actions { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 10px; }
+body.gravure-ouverte { overflow: hidden; }
 
 /* ─────────────────────────────── LE LIVRET ─────────────────────────────── */
 .livret { width: 100%; padding-top: 24px; border-top: 1px solid var(--trait); scroll-margin-top: 92px; }
@@ -452,7 +627,7 @@ button.piste-btn:hover .piste-ecoute, .pistes li.ecoute .piste-ecoute { opacity:
 .ailleurs a:hover { box-shadow: var(--relief), 0 0 0 2px var(--aiguille); }
 
 /* pourquoi des pubs (affiché une fois, dans la page : jamais par-dessus la vidéo) */
-.avis-pub { display: grid; gap: 10px; max-width: 560px; padding: 18px 20px; border-radius: var(--rayon-objet); background: var(--fond-2); box-shadow: var(--relief), 0 0 0 1px var(--trait); font-size: 15px; animation: sortie .45s cubic-bezier(.2,.9,.3,1.1); }
+.avis-pub { display: grid; gap: 10px; max-width: min(560px, 100%); padding: 18px 20px; border-radius: var(--rayon-objet); background: var(--fond-2); box-shadow: var(--relief), 0 0 0 1px var(--trait); font-size: 15px; animation: sortie .45s cubic-bezier(.2,.9,.3,1.1); }
 .avis-titre { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 1.15rem; line-height: 1.1; }
 .avis-pub p { color: var(--encre-2); }
 .avis-pub .avis-titre { color: var(--encre); }
@@ -479,203 +654,167 @@ button.piste-btn:hover .piste-ecoute, .pistes li.ecoute .piste-ecoute { opacity:
 .bouton-garder.est-garde::before { content: "✓"; font-size: 1.05em; }
 .bouton-garder:active { transform: scale(.96); }
 
-/* ─────────────────────────────── ÉCOUTER : la chaîne (d'après la pochette « For A Good Time… ») ─────────────────────────────── */
-.ecran-machine { display: grid; align-content: start; justify-items: center; padding-top: clamp(24px, 4vw, 52px); }
-.chaine {
+
+/* ─────────────────────────────── ÉTAPE 3 : LA CHAÎNE ───────────────────────────────
+   Une micro-chaîne CD du milieu des années 2000 : façade alu brossé (ou laque noire
+   la nuit), porte à hublot fumé où l'on voit tourner le disque, écran à cristaux
+   liquides avec son petit égaliseur, gros bouton de volume à anneau lumineux. */
+.ecran-machine { display: grid; align-content: start; justify-items: center; gap: clamp(28px, 4vw, 48px); padding-top: clamp(20px, 3.5vw, 48px); }
+.hifi {
   position: relative; isolation: isolate;
-  display: grid; grid-template-columns: minmax(80px, 150px) minmax(0, 880px) minmax(80px, 150px);
-  gap: clamp(14px, 2.4vw, 32px); align-items: stretch; width: 100%; max-width: 1260px;
+  display: grid; grid-template-columns: minmax(84px, 150px) minmax(0, 1000px) minmax(84px, 150px);
+  gap: clamp(12px, 2vw, 26px); align-items: end; width: 100%; max-width: 1340px;
 }
-/* l'ombre du meuble au sol */
-.chaine::after { content: ""; position: absolute; z-index: -1; left: 2%; right: 2%; bottom: -22px; height: 40px; background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.2), transparent 72%); }
+.hifi::after { content: ""; position: absolute; z-index: -1; left: 3%; right: 3%; bottom: -24px; height: 42px; background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.22), transparent 72%); }
 
-/* les enceintes en noyer : leurs membranes bougent quand ça joue */
-.enceinte {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 24px 12px 18px; border-radius: 6px;
-  background: var(--noyer-grain), var(--noyer);
-  box-shadow: var(--relief-fort), inset 0 0 0 1px rgba(0,0,0,.25), inset 0 2px 0 rgba(255,255,255,.14);
+/* les enceintes satellites */
+.hifi-enceinte {
+  position: relative; display: grid; grid-template-rows: auto auto 1fr; justify-items: center; gap: 12%;
+  aspect-ratio: 1 / 1.95; padding: 22% 12% 10%; border-radius: 16px 16px 12px 12px;
+  background: var(--hifi-corps); box-shadow: var(--hifi-ombre);
 }
-.hp {
-  display: block; flex: none; aspect-ratio: 1 / 1; border-radius: 50%;
-  background: radial-gradient(circle, var(--cone-centre) 0 17%, var(--cone) 18% 60%, var(--cone-bord) 61% 71%, #0b0b0c 72%);
-  box-shadow: 0 0 0 4px rgba(0,0,0,.22), 0 1px 0 5px rgba(255,255,255,.08);
-}
-.hp-petit { width: 36%; }
-.hp-grand { width: 82%; margin-top: auto; }
-body.cd-tourne .hp-grand { animation: basse .46s ease-in-out infinite alternate; }
-body.cd-tourne .hp-petit { animation: basse .23s ease-in-out infinite alternate; }
-@keyframes basse { to { transform: scale(1.04); filter: brightness(1.12); } }
+.hp-tweeter { width: 36%; aspect-ratio: 1 / 1; border-radius: 50%; background: radial-gradient(circle at 44% 38%, #fbfbfb 0 14%, #a7adb4 26%, #33363c 56%, #121316 66%, var(--hifi-anneau) 68%); box-shadow: 0 1px 0 rgba(255,255,255,.4), inset 0 1px 3px rgba(0,0,0,.4); }
+.hp-boomer { position: relative; width: 92%; aspect-ratio: 1 / 1; border-radius: 50%;
+  background: radial-gradient(circle, #34363c 0 13%, #191a1d 13.5% 17%, #2a2c31 17.5% 53%, #121315 54% 63%, #2f3136 64% 71%, var(--hifi-anneau) 72%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.35), inset 0 2px 6px rgba(0,0,0,.5); }
+.hp-boomer i { position: absolute; inset: 27%; border-radius: 50%; box-shadow: 0 0 0 2px var(--lcd-encre); opacity: 0; transition: opacity .4s, box-shadow .4s; }
+body.cd-tourne .hp-boomer { animation: basse var(--battement, .5s) ease-in-out infinite alternate; }
+body.cd-tourne .hp-boomer i { opacity: .7; box-shadow: 0 0 0 2px var(--lcd-encre), 0 0 18px 2px var(--lcd-halo); }
+@keyframes basse { to { transform: scale(1.035); filter: brightness(1.12); } }
+.hifi-enceinte-pied { align-self: end; font-size: 9px; font-weight: 600; letter-spacing: .24em; color: var(--hifi-encre); opacity: .45; }
 
-.pile { display: grid; grid-template-columns: minmax(190px, 260px) minmax(0, 1fr); gap: clamp(14px, 2vw, 24px); align-items: stretch; min-width: 0; }
+/* le corps de la chaîne */
+.hifi-corps {
+  position: relative; display: grid; min-width: 0;
+  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+  grid-template-areas: "haut haut" "tiroir lcd" "commandes commandes";
+  gap: 16px 22px; padding: clamp(16px, 2vw, 26px); border-radius: 20px;
+  background: var(--hifi-corps); color: var(--hifi-encre); box-shadow: var(--hifi-ombre);
+}
+body.video-machine .hifi-corps { grid-template-columns: minmax(170px, 220px) minmax(0, 1fr) 356px; grid-template-areas: "haut haut haut" "tiroir lcd ecran" "commandes commandes commandes"; }
+.hifi-haut { grid-area: haut; display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--hifi-trait); }
+.hifi-marque { font-family: "Unbounded", sans-serif; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: 14px; }
+.hifi-modele { font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; opacity: .55; }
+.hifi-veille { margin-left: auto; align-self: center; width: 8px; height: 8px; border-radius: 50%; background: #c8402e; box-shadow: 0 0 6px rgba(200,64,46,.7); transition: background .3s, box-shadow .3s; }
+body.chaine-allumee .hifi-veille { background: var(--lcd-encre); box-shadow: 0 0 8px 1px var(--lcd-halo); }
 
-/* la platine CD verticale, couvercle en plexi fumé : appuyer dessus = lecture / pause */
-.platine-cd {
-  position: relative; display: grid; grid-template-rows: auto auto; align-content: center; gap: 12px;
-  padding: 14px; border-radius: 14px; text-align: left;
-  background: var(--facade-cd); color: var(--encre-cd);
-  box-shadow: var(--relief-fort), inset 0 1px 0 rgba(255,255,255,.6);
-  transition: transform .2s cubic-bezier(.2,.9,.3,1.2);
+/* la porte à hublot : on voit le disque tourner ; elle descend quand on change de disque */
+.tiroir { grid-area: tiroir; position: relative; align-self: start; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: var(--hifi-creux); box-shadow: inset 0 3px 14px rgba(0,0,0,.55); }
+.tiroir-plateau { position: absolute; inset: 7%; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, #2b2d32 0 6%, #4b4e55 6.5% 9%, #18191c 9.5% 100%); transition: transform .45s cubic-bezier(.3,.9,.3,1); }
+.tiroir-creux { position: absolute; inset: 2%; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.disque-tiroir { --d: 210px; width: 96%; }
+body.cd-tourne .disque-tiroir { animation: tourne 1.15s linear infinite; }
+.tiroir-facade {
+  position: absolute; inset: 0; border-radius: inherit;
+  background: var(--hifi-porte);
+  -webkit-mask: radial-gradient(circle closest-side, transparent 0 83%, #000 83.6%);
+  mask: radial-gradient(circle closest-side, transparent 0 83%, #000 83.6%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+  transition: transform .42s cubic-bezier(.5,0,.3,1);
 }
-.platine-cd:hover { transform: translateY(-3px); }
-.platine-cd:active { transform: translateY(1px); }
-.platine-couvercle {
-  position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1 / 1.06;
-  border-radius: 10px; overflow: hidden;
-  background: var(--plexi);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 12px 30px rgba(0,0,0,.4);
+.tiroir::after { /* le verre fumé du hublot */
+  content: ""; position: absolute; inset: 8.5%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(100% 100% at 30% 20%, rgba(255,255,255,.22), transparent 38%), radial-gradient(circle, rgba(20,22,28,.18), rgba(10,11,14,.42));
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.35), inset 0 0 0 4px rgba(255,255,255,.07);
+  transition: opacity .3s;
 }
-.platine-couvercle::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(118deg, rgba(255,255,255,.38) 0 10%, transparent 24% 62%, rgba(255,255,255,.12) 78%, transparent 90%); }
-.cd {
-  position: relative; display: grid; place-items: center; width: 84%; aspect-ratio: 1 / 1; border-radius: 50%;
-  background:
-    radial-gradient(circle, transparent 0 13%, rgba(255,255,255,.7) 13.5% 15%, transparent 15.5%),
-    var(--disque, conic-gradient(from 0deg, #d9dde2, #b8f0ff, #f6d1ff, #fff4c2, #c9ffd8, #d9dde2, #ffd4e8, #c7d3ff, #d9dde2));
-  box-shadow: 0 6px 18px rgba(0,0,0,.35);
-  animation: tourne 1.6s linear infinite; animation-play-state: paused;
-}
-body.cd-tourne .cd { animation-play-state: running; }
-@keyframes tourne { to { transform: rotate(360deg); } }
-.cd-etiquette { position: relative; display: block; width: 58%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden; }
-.cd-etiquette .pochette { height: 100%; border-radius: 50%; box-shadow: none; }
-.cd-etiquette::after { content: ""; position: absolute; left: 50%; top: 50%; width: 22%; height: 22%; border-radius: 50%; transform: translate(-50%, -50%); background: var(--fente-cd); box-shadow: 0 0 0 2px rgba(255,255,255,.65); }
-.cd-bras { position: absolute; right: 9%; top: 8%; width: 6px; height: 34%; border-radius: 3px; background: linear-gradient(90deg, #8d8c88, #f1f0ec, #9b9a96); transform: rotate(18deg); transform-origin: top center; box-shadow: 0 3px 6px rgba(0,0,0,.35); transition: transform .6s cubic-bezier(.3,.9,.3,1); }
-body.cd-tourne .cd-bras { transform: rotate(32deg); }
-.platine-socle { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
-.platine-led { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,.25); box-shadow: inset 0 1px 2px rgba(0,0,0,.4); transition: background .2s, box-shadow .2s; }
-body.cd-tourne .platine-led { background: var(--vfd); box-shadow: 0 0 8px 1px var(--vfd-halo); }
-.platine-nom { font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; opacity: .7; }
+.tiroir-logo { position: absolute; left: 9%; bottom: 5%; font-size: 8px; font-weight: 700; letter-spacing: .14em; line-height: 1.05; text-transform: uppercase; opacity: .5; }
+.tiroir-fente { position: absolute; right: 8%; bottom: 6%; width: 20%; height: 3px; border-radius: 2px; background: rgba(0,0,0,.25); box-shadow: 0 1px 0 rgba(255,255,255,.4); }
+.tiroir.ouvert .tiroir-facade { transform: translateY(104%); }
+.tiroir.ouvert::after { opacity: 0; }
+.tiroir.ouvert .tiroir-plateau { transform: scale(1.06); }
+.tiroir.pose .disque-tiroir { animation: poser .5s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes poser { from { transform: translateY(-55%) scale(1.2) rotate(-20deg); opacity: 0; } }
 
-/* le magnétophone à bandes : deux bobines derrière le plexi fumé, qui tournent quand ça joue */
-.magneto-face {
-  position: relative; display: grid; grid-template-rows: 1fr 1fr; gap: 14px; justify-items: center; align-items: center;
-  width: 100%; padding: 18px 14px; border-radius: 10px; overflow: hidden;
-  background: var(--plexi);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 12px 30px rgba(0,0,0,.4);
+/* l'écran à cristaux liquides */
+.lcd {
+  grid-area: lcd; position: relative; overflow: hidden; min-width: 0; align-self: stretch;
+  display: grid; grid-template-rows: auto auto 1fr auto auto; gap: 8px;
+  padding: 16px 18px; border-radius: 10px;
+  background: var(--lcd-fond); color: var(--lcd-encre); text-shadow: 0 0 7px var(--lcd-halo);
+  font-family: "Doto", ui-monospace, monospace; font-weight: 900; letter-spacing: .04em;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 4px 18px rgba(0,0,0,.85), 0 1px 0 rgba(255,255,255,.35);
 }
-.magneto-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(118deg, rgba(255,255,255,.3) 0 10%, transparent 24% 62%, rgba(255,255,255,.1) 78%, transparent 90%); }
-.bobine {
-  --bande-ext: 60%;
-  position: relative; z-index: 1; width: 74%; aspect-ratio: 1 / 1; border-radius: 50%;
-  background:
-    radial-gradient(circle, #f1f0ec 0 7%, #8d8c88 7.5% 9%, transparent 9.5%),
-    conic-gradient(from 10deg, #e4e3df 0 46deg, transparent 46deg 120deg, #e4e3df 120deg 166deg, transparent 166deg 240deg, #e4e3df 240deg 286deg, transparent 286deg 360deg),
-    radial-gradient(circle, transparent 0 20%, #3b2a1f 20.5% var(--bande-ext), transparent calc(var(--bande-ext) + .5%)),
-    radial-gradient(circle, #2a2a2e 0 70%, #c9c7c2 70.5% 73%, #6d6c68 73.5%);
-  box-shadow: 0 6px 14px rgba(0,0,0,.4);
-  animation: tourne 5s linear infinite; animation-play-state: paused;
-}
-.bobine-vide { --bande-ext: 36%; animation-duration: 3.2s; }
-body.cd-tourne .bobine { animation-play-state: running; }
-.bande { position: absolute; z-index: 0; right: 9%; top: 25%; bottom: 25%; width: 2px; background: #3b2a1f; }
-.tete { position: absolute; z-index: 2; right: calc(9% - 7px); top: 50%; width: 16px; height: 22px; margin-top: -11px; border-radius: 3px; background: linear-gradient(90deg, #8d8c88, #f1f0ec, #9b9a96); box-shadow: 0 2px 5px rgba(0,0,0,.35); }
-.magneto-etiquette { display: block; flex: none; width: 34px; }
-.magneto-etiquette .pochette { box-shadow: 0 1px 3px rgba(0,0,0,.3); }
-.magneto .platine-socle { padding: 0; gap: 10px; }
+.lcd::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .45; background: repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,.25) 0 1px, transparent 1px 3px); }
+.lcd::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(162deg, rgba(255,255,255,.09), transparent 38%); }
+.lcd-ligne { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; white-space: nowrap; font-size: 14px; }
+.lcd-badge { flex: none; padding: 0 6px; border: 1.5px solid currentColor; border-radius: 3px; font-size: 11px; line-height: 1.5; }
+.lcd-disque { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lcd-piste { flex: none; }
+.lcd-piste b { font-size: 18px; }
+.lcd-temps { margin-left: auto; flex: none; font-size: 22px; font-variant-numeric: tabular-nums; }
+.lcd-defile { position: relative; overflow: hidden; white-space: nowrap; font-size: 26px; line-height: 1.15; }
+.lcd-defile span { display: inline-block; padding-left: 100%; animation: defile 14s linear infinite; }
+.lcd-defile.fixe span { padding-left: 0; animation: none; }
+@keyframes defile { to { transform: translateX(-100%); } }
+body.lecture-disque .lcd-defile span { padding-left: 0; animation: clignote .5s steps(2, jump-none) infinite; }
+@keyframes clignote { 50% { opacity: .15; } }
+.lcd-spectre { position: relative; display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 4px; align-items: end; height: 52px; }
+.lcd-spectre i { --h: .06; display: block; height: calc(var(--h) * 100%); min-height: 3px; background: repeating-linear-gradient(0deg, currentColor 0 3px, transparent 3px 5px); transition: height .1s linear; }
+.lcd-spectre i::before { content: ""; display: block; height: 3px; margin-top: -6px; background: currentColor; opacity: .6; transform: translateY(calc(var(--pic, 0) * -1px)); }
+.lcd-suite { font-size: 12px; opacity: .7; }
+.lcd-bas { font-size: 12px; opacity: .9; }
+.lcd-ensuite { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lcd-etat { margin-left: auto; flex: none; }
 
-/* l'unité de commande */
-.unite {
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; min-width: 0;
-  padding: clamp(14px, 2vw, 22px); border-radius: 14px;
-  background: var(--facade-cd); color: var(--encre-cd);
-  box-shadow: var(--relief-fort), inset 0 1px 0 rgba(255,255,255,.6);
-}
-.unite-haut { display: flex; gap: 14px; align-items: stretch; min-width: 0; }
-.unite-haut .vfd { flex: 1 1 auto; }
-.emplacement-cd { flex: 0 0 200px; height: 200px; aspect-ratio: auto; border-radius: 6px; }
+.emplacement-cd { grid-area: ecran; align-self: stretch; width: 356px; height: auto; min-height: 200px; aspect-ratio: auto; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.35); }
 body:not(.video-machine) .emplacement-cd { display: none; }
 
-/* l'afficheur fluorescent */
-.vfd {
-  min-width: 0; padding: 12px 16px; border-radius: 6px;
-  background: var(--vfd-fond);
-  box-shadow: inset 0 3px 12px rgba(0,0,0,.7);
-  color: var(--vfd); text-shadow: 0 0 8px var(--vfd-halo);
-  font-family: "Doto", var(--texte); font-weight: 900; letter-spacing: .02em;
-  display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; align-content: space-between; overflow: hidden;
-}
-.vfd-ensuite { font-size: 14px; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.3em; }
-.vfd-infos { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.vfd-defile { overflow: hidden; white-space: nowrap; font-size: 22px; line-height: 1.2; }
-.vfd-defile span { display: inline-block; padding-left: 100%; animation: defile 12s linear infinite; }
-@keyframes defile { to { transform: translateX(-100%); } }
-.vfd-barre { height: 3px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
-.vfd-barre span { display: block; height: 100%; width: 0; background: var(--vfd); box-shadow: 0 0 6px var(--vfd-halo); transition: width .5s linear; }
-.vfd-etat { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; opacity: .85; white-space: nowrap; }
-.vfd-etat span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-
-.unite-touches { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
-.cd-transport { display: flex; gap: 8px; flex-wrap: wrap; }
-.cd-touche {
-  width: 58px; height: 44px; border-radius: 6px; display: grid; place-items: center;
-  background: var(--touche-cd); color: var(--encre-cd);
-  box-shadow: 0 3px 0 rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.6);
-  transition: transform .08s, box-shadow .08s, color .2s;
-}
-.cd-touche:active { transform: translateY(3px); box-shadow: inset 0 1px 3px rgba(0,0,0,.3); }
-.cd-touche-lecture { width: 76px; background: var(--encre-cd); color: var(--sur-encre-cd); }
-.cd-touche-texte { width: auto; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; font-weight: 600; font-size: 14px; }
-.icone-stop { width: 12px; height: 12px; background: currentColor; border-radius: 1px; }
-.led { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,.25); box-shadow: inset 0 1px 2px rgba(0,0,0,.4); transition: background .2s, box-shadow .2s; }
-.cd-garder.est-garde { color: var(--aiguille); }
-.cd-garder.est-garde .led { background: var(--aiguille); box-shadow: 0 0 8px 1px var(--aiguille); }
-
-.unite-reglages { display: grid; gap: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,.1); }
-/* deux sélecteurs à trois positions : on touche le mot, le bouton tourne jusqu'à lui */
-.selecteurs { display: flex; flex-wrap: wrap; gap: 18px 34px; align-items: end; }
-.selecteur-rotatif {
-  --rot: 0deg;
-  display: grid; grid-template-columns: auto 54px auto; grid-template-rows: auto auto;
-  grid-template-areas: ". haut ." "gauche bouton droite" ". valeur .";
-  align-items: center; justify-items: center; column-gap: 6px; row-gap: 2px;
-}
-.sel-valeur { grid-area: valeur; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--encre-cd); opacity: .7; white-space: nowrap; }
-.sel-etiquette.proche { opacity: .85; }
-.sel-etiquette.proche .sel-led { background: var(--aiguille); opacity: .45; }
-.sel-etiquette {
-  display: inline-flex; align-items: center; gap: 6px; padding: 4px 5px; border-radius: 4px;
-  font-size: 13px; font-weight: 600; white-space: nowrap; color: var(--encre-cd); opacity: .6;
-  transition: opacity .2s, color .2s;
-}
-.sel-etiquette[data-pos="0"] { grid-area: gauche; justify-self: end; }
-.sel-etiquette[data-pos="2"] { grid-area: haut; }
-.sel-etiquette[data-pos="4"] { grid-area: droite; justify-self: start; }
-.sel-etiquette:hover { opacity: .9; }
-.sel-etiquette[aria-checked="true"] { opacity: 1; color: var(--aiguille); }
-.sel-led { width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,.22); box-shadow: inset 0 1px 1px rgba(0,0,0,.35); transition: background .2s, box-shadow .2s; }
-.sel-etiquette[aria-checked="true"] .sel-led { background: var(--aiguille); box-shadow: 0 0 6px 1px var(--aiguille); }
-.sel-bouton {
-  grid-area: bouton; position: relative; width: 54px; height: 54px; border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 40%, var(--capuchon-haut) 0 50%, transparent 51%),
-    repeating-conic-gradient(var(--capuchon-bas) 0 6deg, var(--capuchon-haut) 6deg 12deg);
-  box-shadow: 0 5px 12px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.18);
-}
-.sel-bouton { cursor: grab; touch-action: none; }
-.sel-bouton .molette-repere { transition: transform .4s cubic-bezier(.3,1.6,.5,1); }
-.bouton-rotatif-unite { align-self: end; }
-.bouton-rotatif-unite .molette { width: 54px; height: 54px; }
-.bouton-rotatif-unite .bouton-rotatif-nom { color: var(--encre-cd); opacity: .7; font-weight: 600; font-size: 13px; }
-.source-radio { justify-self: start; display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 999px; background: rgba(0,0,0,.07); box-shadow: inset 0 1px 3px rgba(0,0,0,.16); }
-.source-pos { min-height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 600; opacity: .7; transition: background-color .2s, color .2s; }
-.source-pos[aria-checked="true"] { background: var(--encre-cd); color: var(--sur-encre-cd); opacity: 1; }
-/* les touches de présélection de la radio */
-.presets-ligne { display: flex; gap: 18px; align-items: center; }
-.presets { flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; min-width: 0; }
-.preset {
-  display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 3px;
-  min-height: 64px; padding: 9px 10px 10px; border-radius: 6px; text-align: left; opacity: 1;
-  background: var(--touche-cd); color: var(--encre-cd);
-  box-shadow: 0 3px 0 rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.6);
+/* les commandes */
+.hifi-commandes { grid-area: commandes; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding-top: 16px; border-top: 1px solid var(--hifi-trait); }
+.transport { display: flex; align-items: center; gap: 10px; }
+.rond {
+  width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; flex: none;
+  color: var(--hifi-encre); background: var(--hifi-bouton); box-shadow: var(--hifi-bouton-ombre);
   transition: transform .08s, box-shadow .08s;
 }
-.preset .led { margin-bottom: 3px; }
-.preset-nom { font-weight: 600; font-size: 13px; line-height: 1.15; overflow-wrap: normal; hyphens: manual; }
-.preset-sous { font-size: 11px; opacity: .65; line-height: 1.2; }
-.preset[aria-checked="true"] { transform: translateY(3px); background: var(--touche-cd); color: var(--encre-cd); box-shadow: inset 0 1px 4px rgba(0,0,0,.3); }
-.preset[aria-checked="true"] .led { background: var(--aiguille); box-shadow: 0 0 8px 1px var(--aiguille); }
-.preset[aria-checked="true"] .preset-nom { color: var(--aiguille); }
+.rond:active { transform: translateY(2px) scale(.97); box-shadow: var(--hifi-bouton-enfonce); }
+.rond-lecture { width: 64px; height: 64px; background: var(--hifi-bouton-fort); color: var(--hifi-sur-fort); }
+.rond-ejecter { margin-left: 8px; }
+.icone-ejecter { position: relative; display: block; width: 14px; height: 14px; }
+.icone-ejecter::before { content: ""; position: absolute; left: 0; top: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 8px solid currentColor; }
+.icone-ejecter::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: currentColor; border-radius: 1px; }
+.icone-stop { width: 12px; height: 12px; background: currentColor; border-radius: 1px; }
+.hifi-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.pilule {
+  min-height: 42px; padding: 0 18px; border-radius: 999px; display: inline-flex; align-items: center; gap: 9px; white-space: nowrap;
+  font-weight: 600; font-size: 14px; color: var(--hifi-encre); background: var(--hifi-bouton); box-shadow: var(--hifi-bouton-ombre);
+  transition: transform .08s, box-shadow .08s;
+}
+.pilule:active { transform: translateY(2px); box-shadow: var(--hifi-bouton-enfonce); }
+.led { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,.25); box-shadow: inset 0 1px 2px rgba(0,0,0,.4); transition: background .2s, box-shadow .2s; }
+.cd-garder.est-garde .led { background: var(--lcd-encre); box-shadow: 0 0 8px 1px var(--lcd-halo); }
+.bouton-rotatif-hifi { margin-left: auto; grid-auto-flow: column; align-items: center; gap: 12px; }
+.bouton-rotatif-hifi .molette { width: 78px; height: 78px; }
+.bouton-rotatif-hifi .molette-arc circle { stroke: var(--lcd-encre); stroke-width: 2.4; filter: drop-shadow(0 0 3px var(--lcd-halo)); }
+.bouton-rotatif-hifi .bouton-rotatif-nom { color: var(--hifi-encre); opacity: .6; font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
 body[data-vue="machine"] .facade-droite [data-molette="volume"] { display: none; }
+
+/* le rack de disques, posé sur une étagère */
+.rack { width: 100%; max-width: 1220px; display: grid; gap: 16px; }
+.rack-tete { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 26px; }
+.rack-tete h2 { font-size: clamp(1.3rem, 2.2vw, 1.85rem); }
+.rack-tete p { color: var(--encre-2); font-size: 15px; max-width: 54ch; }
+.rack-disques {
+  display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: clamp(10px, 1.4vw, 20px);
+  padding: 20px clamp(12px, 2vw, 24px) 18px; border-radius: 16px;
+  background: var(--etagere); box-shadow: var(--relief), inset 0 -12px 0 var(--etagere-bord);
+}
+.rack-disque { display: grid; justify-items: center; align-content: start; gap: 6px; min-width: 0; text-align: center; }
+.rack-galette { position: relative; display: block; width: 100%; max-width: 124px; filter: drop-shadow(0 10px 12px rgba(0,0,0,.3)); transition: transform .5s cubic-bezier(.2,.9,.3,1.25); }
+.rack-galette .disque { --d: 112px; }
+.rack-galette::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; box-shadow: 0 0 0 2.5px var(--aiguille); opacity: 0; transition: opacity .2s; }
+.rack-disque:hover .rack-galette { transform: translateY(-6px) rotate(28deg); }
+.rack-disque[aria-checked="true"] .rack-galette { transform: translateY(-4px); }
+.rack-disque[aria-checked="true"] .rack-galette::after { opacity: 1; }
+.rack-disque[aria-checked="true"] .rack-nom { color: var(--aiguille); }
+.rack-nom { font-weight: 600; font-size: 14px; line-height: 1.15; }
+.rack-sous { font-size: 12px; color: var(--encre-2); line-height: 1.2; }
+.rack-disque[data-vide] .rack-galette { opacity: .5; filter: none; }
+.rack.appel .rack-disques { animation: appel .9s ease 2; }
+@keyframes appel { 50% { box-shadow: var(--relief), inset 0 -12px 0 var(--etagere-bord), 0 0 0 3px var(--aiguille); } }
+.machine-source { margin-top: -14px; font-size: 14px; color: var(--encre-2); text-align: center; }
+.livret-machine { max-width: 1100px; }
 
 /* ─────────────────────────────── touches rondes (poste) ─────────────────────────────── */
 .touche {
@@ -794,26 +933,77 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
 }
 .toast.visible { opacity: 1; transform: translate(-50%, 0); }
 
+
+/* ─────────────────────────────── NAVIGATEUR D'APPLI ───────────────────────────────
+   Ouvert depuis Instagram, TikTok, Messenger… : on propose le vrai navigateur. */
+.avis-appli {
+  position: fixed; z-index: 45; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom));
+  max-width: 560px; margin: 0 auto; display: grid; gap: 12px; padding: 16px 18px; border-radius: 18px;
+  background: var(--encre); color: var(--fond); box-shadow: 0 20px 50px rgba(0,0,0,.35);
+  animation: sortie .5s cubic-bezier(.2,.9,.3,1.1) both;
+}
+.avis-appli p { font-size: 15px; line-height: 1.4; }
+.avis-appli-actions { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.avis-appli .gros-bouton { min-height: 44px; padding: 0 18px; background: var(--fond); color: var(--encre); box-shadow: none; text-decoration: none; }
+.avis-appli .gros-bouton-plein { background: var(--aiguille); color: var(--sur-aiguille); }
+.avis-appli .lien-bouton { color: inherit; opacity: .75; }
+
 /* ─────────────────────────────── TABLETTE ─────────────────────────────── */
-@media (max-width: 1200px) { #teintes-facade { display: none; } }
+@media (max-width: 1280px) {
+  body.video-machine .hifi-corps { grid-template-columns: minmax(160px, 210px) minmax(0, 1fr); grid-template-areas: "haut haut" "tiroir lcd" "ecran ecran" "commandes commandes"; }
+  body.video-machine .emplacement-cd { justify-self: center; width: min(100%, 600px); aspect-ratio: 16 / 9; min-height: 200px; }
+}
+@media (max-width: 1200px) { #teintes-facade { display: none; } .bacs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 1100px) {
+  .ecran-accueil { grid-template-columns: minmax(0, 1fr); grid-template-areas: "tete" "bacs" "jour"; }
+  .accueil-jour { justify-self: start; }
+}
 @media (max-width: 960px) {
-  .ecran-accueil { grid-template-columns: minmax(0, 1fr); align-content: start; }
-  .fouille { grid-template-columns: minmax(0, 1fr); grid-template-areas: "platine" "suite" "livret"; }
+  .fouille { grid-template-columns: minmax(0, 1fr); grid-template-areas: "platine" "suite" "compil" "livret"; }
   .platine-pochette { width: min(100%, 360px); }
-  .chaine { grid-template-columns: 70px minmax(0, 1fr) 70px; }
-  .pile { grid-template-columns: minmax(170px, 210px) minmax(0, 1fr); }
-  .presets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .unite-haut { flex-direction: column; align-items: stretch; }
-  .emplacement-cd { flex-basis: auto; width: 100%; height: auto; aspect-ratio: 16 / 9; min-height: 200px; }
+  .hifi { grid-template-columns: minmax(0, 1fr); }
+  .hifi-enceinte { display: none; }
+  .rack-disques { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
-  .chaine { grid-template-columns: minmax(0, 1fr); }
-  .enceinte { display: none; }
-  .pile { grid-template-columns: minmax(0, 1fr); }
-  .platine-cd { justify-self: center; width: min(52vw, 210px); padding: 10px; }
   .livret-pages { grid-template-columns: minmax(0, 1fr); }
   .livret-pages::before { display: none; }
   .livret-page + .livret-page { border-top: 1px solid var(--trait); }
+  .hifi-corps, body.video-machine .hifi-corps {
+    grid-template-columns: 104px minmax(0, 1fr);
+    grid-template-areas: "haut haut" "tiroir lcd" "ecran ecran" "commandes commandes";
+    gap: 12px; padding: 14px; border-radius: 18px;
+  }
+  body.video-machine .emplacement-cd { width: 100%; aspect-ratio: 16 / 9; min-height: 200px; }
+  .hifi-modele { display: none; }
+  .tiroir { border-radius: 12px; }
+  .tiroir-logo, .tiroir-fente { display: none; }
+  .lcd { padding: 10px 12px; gap: 6px; grid-template-rows: auto auto auto auto; }
+  .lcd-ligne { font-size: 11px; gap: 8px; }
+  .lcd-badge, .lcd-suite { display: none; }
+  .lcd { grid-template-rows: auto auto 1fr auto; }
+  .lcd-temps { font-size: 16px; }
+  .lcd-piste b { font-size: 14px; }
+  .lcd-defile { font-size: 18px; }
+  .lcd-spectre { height: 24px; gap: 2px; }
+  .hifi-commandes { gap: 12px; justify-content: space-between; }
+  .transport { width: 100%; justify-content: space-between; gap: 6px; }
+  .rond { width: 48px; height: 48px; }
+  .rond-lecture { width: 60px; height: 60px; }
+  .rond-ejecter { margin-left: 0; }
+  .hifi-actions { flex: 1; }
+  .pilule { flex: 1; justify-content: center; padding: 0 10px; font-size: 13px; }
+  .bouton-rotatif-hifi { margin-left: 0; }
+  .bouton-rotatif-hifi .molette { width: 54px; height: 54px; }
+  .bouton-rotatif-hifi .bouton-rotatif-nom { display: none; }
+  .rack-disques { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 96px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 16px 14px 18px; }
+  .rack-disques::-webkit-scrollbar { display: none; }
+  .rack-disque { scroll-snap-align: start; }
+  .rack-galette .disque { --d: 88px; }
+  .gravure-boite { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+  .gravure-disque { width: min(56vw, 220px); }
+  .gravure-texte { justify-items: center; }
+  .gravure-actions { justify-content: center; }
 }
 
 /* ─────────────────────────────── TÉLÉPHONE ─────────────────────────────── */
@@ -831,66 +1021,74 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .facade-droite .bouton-rotatif, .masquer-mobile { display: none; }
   .bouton-facade { height: 38px; padding: 0 12px; font-size: 14px; }
   .bouton-trouvailles { padding-right: 8px; }
+  .bouton-trouvailles .mini-cdr { display: none; }
   .seulement-mobile-inline { display: inline; }
 
+  .ecran-allumage { gap: 26px; }
+  .etapes { gap: 8px 14px; }
+  .etapes li { font-size: 13px; gap: 8px; }
+  .etapes li + li::before { display: none; }
   .panneau-allumage { padding: 20px 24px; gap: 24px; }
   .bouton-rotatif-grand .molette { width: 88px; height: 88px; }
   .interrupteur { width: 104px; height: 104px; }
 
-  /* par où commencer */
-  .ecran-accueil { gap: 36px; }
-  .envie { gap: 18px; }
-  .envie-titre { font-size: clamp(2.4rem, 11vw, 3.2rem); }
-  .envie-choix { grid-template-columns: minmax(0, 1fr); gap: 10px; }
-  .choix-envie { grid-template-columns: 74px minmax(0, 1fr); align-items: center; align-content: center; gap: 16px; min-height: 76px; padding: 14px 18px; }
-  .choix-envie-onde { height: 24px; }
-  .accueil-jour { justify-items: center; text-align: center; }
+  /* les bacs, deux par rangée */
+  .ecran-accueil { gap: 22px; }
+  .envie-titre { font-size: clamp(2.1rem, 10vw, 2.9rem); }
+  .bacs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .bac-couleur { aspect-ratio: 1 / 1.02; border-radius: 14px; }
+  .bac-pochettes { top: 7%; height: 50%; left: 14%; right: 14%; }
+  .bac-pochettes .pochette { width: 64%; margin-left: -32%; }
+  .bac-intercalaire { height: 52%; padding: 10px 12px 12px; }
+  .bac-intercalaire::before { top: -12px; height: 16px; left: 10px; }
+  .bac-nom { font-size: 1.15rem; }
+  .bac-sous { font-size: 12px; }
+  .bac-nombre { display: none; }
+  .accueil-jour { justify-self: stretch; justify-items: center; text-align: center; }
   .accueil-jour .carte-jour { width: min(70vw, 280px); }
 
-  /* la fouille : la vidéo en haut, les deux disques juste dessous */
-  .fouille { gap: 26px; }
-  .platine { gap: 14px; }
+  /* la fouille : la vidéo en haut, puis les trois directions en lignes */
+  .fouille { gap: 24px; }
+  .platine { gap: 14px; padding: 10px; }
   .platine-pochette { width: min(72vw, 300px); }
   .platine-titre { font-size: clamp(1.5rem, 7vw, 2rem); }
   .platine-artiste { font-size: 1.02rem; }
   .platine-actions { margin-top: 8px; gap: 10px 16px; }
   .bouton-garder { min-height: 48px; }
-  .suite-options { gap: 14px; margin-top: 10px; }
-  .fouille.sans-platine .suite-titre { font-size: clamp(1.6rem, 7vw, 2.2rem); }
-  .sticker { font-size: 12px; padding: 5px 8px; left: -6px; top: 10px; }
-  .option-artiste { font-size: 14px; }
+  .suite-options { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 8px; }
+  .option {
+    grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px;
+    padding: 10px 10px 10px 12px; border-radius: 14px; background: var(--fond-2);
+    box-shadow: var(--relief), inset 4px 0 0 var(--amb);
+  }
+  .option-choix { grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 12px; }
+  .option-pochette, .option:hover .option-pochette, .option.ecoute .option-pochette, .option.compte .option-pochette { transform: none; }
+  .option-pochette .pochette { box-shadow: var(--ombre-pochette); }
+  .option .sticker { display: none; }
+  .option-dir { display: block; font-family: var(--display); font-weight: var(--display-poids); font-stretch: var(--display-etirement, 100%); letter-spacing: var(--display-interlettre, -0.02em); font-size: 1.08rem; line-height: 1.1; }
+  .option-style { font-size: 12px; margin-top: 2px; }
+  .option-titre { font-size: 14px; font-weight: 500; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .option-artiste { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .option-ecoute { margin: 0; width: 46px; height: 46px; padding: 0; justify-content: center; border-radius: 50%; }
+  .option-ecoute-texte { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .option-barre { bottom: -6px; }
+  .option.mystere .carte-dos-texte { display: none; }
   .coup { grid-template-columns: minmax(0, 1fr); }
   .coup .option-pochette { width: min(70vw, 280px); }
   .carte-dos-texte { font-size: .95rem; }
+
+  /* la compil */
+  .compil { grid-template-columns: minmax(0, 1fr); }
+  .compil-liste { font-size: 16px; }
+  .compil-liste li.vide:nth-child(n+6) { display: none; }
+  .compil-boitier { grid-template-columns: minmax(0, 1fr) 128px; }
   .livret-album-tete { grid-template-columns: 76px minmax(0, 1fr); gap: 14px; }
   .pochette-livret { width: 76px; }
   .livret-photo { width: 68px; height: 68px; }
   .livret-icone { width: 46px; height: 38px; }
   .livret-icone::before, .livret-icone::after { width: 22px; }
 
-  /* la chaîne */
-  .unite { padding: 14px; }
-  .vfd-defile { font-size: 18px; }
-  .vfd { padding: 10px 12px; }
-  .vfd-infos { font-size: 12px; gap: 6px; }
-  .cd-touche { width: 50px; }
-  .cd-touche-lecture { width: 64px; }
-  .cd-touche-texte { width: auto; flex: 1; justify-content: center; }
-  .unite-touches .cd-transport { flex: 1 1 100%; }
-  .unite-touches .cd-transport:first-child { justify-content: space-between; }
-  .selecteurs { justify-content: center; gap: 18px 24px; }
-  .presets-ligne { flex-wrap: wrap; justify-content: center; }
-  .presets { flex-basis: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .preset:last-child { grid-column: 1 / -1; }
-  .source-radio { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; border-radius: 14px; }
-  .source-pos { padding: 0 6px; font-size: 13px; border-radius: 11px; line-height: 1.15; }
-  .sel-etiquette { font-size: 12px; padding: 6px 5px; }
-  .selecteur-rotatif { grid-template-columns: auto 66px auto; }
-  .sel-bouton { width: 66px; height: 66px; }
-  .platine { padding: 10px; }
   .touche { width: 56px; height: 56px; }
-  .touche-grosse { width: 74px; height: 74px; }
-
   .poste {
     left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); width: auto;
     grid-template-columns: 48px minmax(0, 1fr) auto; gap: 8px; padding: 8px;
@@ -905,6 +1103,9 @@ body.panneau-ouvert .bac, body.panneau-ouvert .reglages { transform: none; }
   .bac, .reglages { top: auto; width: 100vw; height: 86vh; border-radius: 18px 18px 0 0; transform: translateY(105%); }
   .toast { top: calc(72px + env(safe-area-inset-top)); }
 }
+
+/* les transitions entre les écrans, là où le navigateur sait les faire */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; animation-timing-function: cubic-bezier(.2,.9,.3,1); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }

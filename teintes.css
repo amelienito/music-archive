@@ -75,6 +75,25 @@
   --rayon-pochette: 2px;
   --rayon-ecran: 8px;
   --rayon-verre: 8px;
+
+  /* la chaîne : alu brossé, écran bleu glacier */
+  --hifi-corps: linear-gradient(180deg, rgba(255,255,255,.6), transparent 16%), repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, rgba(0,0,0,.022) 1px 2px), linear-gradient(180deg, #eceded, #d3d5d7 48%, #c5c7ca 52%, #dfe1e3);
+  --hifi-encre: #24262b;
+  --hifi-trait: rgba(0,0,0,.12);
+  --hifi-ombre: 0 1px 0 rgba(255,255,255,.9) inset, 0 -1px 0 rgba(0,0,0,.08) inset, 0 28px 60px rgba(45,38,30,.25), 0 6px 14px rgba(45,38,30,.12);
+  --hifi-creux: #1d1e22;
+  --hifi-porte: repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, transparent 1px 2px), linear-gradient(180deg, #e8e9ea, #c9cbce);
+  --hifi-anneau: #c9cbce;
+  --hifi-bouton: radial-gradient(circle at 50% 30%, #ffffff, #e2e3e5 45%, #b9bcc0);
+  --hifi-bouton-ombre: 0 3px 6px rgba(0,0,0,.25), inset 0 1px 0 #fff, inset 0 -2px 3px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.08);
+  --hifi-bouton-enfonce: inset 0 2px 5px rgba(0,0,0,.3), 0 0 0 1px rgba(0,0,0,.1);
+  --hifi-bouton-fort: radial-gradient(circle at 50% 30%, #3a3d44, #1c1e22);
+  --hifi-sur-fort: #f2f3f4;
+  --lcd-fond: radial-gradient(120% 140% at 50% 0%, #0d2235, #06111c 70%);
+  --lcd-encre: #8fdcff;
+  --lcd-halo: rgba(110, 200, 255, .55);
+  --etagere: linear-gradient(180deg, #f1f0ed, #e4e2de);
+  --etagere-bord: rgba(120, 100, 80, .12);
 }
 
 /* ─── NUIT : le même salon, lampe allumée. Mur sombre, noyer, velours bleu,
@@ -144,11 +163,26 @@
   --rayon-pochette: 2px;
   --rayon-ecran: 8px;
   --rayon-verre: 8px;
+
+  /* la chaîne : laque noire, écran ambré */
+  --hifi-corps: linear-gradient(180deg, rgba(255,255,255,.08), transparent 16%), linear-gradient(180deg, #2a2b30, #17181b 60%, #101114);
+  --hifi-encre: #e8e8ea;
+  --hifi-trait: rgba(255,255,255,.08);
+  --hifi-ombre: 0 1px 0 rgba(255,255,255,.08) inset, 0 28px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05);
+  --hifi-creux: #050506;
+  --hifi-porte: linear-gradient(180deg, #26272c, #131417);
+  --hifi-anneau: #1e1f23;
+  --hifi-bouton: radial-gradient(circle at 50% 30%, #4a4c53, #2a2b30 55%, #1a1b1f);
+  --hifi-bouton-ombre: 0 3px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12), 0 0 0 1px rgba(0,0,0,.4);
+  --hifi-bouton-enfonce: inset 0 2px 6px rgba(0,0,0,.6);
+  --hifi-bouton-fort: radial-gradient(circle at 50% 30%, #f0f0f2, #b9bbc0);
+  --hifi-sur-fort: #141518;
+  --lcd-fond: radial-gradient(120% 140% at 50% 0%, #1a0f05, #0a0603 70%);
+  --lcd-encre: #ffb35c;
+  --lcd-halo: rgba(255, 160, 70, .55);
+  --etagere: linear-gradient(180deg, #232228, #1a191e);
+  --etagere-bord: rgba(0,0,0,.35);
 }
-/* la nuit, la platine et l'unité ne sont plus des blocs clairs : on garde un liseré */
-[data-teinte="nuit"] .unite, [data-teinte="nuit"] .platine-cd { box-shadow: var(--relief-fort), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(255,255,255,.04); }
-[data-teinte="nuit"] .unite-reglages { border-top-color: rgba(255,255,255,.08); }
-[data-teinte="nuit"] .source-radio { background: rgba(0,0,0,.3); }
 
 /* ─── PAPIER : une archive privée, papier vert-de-gris, encre bleue, tampon magenta ─── */
 [data-teinte="papier"] {
@@ -214,4 +248,23 @@
   --rayon-pochette: 0px;
   --rayon-ecran: 0px;
   --rayon-verre: 0px;
+
+  /* la chaîne : à plat, à l'encre */
+  --hifi-corps: #eef1e8;
+  --hifi-encre: #1d2a4d;
+  --hifi-trait: rgba(29,42,77,.18);
+  --hifi-ombre: 0 0 0 1px rgba(29,42,77,.25), 8px 8px 0 rgba(29,42,77,.12);
+  --hifi-creux: #1d2a4d;
+  --hifi-porte: #e3e8dc;
+  --hifi-anneau: #d3dacb;
+  --hifi-bouton: #f6f7f1;
+  --hifi-bouton-ombre: 0 0 0 1.5px #1d2a4d;
+  --hifi-bouton-enfonce: 0 0 0 2px #d01e6a;
+  --hifi-bouton-fort: #1d2a4d;
+  --hifi-sur-fort: #f6f7f1;
+  --lcd-fond: #1d2a4d;
+  --lcd-encre: #f6f7f1;
+  --lcd-halo: transparent;
+  --etagere: #e3e8dc;
+  --etagere-bord: rgba(29,42,77,.12);
 }
