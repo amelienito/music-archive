@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=21">
+  <link rel="stylesheet" href="styles.css?v=22">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
@@ -90,7 +90,7 @@
     <section class="ecran ecran-machine" data-ecran="machine" hidden>
       <div class="hifi" id="hifi">
         <div class="hifi-enceinte hifi-enceinte-g" aria-hidden="true">
-          <span class="hp-plaque">MD-08<small>2 voies</small></span>
+          <span class="hp-plaque">AG-08<small>2 voies</small></span>
           <span class="hp-tweeter"><i></i></span>
           <span class="hp-boomer"><span class="hp-cone"></span><i></i></span>
           <span class="hp-vu"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
@@ -101,7 +101,7 @@
         <div class="hifi-corps">
           <div class="hifi-haut">
             <span class="hifi-marque">Music&nbsp;Discovery</span>
-            <span class="hifi-modele">MD-08 · Compact Disc Micro System</span>
+            <span class="hifi-modele">AG-08 · Compact Disc Micro System</span>
             <div class="choix-affichage" role="radiogroup" aria-label="Affichage de la chaîne">
               <button role="radio" data-action="affichage" data-val="ecran" aria-checked="true">Écran</button>
               <button role="radio" data-action="affichage" data-val="disque" aria-checked="false">Disque</button>
@@ -215,7 +215,7 @@
         </div>
 
         <div class="hifi-enceinte hifi-enceinte-d" aria-hidden="true">
-          <span class="hp-plaque">MD-08<small>2 voies</small></span>
+          <span class="hp-plaque">AG-08<small>2 voies</small></span>
           <span class="hp-tweeter"><i></i></span>
           <span class="hp-boomer"><span class="hp-cone"></span><i></i></span>
           <span class="hp-vu"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
@@ -235,9 +235,11 @@
       <section class="pupitre" id="pupitre" aria-labelledby="pupitre-titre">
         <div class="pupitre-tete">
           <h2 class="pupitre-titre" id="pupitre-titre">Oriente la suite</h2>
-          <p class="pupitre-aide">La chaîne enchaîne toute seule. Choisis une direction : elle tient plusieurs morceaux, sans revenir en arrière.</p>
+          <p class="pupitre-aide"><span class="repere-actuel" aria-hidden="true"></span> ce morceau, <span class="repere-ensuite" aria-hidden="true"></span> le suivant. Pousse d'un côté : la suite te suit sur plusieurs morceaux.</p>
         </div>
-        <div class="axes" id="axes"></div>
+        <div class="sources" id="sources" hidden></div>
+        <div class="rails" id="rails"></div>
+        <div class="autres" id="autres"></div>
         <p class="pente" id="pente" hidden></p>
         <p class="ensuite" id="ensuite"></p>
       </section>
@@ -263,6 +265,7 @@
     </div>
   </div>
 
+  <button class="pause-defile" id="pause-defile" data-action="retour-morceau" hidden><span aria-hidden="true">⏸</span> <span id="pause-defile-texte">En pause le temps de lire</span> <b>Reprendre ↑</b></button>
   <div class="ecran-video" id="ecran-video" hidden><div id="yt-lecteur"></div></div>
 
   <!-- ═════════════ MA SÉLECTION ═════════════ -->
@@ -319,6 +322,6 @@
   <script src="moteur.js?v=3"></script>
   <script src="pochettes.js?v=14"></script>
   <script src="infos.js?v=14"></script>
-  <script src="app.js?v=23"></script>
+  <script src="app.js?v=24"></script>
 </body>
 </html>

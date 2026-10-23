@@ -266,7 +266,7 @@ function basculerGarde(id) {
     S.gardes.unshift(id);
     S.aimePas.delete(id);
     const n = S.gardes.length;
-    toast(n === 1 ? 'Noté ♥ Il est dans ta sélection, et la suite va dans ce sens.' : `Noté ♥ Dans ta sélection (${n}).`, n === 1 ? 4200 : 2400);
+    toast(n === 1 ? 'Noté ♥ La suite va dans ce sens.' : n === 2 ? 'Deux coups de cœur : ta sélection apparaît en haut, et tu peux l\'écouter dans « Oriente la suite ».' : `Noté ♥ Dans ta sélection (${n}).`, n === 2 ? 5000 : 2400);
     clic(900, 0.08, 0.06);
     const b = $('.bouton-trouvailles'); b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse');
   }
@@ -280,6 +280,7 @@ function basculerGarde(id) {
 }
 // tous les boutons Garder de la page se mettent à jour d'un coup
 function majGarde() {
+  document.body.classList.toggle('sans-selection', S.gardes.length < 2);
   $('#compteur-bac').textContent = S.gardes.length;
   $$('[data-garder]').forEach(b => {
     const g = estGarde(b.dataset.garder);
@@ -293,7 +294,7 @@ function majGarde() {
   pg.setAttribute('aria-label', gj ? 'Retirer de ma sélection' : 'Ajouter à ma sélection');
   const rg = $('#radio-garder');
   const gr = S.joue && estGarde(S.joue);
-  if (rg) { rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr); $('.avis-aime-texte', rg).textContent = gr ? 'Dans ma sélection' : 'J\'aime bien'; }
+  if (rg) { rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr); $('.avis-aime-texte', rg).textContent = gr ? (S.gardes.length >= 2 ? 'Dans ma sélection' : 'Aimé') : 'J\'aime bien'; }
   $$('.avis-aime').forEach(a => { a.classList.toggle('actif', !!gr); a.setAttribute('aria-pressed', !!gr); const t = $('.avis-aime-texte', a); if (t) t.textContent = gr ? 'Dans ma sélection' : 'Ça, j\'aime bien'; });
   majSource();
 }
@@ -724,12 +725,25 @@ function tempsActuel() {
    200 × 200 pixels, sans rien posé par-dessus. */
 let chaineVue = true;
 if ('IntersectionObserver' in window) {
-  new IntersectionObserver(es => { const v = es[0].isIntersecting; if (v !== chaineVue) { chaineVue = v; majPoste(); } }, { threshold: 0.35 }).observe($('.hifi'));
+  new IntersectionObserver(es => {
+    const e = es[0];
+    const v = e.isIntersecting && e.intersectionRect.height >= Math.min(190, e.boundingClientRect.height * 0.85);
+    if (v === chaineVue) return;
+    chaineVue = v;
+    if (!v && S.lecture === 'yt' && S.enLecture) S.pauseDefile = true;
+    majPoste();
+    if (v && S.pauseDefile) { S.pauseDefile = false; if (S.lecture === 'yt' && lecteurPret) { try { lecteur.playVideo(); } catch (er) {} } }
+    majPauseDefile();
+  }, { threshold: [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1], rootMargin: `-${($('.facade-haut') || {}).offsetHeight || 64}px 0px 0px 0px` }).observe($('[data-emplacement="machine"]'));
+}
+function majPauseDefile() {
+  const b = $('#pause-defile');
+  b.hidden = !(S.pauseDefile && S.vue === 'machine' && !chaineVue);
 }
 function majPoste() {
   const p = $('#poste');
   const yt = S.lecture === 'yt';
-  const visible = !!S.joue && !S.posteFerme && S.vue !== 'allumage' && !(S.vue === 'machine' && chaineVue);
+  const visible = false; // plus de petit lecteur : il cachait « Plus d'infos »
   p.hidden = !visible;
   p.classList.toggle('avec-video', visible && yt && !S.posteReduit);
   p.classList.toggle('reduit', visible && yt && S.posteReduit);
@@ -762,7 +776,7 @@ function placerEcranVideo() {
   const slot = emplacementCible();
   cancelAnimationFrame(suiviRAF);
   const ou = slot ? slot.dataset.emplacement : '';
-  document.body.classList.toggle('video-machine', ou === 'machine');
+  document.body.classList.toggle('video-machine', S.lecture === 'yt' && S.vue === 'machine');
   if (!slot) {
     ev.classList.add('cache');
     // garde-fou : une vidéo qui n'est pas à l'écran ne doit pas jouer
@@ -924,7 +938,7 @@ function choisirSource(k) {
   else { const premier = construireSuite(null, 1)[0]; if (premier) jouerRadio(premier); }
 }
 function majSource() {
-  $$('#axes [data-source]').forEach(b => b.setAttribute('aria-pressed', b.dataset.source === S.source));
+  $$('#sources [data-source]').forEach(b => b.setAttribute('aria-pressed', b.dataset.source === S.source));
   const n = $('#n-source'); if (n) n.textContent = S.gardes.length;
 }
 
@@ -1061,39 +1075,59 @@ function bidouiller(b) {
   if (cle === 'vitesse' && !S.enLecture) toast('Lance un morceau pour voir le disque tourner.');
 }
 /* le pupitre : le morceau qui passe, sa mini-chronique, l'avis, la suite */
-/* « Oriente la suite », par catégories : chaque ligne est un axe, avec ses deux sens */
+/* « Oriente la suite » : trois réglettes. Le point plein, c'est le morceau qui passe ;
+   le rond, le suivant. On pousse d'un côté ou de l'autre, la suite suit. */
 const AXES = [
-  ['Énergie', 'calme', 'energique'],
-  ['Danse', 'pose', 'dansant'],
-  ['Notoriété', 'connu', 'confidentiel'],
+  ['Énergie', 'calme', 'energique', 'energie'],
+  ['Danse', 'pose', 'dansant', 'danse'],
+  ['Notoriété', 'connu', 'confidentiel', 'etrange'],
 ];
+const POUCE = '<svg class="pouce" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.7a2 2 0 0 0-2 1.7l-1.4 9A2 2 0 0 0 4.3 15H10Zm7-13h2.7A2.3 2.3 0 0 1 22 4.3v6.4a2.3 2.3 0 0 1-2.3 2.3H17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const position = (m, cle) => m ? Math.max(0, Math.min(10, +val(m, cle) || 0)) * 10 : 50;
 function rendrePupitre() {
   const m = parId[S.joue];
+  const p = parId[S.suite[0]];
   const pool = poolSource().filter(x => !m || x.id !== m.id);
-  const bouton = (d, fleche) => {
+  // la radio ou ta sélection : seulement quand ta sélection a au moins deux morceaux
+  const so = $('#sources');
+  so.hidden = S.gardes.length < 2;
+  so.innerHTML = `<span class="sources-nom">Écouter</span>
+    <button class="source-choix" data-action="source-chaine" data-source="radio" aria-pressed="${S.source === 'radio'}">La radio</button>
+    <button class="source-choix" data-action="source-chaine" data-source="selection" aria-pressed="${S.source === 'selection'}">Ma sélection <b>${S.gardes.length}</b></button>`;
+  const bout = (d, cote) => {
     const actif = S.pente && S.pente.dir === d;
     const dispo = !m || actif || Moteur.possible(m, d, pool, val);
     const nom = nomCap(d) + (actif && S.pente.force > 1 ? ` ×${S.pente.force}` : '');
-    return `<button class="axe-choix${dispo ? '' : ' a-bout'}" data-action="cap" data-dir="${d}" aria-pressed="${!!actif}"${m ? '' : ' disabled'}>${fleche === 'g' ? '<span aria-hidden="true">←</span> ' : ''}${E(nom)}${fleche === 'd' ? ' <span aria-hidden="true">→</span>' : ''}</button>`;
+    return `<button class="rail-bout rail-${cote}${dispo ? '' : ' a-bout'}" data-action="cap" data-dir="${d}" aria-pressed="${!!actif}"${m ? '' : ' disabled'}>${cote === 'g' ? '<span aria-hidden="true">←</span> ' : ''}${E(nom)}${cote === 'd' ? ' <span aria-hidden="true">→</span>' : ''}</button>`;
   };
-  $('#axes').innerHTML = `
-    <div class="axe"><span class="axe-nom">Écouter</span><div class="axe-paire">
-      <button class="axe-choix" data-action="source-chaine" data-source="radio" aria-pressed="${S.source === 'radio'}">La radio</button>
-      <button class="axe-choix" data-action="source-chaine" data-source="selection" aria-pressed="${S.source === 'selection'}">Ma sélection <b>${S.gardes.length}</b></button>
-    </div></div>
-    ${AXES.map(([nom, g, d]) => `<div class="axe"><span class="axe-nom">${nom}</span><div class="axe-paire">${bouton(g, 'g')}${bouton(d, 'd')}</div></div>`).join('')}
-    <div class="axe"><span class="axe-nom">Autre chose</span><div class="axe-paire">
-      <button class="axe-choix" data-action="cap" data-dir="cote" aria-pressed="${!!S.cote}"${m ? '' : ' disabled'}>Un pas de côté</button>
-      <button class="axe-choix" data-action="pas-aime"${m ? '' : ' disabled'} title="On passe au suivant, et on s'éloigne de ce genre-là">↷ Pas trop comme ça</button>
-    </div></div>`;
+  $('#rails').innerHTML = AXES.map(([nom, g, d, cle]) => {
+    const pousse = S.pente && (S.pente.dir === g ? 'g' : S.pente.dir === d ? 'd' : '');
+    return `<div class="rail-ligne">
+      ${bout(g, 'g')}
+      <div class="rail${pousse ? ' pousse-' + pousse : ''}" data-g="${g}" data-d="${d}" title="${nom} : touche un côté pour pousser la suite">
+        <span class="rail-nom">${nom}</span>
+        <span class="rail-piste"><span class="rail-ensuite" style="left:${position(p, cle)}%"></span><span class="rail-actuel" style="left:${position(m, cle)}%"></span></span>
+      </div>
+      ${bout(d, 'd')}
+    </div>`;
+  }).join('');
+  $('#autres').innerHTML = `
+    <button class="autre-choix" data-action="cap" data-dir="cote" aria-pressed="${!!S.cote}"${m ? '' : ' disabled'}><span aria-hidden="true">↯</span> Un pas de côté</button>
+    <button class="autre-choix" data-action="pas-aime"${m ? '' : ' disabled'} title="On passe au suivant, et on s'éloigne de ce genre-là">${POUCE} Pas trop comme ça</button>`;
   const pe = $('#pente');
   pe.hidden = !S.pente;
   if (S.pente) pe.innerHTML = `En ce moment : <b>${E(nomCap(S.pente.dir))}${S.pente.force > 1 ? ` ×${S.pente.force}` : ''}</b>, encore ${Math.max(1, 6 - S.pente.joues)} morceau${6 - S.pente.joues > 1 ? 'x' : ''}. Rappuie pour aller plus loin. <button class="lien-bouton" data-action="cap" data-dir="libre">Laisser filer</button>`;
-  const p = parId[S.suite[0]];
   $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span><button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>` : '';
   majPostIt(m);
   majGarde();
 }
+// toucher la réglette elle-même : le côté gauche ou droit pousse dans ce sens
+document.addEventListener('click', e => {
+  const r = e.target.closest('.rail');
+  if (!r || e.target.closest('button')) return;
+  const b = r.getBoundingClientRect();
+  orienter(e.clientX < b.left + b.width / 2 ? r.dataset.g : r.dataset.d);
+});
 // ton mot sur le morceau : un post-it collé sur la chaîne, qui arrive avec le morceau
 function majPostIt(m) {
   const el = $('#post-it');
@@ -1103,9 +1137,31 @@ function majPostIt(m) {
   el.hidden = !note;
   if (!note) return;
   $('#post-it-texte').innerHTML = E(note).replace(/\n/g, '<br>');
+  el.classList.toggle('long', note.length > 80);
+  placerPostIt();
   el.style.setProperty('--penche', `${(hache(m.id) % 7) - 3.5}deg`);
   el.classList.remove('colle'); void el.offsetWidth; el.classList.add('colle');
 }
+// sur téléphone, le post-it se range dans « Oriente la suite », sous les réglettes, pour garder la vidéo à l'écran
+function rangerPostIt() {
+  const el = $('#post-it');
+  const mobile = innerWidth < 641;
+  if (mobile && el.parentElement.id !== 'pupitre') $('#pupitre').insertBefore(el, $('#pente'));
+  else if (!mobile && el.parentElement.id === 'pupitre') $('.hifi').appendChild(el);
+}
+addEventListener('resize', rangerPostIt);
+function placerPostIt() {
+  rangerPostIt();
+  const el = $('#post-it'), sp = $('.hifi-enceinte-d'), h = $('.hifi');
+  if (!el || el.hidden || !sp || !h) return;
+  if (innerWidth < 1240 || !sp.offsetWidth || el.parentElement !== h) { el.style.top = el.style.right = ''; return; }
+  const a = sp.getBoundingClientRect(), b = h.getBoundingClientRect();
+  el.style.top = `${Math.round(a.top - b.top + a.height * 0.17)}px`;
+  el.style.right = `${Math.round(b.right - a.right + (a.width - el.offsetWidth) / 2)}px`;
+}
+if ('ResizeObserver' in window) new ResizeObserver(() => placerPostIt()).observe($('.hifi'));
+addEventListener('resize', placerPostIt);
+if (document.fonts) document.fonts.ready.then(placerPostIt);
 const hache = t => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 // quelques mots sur le titre, sinon l'album, sinon l'artiste : en français, sans les phrases de catalogue
 function remplirChronique(m) {

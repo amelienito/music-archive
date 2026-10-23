@@ -1454,7 +1454,7 @@ body.loudness.cd-tourne .hp-event { animation: souffle var(--battement, .5s) eas
   transform: translateY(-104%); transition: transform .5s cubic-bezier(.3,1.2,.4,1);
 }
 body.grilles .hp-grille { transform: none; }
-.hifi-enceinte .hp-grille::after { content: "MD"; position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 10px; letter-spacing: .1em; color: #c9ccd2; opacity: .6; }
+.hifi-enceinte .hp-grille::after { content: "AG"; position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%); font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 10px; letter-spacing: .1em; color: #c9ccd2; opacity: .6; }
 
 /* devine l'époque, dans la ligne du style */
 .devine-ici, .devine-option {
@@ -1616,3 +1616,99 @@ body.cosmetique .hifi .trappe { display: grid; animation: trappe .38s cubic-bezi
 .hifi-actions .pilule-coeur { width: auto; padding: 0 16px !important; gap: 7px; font-size: 14px; }
 .pilule-coeur span[aria-hidden] { font-size: 15px; }
 .pilule-coeur.est-garde span[aria-hidden] { color: var(--aiguille); }
+
+/* ─── Oriente la suite : trois réglettes ─── */
+.sources { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding-bottom: 14px; border-bottom: 1px solid var(--trait); }
+.sources-nom { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--encre-2); margin-right: 6px; }
+.source-choix { min-height: 38px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 14px; box-shadow: inset 0 0 0 1px var(--trait); transition: background-color .15s, color .15s; }
+.source-choix b { font-size: 12px; margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: var(--trait); }
+.source-choix[aria-pressed="true"] { background: var(--encre); color: var(--fond); box-shadow: none; }
+.source-choix[aria-pressed="true"] b { background: rgba(255,255,255,.22); }
+.rails { display: grid; gap: 14px; }
+.rail-ligne { display: grid; grid-template-columns: minmax(130px, 170px) minmax(0, 1fr) minmax(130px, 170px); align-items: center; gap: 14px; }
+.rail-bout { min-height: 42px; padding: 0 12px; border-radius: 12px; font-weight: 600; font-size: 14px; line-height: 1.15; background: var(--fond); box-shadow: inset 0 0 0 1px var(--trait); transition: background-color .15s, color .15s, transform .08s; }
+.rail-bout:hover:not([aria-pressed="true"]):not(:disabled) { box-shadow: inset 0 0 0 1.5px var(--encre-3); }
+.rail-bout:active { transform: scale(.97); }
+.rail-bout[aria-pressed="true"] { background: var(--encre); color: var(--fond); box-shadow: none; }
+.rail-bout span[aria-hidden] { opacity: .55; }
+.rail-bout.a-bout { opacity: .5; }
+.rail { position: relative; display: grid; gap: 7px; padding: 4px 0; cursor: pointer; }
+.rail-nom { justify-self: center; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--encre-2); }
+.rail-piste { position: relative; display: block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, color-mix(in srgb, var(--aiguille) 18%, var(--fond)), color-mix(in srgb, var(--aiguille) 45%, var(--fond))); box-shadow: inset 0 1px 2px rgba(0,0,0,.15); }
+.rail-piste::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--trait); }
+.rail-actuel, .rail-ensuite { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; transition: left .6s cubic-bezier(.3,1.3,.5,1); }
+.rail-actuel { background: var(--aiguille); box-shadow: 0 0 0 3px var(--fond-2), 0 2px 6px rgba(0,0,0,.25); z-index: 1; }
+.rail-ensuite { background: var(--fond-2); box-shadow: inset 0 0 0 2.5px var(--aiguille); }
+/* quand on pousse : des chevrons qui filent vers le côté choisi */
+.rail.pousse-d .rail-piste::after, .rail.pousse-g .rail-piste::after {
+  content: ""; position: absolute; inset: -6px 0; pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 14px, color-mix(in srgb, var(--aiguille) 55%, transparent) 14px 16px);
+  -webkit-mask: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); mask: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+  animation: file-d 1s linear infinite;
+}
+.rail.pousse-g .rail-piste::after { animation-name: file-g; }
+@keyframes file-d { from { background-position: 0 0; } to { background-position: 16px 0; } }
+@keyframes file-g { from { background-position: 0 0; } to { background-position: -16px 0; } }
+.autres { display: flex; flex-wrap: wrap; gap: 8px; }
+.autre-choix { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 999px; font-weight: 600; font-size: 14px; background: var(--fond); box-shadow: inset 0 0 0 1px var(--trait); }
+.autre-choix[aria-pressed="true"] { background: var(--encre); color: var(--fond); box-shadow: none; }
+.pouce { width: 16px; height: 16px; }
+.repere-actuel, .repere-ensuite { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; }
+.repere-actuel { background: var(--aiguille); }
+.repere-ensuite { box-shadow: inset 0 0 0 2px var(--aiguille); }
+@media (max-width: 640px) {
+  .rail-ligne { grid-template-columns: 1fr 1fr; grid-template-areas: "rail rail" "g d"; gap: 8px 8px; }
+  .rail-ligne .rail { grid-area: rail; }
+  .rail-ligne .rail-g { grid-area: g; } .rail-ligne .rail-d { grid-area: d; }
+  .rail-bout { font-size: 13px; }
+  .rails { gap: 18px; }
+}
+/* Ma sélection n'apparaît qu'à partir de deux morceaux */
+body.sans-selection .bouton-trouvailles { display: none; }
+
+/* la vidéo sort de l'écran : pause, et une pastille pour remonter */
+.pause-defile {
+  position: fixed; z-index: 40; left: 50%; top: calc(86px + env(safe-area-inset-top)); transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 999px;
+  background: var(--encre); color: var(--fond); font-size: 14px; font-weight: 500; box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  animation: sortie .35s cubic-bezier(.2,.9,.3,1.1) both;
+}
+.pause-defile b { font-weight: 700; }
+@media (max-width: 640px) { .pause-defile { top: calc(72px + env(safe-area-inset-top)); font-size: 13px; white-space: nowrap; } }
+
+/* le post-it suit l'enceinte (placé en JS) ; les longs mots s'écrivent un peu plus petit */
+.post-it.long .post-it-texte { font-size: 19px; }
+@media (min-width: 1240px) { .post-it { width: 196px; } }
+/* téléphone : une chaîne compacte, pour que la vidéo reste à l'écran pendant qu'on oriente */
+@media (max-width: 640px) {
+  .afficheur > .tiroir { width: 64px; border-radius: 10px; }
+  body[data-affichage="disque"] .afficheur { gap: 12px; }
+  .etiquette { gap: 2px; }
+  .etiquette-haut { font-size: 10px; }
+  .etiquette-titre { font-size: 1.05rem; -webkit-line-clamp: 2; }
+  .etiquette-artiste { font-size: .9rem; }
+  .afficheur > .lcd { min-height: 0; padding: 10px 12px; grid-template-rows: auto auto; gap: 4px; }
+  .afficheur > .lcd .lcd-spectre, .afficheur > .lcd .lcd-suite, .afficheur > .lcd .lcd-bas { display: none; }
+  .afficheur > .lcd .lcd-defile { font-size: 17px; }
+  .rail-ligne { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1fr); grid-template-areas: none; gap: 8px; }
+  .rail-ligne .rail, .rail-ligne .rail-g, .rail-ligne .rail-d { grid-area: auto; }
+  .rail-bout { padding: 0 6px; font-size: 12.5px; min-height: 44px; }
+  .rails { gap: 12px; }
+  .pupitre .post-it { position: relative; right: auto; top: auto; justify-self: center; width: auto; max-width: min(330px, 92%); margin: 6px 0 4px; }
+  .pupitre-tete .pupitre-aide { font-size: 13px; }
+}
+@media (max-width: 640px) {
+  .hifi-corps, body.video-machine .hifi-corps { padding: 12px; gap: 10px; }
+  .hifi-haut { padding-bottom: 8px; }
+  .hifi-marque { font-size: 12px; }
+  .rond { width: 46px; height: 46px; }
+  .rond-lecture { width: 56px; height: 56px; }
+  .hifi-commandes { gap: 10px; padding-top: 10px; }
+  .hifi-actions { flex: none; flex-wrap: nowrap; gap: 8px; }
+  .hifi-actions .pilule-coeur, .hifi-actions .pilule-cosmetique { flex: none; width: 46px; padding: 0 !important; justify-content: center; font-size: 0; }
+  .hifi-actions .pilule-coeur span[aria-hidden] { font-size: 17px; }
+  .hifi-actions .pilule-cosmetique::before { font-size: 16px; opacity: .85; }
+  .fader { flex: 1; }
+  .pupitre-tete .pupitre-aide { display: none; }
+  .pupitre { gap: 14px; }
+}
