@@ -429,7 +429,7 @@ const MORCEAUX = [
     energie: 1, etrange: 3, danse: 1 },
 
   { titre: "Funky Fanfare", artiste: "Keith Mansfield", album: "",
-    lien: "https://music.youtube.com/watch?v=tUFwQjOpqJM", note: "",
+    lien: "https://music.youtube.com/watch?v=tUFwQjOpqJM", note: "On dirait presque le générique des Boondocks",
     ambiance: "soleil", style: "Funk de librairie", annee: 1968, bpm: 110, voix: "instru",
     tags: ["funk", "cuivres", "library", "jazz"],
     energie: 7, etrange: 4, danse: 8 },
@@ -727,5 +727,48 @@ const MORCEAUX = [
     ambiance: "brume", style: "Folk baroque", annee: 2019, bpm: 70, voix: "chant",
     tags: ["indie", "folk", "piano", "cordes"],
     energie: 2, etrange: 4, danse: 1 },
+
+  /* ─── arrivés depuis la table de tri, octobre 2026 ─── */
+  { titre: "Piano Concerto in G: II. Adagio assai", artiste: "Ravel, Krystian Zimerman", album: "",
+    lien: "https://music.youtube.com/watch?v=W1hyEjZros8", note: "",
+    ambiance: "brume", style: "Concerto impressionniste", annee: 1931, bpm: 60, voix: "instru",
+    tags: ["classique", "piano", "orchestre", "ballade"],
+    energie: 1, etrange: 2, danse: 0 },
+
+  { titre: "Alpha Wann x Le Sable (MOTA TV)", artiste: "Alpha Wann", album: "",
+    lien: "https://music.youtube.com/watch?v=U-GdqWtYspU", note: "",
+    ambiance: "bitume", style: "Rap français, freestyle", annee: 2023, bpm: 90, voix: "rap",
+    tags: ["rap", "france", "boom bap", "freestyle"],
+    energie: 6, etrange: 3, danse: 5 },
+
+  { titre: "I Thought I Saw Your Face Today", artiste: "She & Him", album: "Volume One",
+    lien: "https://music.youtube.com/watch?v=HJstyRBLqBQ", note: "",
+    ambiance: "brume", style: "Pop rétro douce", annee: 2008, bpm: 80, voix: "chant",
+    tags: ["indie", "pop", "ballade", "rétro"],
+    energie: 3, etrange: 2, danse: 3 },
+
+  { titre: "Cocard", artiste: "Andrew Magenta", album: "",
+    lien: "https://music.youtube.com/watch?v=9ubW18FTnDA", note: "",
+    ambiance: "bitume", style: "Rap français", annee: 2026, bpm: 90, voix: "rap",
+    tags: ["rap", "france"],
+    energie: 5, etrange: 5, danse: 5 },
+
+  { titre: "Bag of Bones", artiste: "Mitski", album: "Retired from Sad, New Career in Business",
+    lien: "https://music.youtube.com/watch?v=o3iak3BjFzY", note: "Ce sera pas le seul Mitski (déso pas déso)",
+    ambiance: "electrique", style: "Indie orchestral", annee: 2013, bpm: 100, voix: "chant",
+    tags: ["indie", "piano", "cordes", "mélancolique"],
+    energie: 5, etrange: 5, danse: 3 },
+
+  { titre: "SHYNESS BOY", artiste: "Anri", album: "Timely!!",
+    lien: "https://music.youtube.com/watch?v=50qu96dvhH8", note: "De la citypop qui citypop bien",
+    ambiance: "soleil", style: "City pop", annee: 1983, bpm: 120, voix: "chant",
+    tags: ["citypop", "japon", "funk", "synthés"],
+    energie: 6, etrange: 4, danse: 7 },
+
+  { titre: "Unspoken", artiste: "Alex Burey", album: "",
+    lien: "https://music.youtube.com/watch?v=tPJY8ItB-lA", note: "Mon son quand j'étais sous crise d'angoisse en 2015",
+    ambiance: "soleil", style: "Soul rétro, boîte à rythmes", annee: 2014, bpm: 85, voix: "chant",
+    tags: ["soul", "rnb", "saxophone", "boîte à rythmes"],
+    energie: 3, etrange: 4, danse: 4 },
 
 ];
