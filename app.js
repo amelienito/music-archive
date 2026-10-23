@@ -822,7 +822,7 @@ function construireSuite(depuis, n = 6) {
   if (!depuis && cur) { suite.push(cur.id); pool = pool.filter(m => m !== cur); }
   while (suite.length < n && pool.length) {
     let x = null;
-    if (cur && S.pente) x = Moteur.suivantPente(cur, S.pente.dir, pool, val, { premier: !suite.length && S.pente.neuf, force: S.pente.force });
+    if (cur && S.pente) x = Moteur.suivantPente(cur, S.pente.dir, pool, val, { premier: !suite.length && S.pente.neuf, force: S.pente.force, etape: S.pente.joues + suite.length });
     else if (cur && S.cote && !suite.length) x = Moteur.versDirection(cur, 'cote', pool, val);
     if (!x) x = parmiDeux(pool.map(m => [m, score(cur, m)]).sort((a, b) => a[1] - b[1]).map(p => p[0]));
     if (!x) break;

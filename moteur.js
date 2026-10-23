@@ -130,16 +130,19 @@ const Moteur = (() => {
     confidentiel: { cle: 'etrange', sens: 1, pas: 1.5 },
   };
   const QUALITE = 6.5; // au-delà, le morceau proposé n'a plus rien à voir avec celui en cours
-  function candidatsDirection(ref, dir, pool, val, force = 1) {
+  /* le premier pas : un cran au-dessus, pas un saut au bout de l'échelle.
+     energique : +1 à +3 (force 1), +2 à +4 (force 2)… ; si rien, on accepte plus loin */
+  function candidatsDirection(ref, dir, pool, val, force = 1, large = false) {
     const R = REGLES[dir];
     const ecart = x => (val(x, R.cle) - val(ref, R.cle)) * R.sens;
-    const ok = x => ecart(x) >= R.pas * force - 0.01
+    const mini = Math.max(1, R.pas * force - 0.5), maxi = large ? 99 : R.pas * force + 1.5;
+    const ok = x => ecart(x) >= mini - 0.01 && ecart(x) <= maxi + 0.01
       && (R.plancher === undefined || val(x, R.cle) >= R.plancher)
       && (R.plafond === undefined || val(x, R.cle) <= R.plafond)
       && (x.ambiance === ref.ambiance || voisines(ref.ambiance, x.ambiance));
     const sans = R.cle === 'etrange' ? null : R.cle;
-    const cible = R.pas * force + 0.8;
-    return pool.filter(ok).map(x => [x, distance(ref, x, { sans }) + 0.35 * Math.abs(ecart(x) - cible)])
+    const cible = R.pas * force;
+    return pool.filter(ok).map(x => [x, distance(ref, x, { sans }) + 0.6 * Math.abs(ecart(x) - cible)])
       .filter(p => p[1] <= QUALITE).sort((a, b) => a[1] - b[1]).map(p => p[0]);
   }
   function versDirection(ref, dir, pool, val, { force = 1 } = {}) {
@@ -157,23 +160,36 @@ const Moteur = (() => {
       const c = candidatsDirection(ref, dir, pool, val, f);
       if (c.length) return parmiLesMeilleurs(c, 2);
     }
-    return null;
+    const loin = candidatsDirection(ref, dir, pool, val, 1, true);
+    return loin.length ? parmiLesMeilleurs(loin, 2) : null;
   }
   // peut-on aller dans cette direction depuis ce morceau, sans tomber sur n'importe quoi ?
   function possible(ref, dir, pool, val) {
     if (!REGLES[dir]) return pool.length > 0;
-    return candidatsDirection(ref, dir, pool, val, 1).length > 0;
+    return candidatsDirection(ref, dir, pool, val, 1, true).length > 0;
   }
-  /* la pente : une direction qui tient sur plusieurs morceaux. Le premier fait le pas,
-     les suivants ne reviennent jamais en arrière (plus énergique reste au moins aussi énergique) */
-  function suivantPente(ref, dir, pool, val, { premier = false, force = 1 } = {}) {
+  /* la pente : une direction qui tient sur plusieurs morceaux, par paliers.
+     Le premier morceau monte d'un cran ; ensuite on reste au même niveau (ou un peu plus),
+     et un morceau sur trois remonte d'un cran. Jamais en arrière, jamais de saut au bout de
+     l'échelle : on parcourt plus de morceaux en chemin au lieu de foncer vers les extrêmes. */
+  function suivantPente(ref, dir, pool, val, { premier = false, force = 1, etape = 0 } = {}) {
     const R = REGLES[dir];
     if (!R) return null;
     if (premier) { const x = versDirection(ref, dir, pool, val, { force }); if (x) return x; }
     const ecart = x => (val(x, R.cle) - val(ref, R.cle)) * R.sens;
-    const c = pool.filter(x => ecart(x) >= 0 && (x.ambiance === ref.ambiance || voisines(ref.ambiance, x.ambiance)))
-      .map(x => [x, distance(ref, x) - 0.25 * Math.min(ecart(x), 3)]).sort((a, b) => a[1] - b[1]).map(p => p[0]);
-    return c.length ? parmiLesMeilleurs(c, 2) : null;
+    const proche = x => x.ambiance === ref.ambiance || voisines(ref.ambiance, x.ambiance);
+    const monte = etape % 3 === 2;
+    const essais = monte
+      ? [[1, R.pas + 1], [0, R.pas + 1], [0, 99]]   // un cran de plus, sinon au moins pareil
+      : [[0, 1], [0, R.pas + 1], [0, 99]];           // pareil (ou à peine plus)
+    for (const [mini, maxi] of essais) {
+      const c = pool.filter(x => proche(x) && ecart(x) >= mini && ecart(x) <= maxi)
+        .map(x => [x, distance(ref, x)]).sort((a, b) => a[1] - b[1]).map(p => p[0]);
+      if (c.length) return parmiLesMeilleurs(c, 2);
+    }
+    // tout au bout de l'échelle dans ces ambiances : on va chercher ailleurs, mais toujours sans redescendre
+    const ailleurs = pool.filter(x => ecart(x) >= 0).map(x => [x, distance(ref, x)]).sort((a, b) => a[1] - b[1]).map(p => p[0]);
+    return ailleurs.length ? parmiLesMeilleurs(ailleurs, 2) : null;
   }
   /* l'ordre d'un disque : chaque morceau mène au plus proche, puis on
      décroise les enchaînements maladroits (comme un DJ qui prépare son set) */
