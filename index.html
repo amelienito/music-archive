@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=21">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
@@ -103,8 +103,8 @@
             <span class="hifi-marque">Music&nbsp;Discovery</span>
             <span class="hifi-modele">MD-08 · Compact Disc Micro System</span>
             <div class="choix-affichage" role="radiogroup" aria-label="Affichage de la chaîne">
-              <button role="radio" data-action="affichage" data-val="disque" aria-checked="true">Disque</button>
-              <button role="radio" data-action="affichage" data-val="ecran" aria-checked="false">Écran</button>
+              <button role="radio" data-action="affichage" data-val="ecran" aria-checked="true">Écran</button>
+              <button role="radio" data-action="affichage" data-val="disque" aria-checked="false">Disque</button>
             </div>
             <span class="hifi-veille" aria-hidden="true"></span>
           </div>
@@ -145,11 +145,9 @@
               <button class="rond rond-lecture" data-action="radio-lecture" aria-label="Lecture / pause"><span class="icone icone-lecture" id="radio-icone"></span></button>
               <button class="rond" data-action="radio-stop" aria-label="Stop"><span class="icone-stop"></span></button>
               <button class="rond" data-action="radio-suivant" aria-label="Morceau suivant"><span class="icone icone-suiv"></span></button>
-              <button class="rond rond-ejecter" data-action="ejecter" aria-label="Ouvrir ou fermer le tiroir"><span class="icone-ejecter"></span></button>
             </div>
             <div class="hifi-actions">
-              <button class="pilule pilule-coeur" data-action="aime" id="radio-garder" aria-pressed="false" aria-label="Ça, j'aime bien (et dans ma sélection)" title="Ça, j'aime bien"><span aria-hidden="true">♥</span></button>
-              <button class="pilule" data-action="epure" id="bouton-epure" aria-pressed="false">Juste la musique</button>
+              <button class="pilule pilule-coeur" data-action="aime" id="radio-garder" aria-pressed="false" title="Il part dans ta sélection, et la suite va dans ce sens"><span aria-hidden="true">♥</span> <span class="avis-aime-texte">J'aime bien</span></button>
               <button class="pilule pilule-cosmetique" data-action="cosmetique" aria-expanded="false" aria-controls="trappe">Cosmétique</button>
             </div>
             <label class="fader seulement-sans-ios">
@@ -224,21 +222,24 @@
           <span class="hp-event"></span>
           <span class="hp-grille"></span>
         </div>
+        <!-- ton mot sur le morceau : un post-it collé sur la chaîne -->
+        <aside class="post-it" id="post-it" hidden aria-live="polite">
+          <span class="post-it-scotch" aria-hidden="true"></span>
+          <p class="post-it-texte" id="post-it-texte"></p>
+          <p class="post-it-signe">Amélien</p>
+        </aside>
       </div>
 
       <div class="avis-pub avis-machine" data-avis hidden></div>
-      <!-- le pupitre : un seul bloc. Ce qu'on écoute (la radio ou ta sélection), ton avis, et la suite -->
-      <section class="pupitre" id="pupitre" aria-label="Ce qui passe et la suite">
-        <div class="pupitre-onglets" role="tablist" aria-label="Ce qui passe dans la chaîne">
-          <button role="tab" data-action="source-chaine" data-source="radio" aria-selected="true">La radio</button>
-          <button role="tab" data-action="source-chaine" data-source="selection" aria-selected="false">Ma sélection <b id="n-source">0</b></button>
+      <!-- le pupitre : orienter la suite, par catégories -->
+      <section class="pupitre" id="pupitre" aria-labelledby="pupitre-titre">
+        <div class="pupitre-tete">
+          <h2 class="pupitre-titre" id="pupitre-titre">Oriente la suite</h2>
+          <p class="pupitre-aide">La chaîne enchaîne toute seule. Choisis une direction : elle tient plusieurs morceaux, sans revenir en arrière.</p>
         </div>
-        <article class="maintenant" id="maintenant" aria-live="polite"></article>
-        <div class="orienter">
-          <h2 class="pupitre-titre">Oriente la suite</h2>
-          <div class="caps" id="caps" role="group" aria-label="Orienter la suite"></div>
-          <p class="ensuite" id="ensuite"></p>
-        </div>
+        <div class="axes" id="axes"></div>
+        <p class="pente" id="pente" hidden></p>
+        <p class="ensuite" id="ensuite"></p>
       </section>
       <p class="machine-source" id="machine-source" hidden></p>
       <section class="livret livret-machine" id="livret-machine" aria-label="Plus d'infos sur le morceau qui passe" hidden></section>
@@ -318,6 +319,6 @@
   <script src="moteur.js?v=3"></script>
   <script src="pochettes.js?v=14"></script>
   <script src="infos.js?v=14"></script>
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>

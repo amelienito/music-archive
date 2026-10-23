@@ -1565,3 +1565,54 @@ body.cosmetique .hifi .trappe { display: grid; animation: trappe .38s cubic-bezi
 .pilule-cosmetique[aria-expanded="true"] { box-shadow: inset 0 2px 5px rgba(0,0,0,.25); }
 .pilule-cosmetique[aria-expanded="true"]::before { opacity: 1; color: var(--aiguille); }
 .livret-genre { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--aiguille); margin: 14px 0 -6px; }
+
+/* ═══════════════════════════════ VERSION FINALE : LE POSTE, ORIENTER, PLUS D'INFOS ═══════════════════════════════ */
+/* le pupitre ne sert plus qu'à orienter, par catégories */
+.pupitre { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: none; gap: 18px; }
+.pupitre-tete { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+.pupitre-tete .pupitre-titre { font-size: clamp(1.25rem, 1.9vw, 1.6rem); margin: 0; }
+.pupitre-tete .pupitre-aide { font-size: 14px; max-width: 62ch; }
+.axes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 30px; }
+.axe { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: center; gap: 12px; min-width: 0; }
+.axe-nom { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--encre-2); }
+.axe-paire { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 13px; background: var(--fond); box-shadow: inset 0 0 0 1px var(--trait); min-width: 0; }
+.axe-choix { min-height: 42px; padding: 0 10px; border-radius: 10px; font-weight: 600; font-size: 14px; line-height: 1.15; transition: background-color .15s, color .15s, transform .08s; }
+.axe-choix:hover:not([aria-pressed="true"]):not(:disabled) { background: var(--fond-2); }
+.axe-choix:active { transform: scale(.97); }
+.axe-choix[aria-pressed="true"] { background: var(--encre); color: var(--fond); }
+.axe-choix b { font-size: 12px; margin-left: 3px; padding: 1px 7px; border-radius: 999px; background: var(--trait); }
+.axe-choix[aria-pressed="true"] b { background: rgba(255,255,255,.22); }
+.axe-choix span[aria-hidden] { opacity: .6; }
+.axe-choix.a-bout { opacity: .5; }
+.pente { font-size: 14px; color: var(--encre-2); }
+.pente b { color: var(--aiguille); }
+.pupitre .ensuite { padding-top: 14px; }
+@media (max-width: 860px) { .axes { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .axe { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .axe-choix { font-size: 13px; padding: 0 6px; }
+}
+
+/* le post-it : ton mot sur le morceau, collé sur l'enceinte de droite (sous la chaîne sur petit écran) */
+.post-it {
+  --penche: -2deg;
+  position: absolute; z-index: 4; right: -14px; top: 8%;
+  width: 206px; padding: 26px 18px 14px;
+  background: linear-gradient(170deg, #fff6b8, #fde98a 70%, #f7dc6a);
+  color: #2b2a33; box-shadow: 0 14px 24px -8px rgba(0,0,0,.35), 0 2px 4px rgba(0,0,0,.12);
+  transform: rotate(var(--penche)); transform-origin: 50% 0;
+}
+.post-it::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18px; background: linear-gradient(transparent, rgba(0,0,0,.05)); pointer-events: none; }
+.post-it-scotch { position: absolute; top: -11px; left: 50%; width: 78px; height: 24px; margin-left: -39px; transform: rotate(calc(var(--penche) * -1.6)); background: rgba(255,255,255,.55); box-shadow: 0 1px 2px rgba(0,0,0,.12); backdrop-filter: blur(1px); }
+.post-it-texte { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 500; font-size: 23px; line-height: 1.12; overflow-wrap: anywhere; text-wrap: pretty; }
+.post-it-signe { margin-top: 8px; text-align: right; font-family: "Caveat", cursive; font-weight: 700; font-size: 17px; opacity: .6; }
+.post-it-signe::before { content: "— "; }
+.post-it.colle { animation: colle .6s cubic-bezier(.2,.9,.3,1.25) both; }
+@keyframes colle { from { opacity: 0; transform: translateY(-26px) rotate(calc(var(--penche) - 9deg)) scale(1.06); } }
+@media (max-width: 1239px) {
+  .hifi .post-it { position: relative; right: auto; top: auto; grid-column: 1 / -1; justify-self: center; width: auto; max-width: min(420px, 92%); margin-top: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .post-it.colle { animation: none; } }
+.hifi-actions .pilule-coeur { width: auto; padding: 0 16px !important; gap: 7px; font-size: 14px; }
+.pilule-coeur span[aria-hidden] { font-size: 15px; }
+.pilule-coeur.est-garde span[aria-hidden] { color: var(--aiguille); }

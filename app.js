@@ -83,8 +83,8 @@ const S = {
   // la chaîne
   source: (s => ['radio', 'selection'].includes(s) ? s : 'radio')(memoire.lire('md-source', 'radio')),
   suite: [], historique: memoire.lire('md-historique', []).filter(id => parId[id]), echecs: 0,
-  epure: memoire.lire('md-epure-v2', true),       // « Juste la musique », par défaut
-  affichage: memoire.lire('md-affichage', 'disque'), // le disque qui tourne, ou l'écran LCD
+  epure: false,
+  affichage: memoire.lire('md-affichage-v2', 'ecran'), // l'écran LCD, ou le disque qui tourne
   tiroirOuvert: false, repriseTiroir: false, posteFerme: false,
   pente: null,            // une direction qui tient : { dir, force, neuf, vise, joues }
   cote: false,            // « un pas de côté », pour le prochain morceau seulement
@@ -293,7 +293,7 @@ function majGarde() {
   pg.setAttribute('aria-label', gj ? 'Retirer de ma sélection' : 'Ajouter à ma sélection');
   const rg = $('#radio-garder');
   const gr = S.joue && estGarde(S.joue);
-  if (rg) { rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr); }
+  if (rg) { rg.classList.toggle('est-garde', !!gr); rg.setAttribute('aria-pressed', !!gr); $('.avis-aime-texte', rg).textContent = gr ? 'Dans ma sélection' : 'J\'aime bien'; }
   $$('.avis-aime').forEach(a => { a.classList.toggle('actif', !!gr); a.setAttribute('aria-pressed', !!gr); const t = $('.avis-aime-texte', a); if (t) t.textContent = gr ? 'Dans ma sélection' : 'Ça, j\'aime bien'; });
   majSource();
 }
@@ -378,6 +378,7 @@ function rendreLivret(ou, m, { force = false } = {}) {
     ${ouvert ? `
     <button class="livret-fermer" data-action="fermer-livret" aria-label="Fermer les infos">×</button>
     <p class="livret-genre">${E(indice(m))}</p>
+    <p class="livret-chronique maintenant-chronique" data-chronique="${m.id}"></p>
     <div class="livret-pages">
       <section class="livret-page" aria-label="L'album">
         <div class="livret-album" data-album-pour="${m.id}"><p class="livret-attente">On feuillette l'album…</p></div>
@@ -391,7 +392,7 @@ function rendreLivret(ou, m, { force = false } = {}) {
       <p class="ailleurs">${liensAilleurs(m)}</p>
       <p class="livret-paroles"><a class="lien-bouton" href="https://genius.com/search?q=${q}" target="_blank" rel="noopener">Les paroles sur Genius</a></p>
     </div>` : ''}`;
-  if (ouvert) { remplirAlbum(el, m); remplirArtiste(el, m); }
+  if (ouvert) { remplirAlbum(el, m); remplirArtiste(el, m); remplirChronique(m); }
 }
 const pistesLivret = {};
 // un titre de l'album qui est aussi dans la sélection : on peut le lancer en entier
@@ -908,7 +909,7 @@ function ejecter() {
 }
 function choisirSource(k) {
   if (!SOURCES[k]) return;
-  if (k === 'selection' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur ♥ « Ça, j\'aime bien » quand un morceau te plaît.', 4200); return; }
+  if (k === 'selection' && !S.gardes.length) { toast('Ta sélection est vide : appuie sur « ♥ J\'aime bien » quand un morceau te plaît.', 4200); return; }
   if (k === S.source && S.joue) { majSource(); return; }
   // on note où on en était, pour y revenir pile au même endroit
   if (S.joue) { const [t] = tempsActuel(); S.reprise[S.source] = { id: S.joue, t: S.lecture === 'yt' && t > 5 ? Math.floor(t) : 0 }; memoire.ecrire('md-reprise', S.reprise); }
@@ -923,7 +924,7 @@ function choisirSource(k) {
   else { const premier = construireSuite(null, 1)[0]; if (premier) jouerRadio(premier); }
 }
 function majSource() {
-  $$('.pupitre-onglets [data-source]').forEach(b => b.setAttribute('aria-selected', b.dataset.source === S.source));
+  $$('#axes [data-source]').forEach(b => b.setAttribute('aria-pressed', b.dataset.source === S.source));
   const n = $('#n-source'); if (n) n.textContent = S.gardes.length;
 }
 
@@ -1060,37 +1061,52 @@ function bidouiller(b) {
   if (cle === 'vitesse' && !S.enLecture) toast('Lance un morceau pour voir le disque tourner.');
 }
 /* le pupitre : le morceau qui passe, sa mini-chronique, l'avis, la suite */
+/* « Oriente la suite », par catégories : chaque ligne est un axe, avec ses deux sens */
+const AXES = [
+  ['Énergie', 'calme', 'energique'],
+  ['Danse', 'pose', 'dansant'],
+  ['Notoriété', 'connu', 'confidentiel'],
+];
 function rendrePupitre() {
   const m = parId[S.joue];
-  const el = $('#maintenant');
-  if (!m) {
-    el.innerHTML = `<p class="maintenant-vide">Appuie sur lecture : la chaîne démarre, et tu l'orientes ici.</p>`;
-  } else if (el.dataset.id !== m.id) {
-    el.dataset.id = m.id;
-    el.innerHTML = `
-      <div class="maintenant-texte">
-        ${m.note ? `<p class="maintenant-note">${E(m.note).replace(/\n/g, '<br>')}</p>` : ''}
-        <p class="maintenant-chronique" data-chronique="${m.id}"></p>
-        <div class="avis-boutons">
-          <button class="avis-bouton" data-action="pas-aime" aria-label="Pas trop comme ça : on passe et on s'en éloigne"><span aria-hidden="true">↷</span> Pas trop comme ça</button>
-          <button class="avis-bouton avis-aime" data-action="aime" aria-pressed="false" title="Ça part dans ta sélection, et la suite va dans ce sens"><span aria-hidden="true">♥</span> <span class="avis-aime-texte">Ça, j'aime bien</span></button>
-        </div>
-        <button class="lien-bouton lien-infos" data-action="radio-raconte">Plus d'infos sur l'album et l'artiste</button>
-      </div>`;
-    remplirChronique(m);
-  }
   const pool = poolSource().filter(x => !m || x.id !== m.id);
-  $('#caps').innerHTML = CAPS.map(d => {
-    const actif = (S.pente && S.pente.dir === d) || (d === 'cote' && S.cote);
-    const dispo = !m || actif || d === 'cote' || Moteur.possible(m, d, pool, val);
-    const label = actif && S.pente && S.pente.force > 1 ? `${nomCap(d)} ×${S.pente.force}` : nomCap(d);
-    return `<button class="cap${dispo ? '' : ' a-bout'}" data-action="cap" data-dir="${d}" aria-pressed="${!!actif}"${m ? '' : ' disabled'}>${E(label)}</button>`;
-  }).join('') + (S.pente || S.cote ? `<button class="cap cap-libre" data-action="cap" data-dir="libre">Laisser filer</button>` : '');
+  const bouton = (d, fleche) => {
+    const actif = S.pente && S.pente.dir === d;
+    const dispo = !m || actif || Moteur.possible(m, d, pool, val);
+    const nom = nomCap(d) + (actif && S.pente.force > 1 ? ` ×${S.pente.force}` : '');
+    return `<button class="axe-choix${dispo ? '' : ' a-bout'}" data-action="cap" data-dir="${d}" aria-pressed="${!!actif}"${m ? '' : ' disabled'}>${fleche === 'g' ? '<span aria-hidden="true">←</span> ' : ''}${E(nom)}${fleche === 'd' ? ' <span aria-hidden="true">→</span>' : ''}</button>`;
+  };
+  $('#axes').innerHTML = `
+    <div class="axe"><span class="axe-nom">Écouter</span><div class="axe-paire">
+      <button class="axe-choix" data-action="source-chaine" data-source="radio" aria-pressed="${S.source === 'radio'}">La radio</button>
+      <button class="axe-choix" data-action="source-chaine" data-source="selection" aria-pressed="${S.source === 'selection'}">Ma sélection <b>${S.gardes.length}</b></button>
+    </div></div>
+    ${AXES.map(([nom, g, d]) => `<div class="axe"><span class="axe-nom">${nom}</span><div class="axe-paire">${bouton(g, 'g')}${bouton(d, 'd')}</div></div>`).join('')}
+    <div class="axe"><span class="axe-nom">Autre chose</span><div class="axe-paire">
+      <button class="axe-choix" data-action="cap" data-dir="cote" aria-pressed="${!!S.cote}"${m ? '' : ' disabled'}>Un pas de côté</button>
+      <button class="axe-choix" data-action="pas-aime"${m ? '' : ' disabled'} title="On passe au suivant, et on s'éloigne de ce genre-là">↷ Pas trop comme ça</button>
+    </div></div>`;
+  const pe = $('#pente');
+  pe.hidden = !S.pente;
+  if (S.pente) pe.innerHTML = `En ce moment : <b>${E(nomCap(S.pente.dir))}${S.pente.force > 1 ? ` ×${S.pente.force}` : ''}</b>, encore ${Math.max(1, 6 - S.pente.joues)} morceau${6 - S.pente.joues > 1 ? 'x' : ''}. Rappuie pour aller plus loin. <button class="lien-bouton" data-action="cap" data-dir="libre">Laisser filer</button>`;
   const p = parId[S.suite[0]];
-  $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span><button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>`
- : '';
+  $('#ensuite').innerHTML = p ? `<span class="ensuite-mot">Ensuite</span><button class="ensuite-titre" data-action="jouer-id" data-id="${p.id}" title="L'écouter tout de suite">${E(p.affiche)} <em>${E(p.artiste)}</em></button>` : '';
+  majPostIt(m);
   majGarde();
 }
+// ton mot sur le morceau : un post-it collé sur la chaîne, qui arrive avec le morceau
+function majPostIt(m) {
+  const el = $('#post-it');
+  const note = m && m.note ? m.note.trim() : '';
+  if (el.dataset.id === (m ? m.id : '') && !el.hidden === !!note) return;
+  el.dataset.id = m ? m.id : '';
+  el.hidden = !note;
+  if (!note) return;
+  $('#post-it-texte').innerHTML = E(note).replace(/\n/g, '<br>');
+  el.style.setProperty('--penche', `${(hache(m.id) % 7) - 3.5}deg`);
+  el.classList.remove('colle'); void el.offsetWidth; el.classList.add('colle');
+}
+const hache = t => [...String(t)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 // quelques mots sur le titre, sinon l'album, sinon l'artiste : en français, sans les phrases de catalogue
 function remplirChronique(m) {
   Pochettes.album(m).then(a => Infos.chronique(m, a && a.titre, c => {
@@ -1110,7 +1126,7 @@ function basculerCosmetique(force) {
 }
 function choisirAffichage(v) {
   S.affichage = v === 'ecran' ? 'ecran' : 'disque';
-  memoire.ecrire('md-affichage', S.affichage);
+  memoire.ecrire('md-affichage-v2', S.affichage);
   document.body.dataset.affichage = S.affichage;
   $$('.choix-affichage [data-val]').forEach(b => b.setAttribute('aria-checked', b.dataset.val === S.affichage));
   clic(S.affichage === 'ecran' ? 1700 : 600, 0.04, 0.05);
@@ -1447,7 +1463,6 @@ majMolettes();
 majSon();
 majGarde();
 S.suite = construireSuite(null);
-if (S.epure) { document.body.classList.add('epure'); $('#bouton-epure').setAttribute('aria-pressed', 'true'); $('#bouton-epure').textContent = 'Tout afficher'; }
 document.body.dataset.affichage = S.affichage;
 $$('.choix-affichage [data-val]').forEach(b => b.setAttribute('aria-checked', b.dataset.val === S.affichage));
 poserDisque(S.source);
