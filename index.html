@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Familjen+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Doto:wght@700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=23">
+  <link rel="stylesheet" href="styles.css?v=24">
   <link rel="stylesheet" href="teintes.css?v=13">
 </head>
 <body>
@@ -266,7 +266,11 @@
     </div>
   </div>
 
-  <button class="pause-defile" id="pause-defile" data-action="retour-morceau" hidden><span aria-hidden="true">⏸</span> <span id="pause-defile-texte">En pause le temps de lire</span> <b>Reprendre ↑</b></button>
+  <!-- quand on descend, la vidéo suit dans un coin : la musique continue, et rien n'est caché -->
+  <div class="coin-video" id="coin-video" hidden>
+    <div class="emplacement-ecran emplacement-coin" data-emplacement="coin"></div>
+    <button class="coin-retour" data-action="retour-morceau">↑ Revenir à la chaîne</button>
+  </div>
   <div class="ecran-video" id="ecran-video" hidden><div id="yt-lecteur"></div></div>
 
   <!-- ═════════════ MA SÉLECTION ═════════════ -->
@@ -323,6 +327,6 @@
   <script src="moteur.js?v=3"></script>
   <script src="pochettes.js?v=14"></script>
   <script src="infos.js?v=14"></script>
-  <script src="app.js?v=26"></script>
+  <script src="app.js?v=27"></script>
 </body>
 </html>

@@ -730,20 +730,16 @@ if ('IntersectionObserver' in window) {
     const v = e.isIntersecting && e.intersectionRect.height >= Math.min(190, e.boundingClientRect.height * 0.85);
     if (v === chaineVue) return;
     chaineVue = v;
-    if (!v && S.lecture === 'yt' && S.enLecture) S.pauseDefile = true;
     majPoste();
-    if (v && S.pauseDefile) { S.pauseDefile = false; if (S.lecture === 'yt' && lecteurPret) { try { lecteur.playVideo(); } catch (er) {} } }
-    majPauseDefile();
   }, { threshold: [0, 0.25, 0.5, 0.75, 0.85, 0.95, 1], rootMargin: `-${($('.facade-haut') || {}).offsetHeight || 64}px 0px 0px 0px` }).observe($('[data-emplacement="machine"]'));
-}
-function majPauseDefile() {
-  const b = $('#pause-defile');
-  b.hidden = !(S.pauseDefile && S.vue === 'machine' && !chaineVue);
 }
 function majPoste() {
   const p = $('#poste');
   const yt = S.lecture === 'yt';
   const visible = false; // plus de petit lecteur : il cachait « Plus d'infos »
+  const coin = S.vue === 'machine' && !!S.joue && S.lecture === 'yt' && !chaineVue;
+  $('#coin-video').hidden = !coin;
+  document.body.classList.toggle('video-coin', coin);
   p.hidden = !visible;
   p.classList.toggle('avec-video', visible && yt && !S.posteReduit);
   p.classList.toggle('reduit', visible && yt && S.posteReduit);
@@ -768,6 +764,8 @@ let suiviRAF = null;
 function emplacementCible() {
   if (!S.joue || S.lecture !== 'yt') return null;
   if (S.vue === 'machine' && chaineVue) return $('[data-emplacement="machine"]');
+  // on descend : la vidéo suit dans un coin (YouTube veut qu'elle reste visible), la musique continue
+  if (S.vue === 'machine') return $('[data-emplacement="coin"]');
   if (!$('#poste').hidden && !S.posteReduit) return $('[data-emplacement="poste"]');
   return null;
 }
