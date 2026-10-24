@@ -1124,6 +1124,7 @@ function majPostIt(m) {
   $('#post-it-texte').innerHTML = E(note).replace(/\n/g, '<br>');
   el.classList.toggle('long', note.length > 80);
   placerPostIt();
+  el.style.setProperty('--dx', '0px'); el.style.setProperty('--dy', '0px');
   el.style.setProperty('--penche', `${(hache(m.id) % 7) - 3.5}deg`);
   el.classList.remove('colle'); void el.offsetWidth; el.classList.add('colle');
 }
@@ -1234,6 +1235,7 @@ function majAfficheur() {
   if (active && S.bloque) ms.textContent = 'La lecture ne démarre pas toute seule : appuie sur lecture.';
   else if (src) ms.innerHTML = `Extrait de 30 secondes.${src.lien ? ` <a href="${E(src.lien)}" target="_blank" rel="noopener">En entier sur ${src.nom}</a>` : ''}`;
   document.body.classList.toggle('cd-tourne', active && S.enLecture);
+  document.body.classList.toggle('energie-forte', !!m && num(m.energie, 5) >= 8);
   document.body.classList.toggle('chaine-allumee', true);
   if (m && m.bpm) document.body.style.setProperty('--battement', `${(60 / (m.bpm > 140 ? m.bpm / 2 : m.bpm)).toFixed(3)}s`);
   lancerSpectre();
@@ -1551,6 +1553,51 @@ if (S.gardes.length || S.croises.length) {
     a.hidden = false;
     a.href = `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;end`;
   }
+})();
+
+/* ─────────────────────────────── petites bidouilles sur le poste (rien d'utile, tout est fait pour tripoter) ─────────────────────────────── */
+(() => {
+  const compte = {};
+  const fois = k => (compte[k] = (compte[k] || 0) + 1);
+  const rejouer = (el, classe) => { el.classList.remove(classe); void el.offsetWidth; el.classList.add(classe); };
+  // un coup sur le haut-parleur : il pompe, une onde part, un grave sourd
+  document.addEventListener('click', e => {
+    const gr = e.target.closest('.hp-boomer'), ai = e.target.closest('.hp-tweeter');
+    if (gr) {
+      rejouer(gr, 'coup'); clic(72 + Math.random() * 14, 0.14, 0.14);
+      const n = fois('grave');
+      if (n === 9) toast('Doucement : c\'est une enceinte à deux voies, pas un caisson.', 3600);
+      if (n === 24) toast('Il commence à le regretter, ce haut-parleur.', 3600);
+    } else if (ai) {
+      rejouer(ai, 'ping'); clic(2600 + Math.random() * 1400, 0.06, 0.06);
+      if (fois('aigu') === 10) toast('Les aigus, c\'est comme les ragots : ça porte loin.', 3600);
+    }
+  });
+  // toucher l'écran LCD change la couleur des chiffres, sans passer par « Cosmétique »
+  const COULEURS = ['origine', 'glacier', 'ambre', 'menthe', 'rose', 'blanc'];
+  $('.lcd').addEventListener('click', () => {
+    const k = COULEURS.indexOf(S.fidget.lcd);
+    S.fidget.lcd = COULEURS[(k + 1) % COULEURS.length];
+    memoire.ecrire('md-fidget', S.fidget); appliquerFidget();
+    clic(2200, 0.02, 0.05);
+    rejouer($('.lcd'), 'lcd-clic');
+  });
+  // le post-it se décolle et se recolle ailleurs ; double-clic : il revient à sa place
+  const pi = $('#post-it');
+  let pris = null;
+  const pos = (n, v) => pi.style.setProperty(n, v + 'px');
+  pi.addEventListener('pointerdown', e => {
+    if (pi.parentElement.id === 'pupitre' || e.button) return;
+    pris = { x: e.clientX, y: e.clientY, dx: parseFloat(pi.style.getPropertyValue('--dx')) || 0, dy: parseFloat(pi.style.getPropertyValue('--dy')) || 0 };
+    pi.setPointerCapture(e.pointerId); pi.classList.add('souleve'); pi.classList.remove('colle');
+  });
+  pi.addEventListener('pointermove', e => {
+    if (!pris) return;
+    pos('--dx', pris.dx + e.clientX - pris.x); pos('--dy', pris.dy + e.clientY - pris.y);
+  });
+  const lacher = () => { if (!pris) return; pris = null; pi.classList.remove('souleve'); clic(900, 0.03, 0.04); };
+  pi.addEventListener('pointerup', lacher); pi.addEventListener('pointercancel', lacher);
+  pi.addEventListener('dblclick', () => { pi.style.setProperty('--dx', '0px'); pi.style.setProperty('--dy', '0px'); });
 })();
 aller('allumage');
 })();

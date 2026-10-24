@@ -1784,3 +1784,24 @@ body.sans-selection .bouton-trouvailles { display: none; }
 .cassette i { position: relative; z-index: 1; width: 11px; height: 11px; margin-top: 10px; border-radius: 50%; background: #2a2a2e; box-shadow: 0 0 0 2px #f4f1ea inset; }
 .cassette-titre { font-weight: 700; font-size: 15px; line-height: 1.2; }
 .cassette-sous { font-size: 13px; color: var(--encre-2); line-height: 1.35; margin-top: 2px; }
+
+/* ─────────────────────────────── bidouilles ─────────────────────────────── */
+.hp-boomer, .hp-tweeter { cursor: pointer; }
+.hp-boomer.coup { animation: coup .5s cubic-bezier(.2,.8,.3,1); }
+.hp-boomer.coup .hp-cone { animation: coup-cone .5s cubic-bezier(.2,.8,.3,1); }
+@keyframes coup { 0% { box-shadow: 0 1px 0 rgba(255,255,255,.35), inset 0 2px 6px rgba(0,0,0,.5), 0 0 0 0 var(--lcd-halo); } 100% { box-shadow: 0 1px 0 rgba(255,255,255,.35), inset 0 2px 6px rgba(0,0,0,.5), 0 0 0 34px transparent; } }
+@keyframes coup-cone { 20% { transform: scale(.9); filter: brightness(.8); } 55% { transform: scale(1.06); filter: brightness(1.25); } }
+.hp-tweeter.ping { animation: ping .55s ease-out; }
+@keyframes ping { 0% { box-shadow: 0 1px 0 rgba(255,255,255,.4), inset 0 1px 3px rgba(0,0,0,.4), 0 0 0 0 var(--lcd-halo); transform: scale(.92); } 100% { box-shadow: 0 1px 0 rgba(255,255,255,.4), inset 0 1px 3px rgba(0,0,0,.4), 0 0 0 20px transparent; transform: none; } }
+.lcd { cursor: pointer; }
+.lcd.lcd-clic { animation: lcd-clic .3s ease-out; }
+@keyframes lcd-clic { 0% { filter: brightness(1.8) contrast(1.2); } }
+/* un morceau qui cogne fait trembler les enceintes */
+body.cd-tourne.energie-forte .hifi-enceinte { animation: tremble calc(var(--battement, .5s) * .5) linear infinite; }
+body.cd-tourne.energie-forte .hp-cone { animation-name: pompe-fort; }
+@keyframes tremble { 0%, 100% { translate: 0 0; } 25% { translate: .7px -.9px; } 50% { translate: -.8px .5px; } 75% { translate: .6px .8px; } }
+/* le post-it se déplace */
+.post-it { transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--penche)); }
+.hifi > .post-it { cursor: grab; touch-action: none; user-select: none; }
+.post-it.souleve { cursor: grabbing; z-index: 30; transition: box-shadow .15s; box-shadow: 0 28px 40px -10px rgba(0,0,0,.45), 0 4px 8px rgba(0,0,0,.15); transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(calc(var(--penche) * 2.2)) scale(1.04); }
+@media (prefers-reduced-motion: reduce) { body.cd-tourne.energie-forte .hifi-enceinte, .hp-boomer.coup, .hp-tweeter.ping { animation: none; } }
