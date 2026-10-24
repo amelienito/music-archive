@@ -1319,6 +1319,18 @@ function rendreBac() {
     ? `<li class="bac-vide">${S.onglet === 'gardes'
         ? 'Rien dans ta sélection pour l\'instant. Quand un morceau te plaît, appuie sur « Ajouter à ma sélection ».'
         : 'Tout ce qui passe dans la chaîne s\'inscrit ici.'}</li>`
+    : S.onglet === 'gardes' ? ids.map(id => {
+        const m = parId[id];
+        const h = [...id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+        const incl = ((h % 9) - 4) * 0.9;
+        return `<li class="boitier" style="--incl:${incl}deg">
+          <button class="boitier-morceau" data-action="ouvrir" data-id="${m.id}" title="Écouter ${E(m.affiche)}">
+            <span class="boitier-cd"><span class="boitier-disque" aria-hidden="true"></span><span class="boitier-etui"><span class="boitier-dos" aria-hidden="true"></span>${Pochettes.html(m, 'pochette-mini')}<span class="boitier-reflet" aria-hidden="true"></span></span></span>
+            <span class="boitier-titre">${E(m.affiche)}</span><span class="boitier-artiste">${E(m.artiste)}</span>
+          </button>
+          <button class="boitier-retirer" data-action="garder" data-id="${m.id}" aria-label="Retirer de ma sélection : ${E(m.affiche)}" title="Retirer de ma sélection">♥</button>
+        </li>`;
+      }).join('')
     : ids.map(id => {
         const m = parId[id];
         return `<li class="bac-ligne">
@@ -1329,6 +1341,7 @@ function rendreBac() {
           <button class="bac-garder ${estGarde(m.id) ? 'est-garde' : ''}" data-action="garder" data-id="${m.id}" aria-label="${estGarde(m.id) ? 'Retirer de ma sélection' : 'Ça, j\'aime bien'} : ${E(m.affiche)}" title="${estGarde(m.id) ? 'Retirer de ma sélection' : 'Ça, j\'aime bien'}">${estGarde(m.id) ? '♥' : '♡'}</button>
         </li>`;
       }).join('');
+  $('#bac-liste').classList.toggle('etagere', S.onglet === 'gardes' && !!S.gardes.length);
   $('#bac-pied').hidden = S.onglet !== 'gardes' || !S.gardes.length;
   const avecYt = S.gardes.map(id => parId[id].yt).filter(Boolean).slice(0, 50);
   $('#lien-playlist').href = `https://www.youtube.com/watch_videos?video_ids=${avecYt.join(',')}`;
