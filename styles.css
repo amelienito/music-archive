@@ -1805,3 +1805,41 @@ body.cd-tourne.energie-forte .hp-cone { animation-name: pompe-fort; }
 .hifi > .post-it { cursor: grab; touch-action: none; user-select: none; }
 .post-it.souleve { cursor: grabbing; z-index: 30; transition: box-shadow .15s; box-shadow: 0 28px 40px -10px rgba(0,0,0,.45), 0 4px 8px rgba(0,0,0,.15); transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(calc(var(--penche) * 2.2)) scale(1.04); }
 @media (prefers-reduced-motion: reduce) { body.cd-tourne.energie-forte .hifi-enceinte, .hp-boomer.coup, .hp-tweeter.ping { animation: none; } }
+
+/* ─────────────────────────────── la molette d'époque : une bande de radio qu'on règle ─────────────────────────────── */
+.cadran { display: grid; gap: 8px; margin: 4px 0 18px; }
+.cadran[hidden] { display: none; }
+.cadran-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.cadran-etat { font-size: 13px; color: var(--encre-2); font-weight: 500; }
+.cadran-bande {
+  position: relative; display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 1fr));
+  height: 58px; padding: 0 6px; border-radius: 10px; overflow: hidden;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(100% / 40 - 1px), color-mix(in srgb, var(--lcd-encre) 28%, transparent) calc(100% / 40 - 1px) calc(100% / 40)) left 6px top 8px / calc(100% - 12px) 8px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 calc(100% / 8 - 1px), color-mix(in srgb, var(--lcd-encre) 55%, transparent) calc(100% / 8 - 1px) calc(100% / 8)) left 6px top 8px / calc(100% - 12px) 14px no-repeat,
+    radial-gradient(120% 140% at 50% 120%, color-mix(in srgb, var(--lcd-encre) 16%, #0c0e12), #07080b 70%);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.7), inset 0 0 0 1px rgba(255,255,255,.06), 0 1px 0 rgba(255,255,255,.5);
+}
+.cadran-choix {
+  position: relative; z-index: 1; align-self: end; height: 36px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; font-weight: 700; letter-spacing: .02em;
+  color: color-mix(in srgb, var(--lcd-encre) 62%, transparent); text-shadow: 0 0 6px var(--lcd-halo); white-space: nowrap;
+  transition: color .2s;
+}
+.cadran-choix:hover { color: var(--lcd-encre); }
+.cadran-choix[aria-checked="true"] { color: var(--lcd-encre); text-shadow: 0 0 10px var(--lcd-halo), 0 0 2px var(--lcd-encre); }
+.cadran-choix:focus-visible { outline: 2px solid var(--lcd-encre); outline-offset: -4px; border-radius: 6px; }
+.cadran-aiguille {
+  position: absolute; z-index: 2; top: 4px; bottom: 4px; width: 2px; margin-left: -1px; border-radius: 1px; pointer-events: none;
+  left: calc(6px + (100% - 12px) * (var(--pos, 0) + .5) / var(--n, 8));
+  background: #ff4a3d; box-shadow: 0 0 8px 1px rgba(255, 74, 61, .7);
+  transition: left .55s cubic-bezier(.3, 1.4, .5, 1);
+}
+.cadran-bande::after { /* le reflet de la vitre */
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(180deg, rgba(255,255,255,.1), transparent 45%);
+}
+@media (max-width: 420px) { .cadran-choix { font-size: 11px; letter-spacing: 0; } .cadran-bande { padding: 0 2px; } }
+@media (prefers-reduced-motion: reduce) { .cadran-aiguille { transition: none; } }
+.cadran-aiguille { bottom: auto; height: 27px; }
+.cadran-aiguille::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -4px; border: 4px solid transparent; border-top: 5px solid #ff4a3d; border-bottom: 0; }

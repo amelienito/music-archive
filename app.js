@@ -91,6 +91,7 @@ const S = {
   devine: memoire.lire('md-devine-v2', true),     // de temps en temps, deviner l'époque du morceau
   reprise: memoire.lire('md-reprise', {}),        // où on en était dans chaque source
   score: memoire.lire('md-score', { bons: 0, total: 0 }),
+  epoque: memoire.lire('md-epoque', 'toutes'),
   fidget: Object.assign({ lcd: 'origine', eq: 'barres', vitesse: '33', loudness: false, dimmer: '3', lumieres: 'tempo', grilles: false, bip: true }, memoire.lire('md-fidget', {})),
   demo: false,
   aime: new Set(memoire.lire('md-aime', [])),
@@ -811,6 +812,49 @@ const SOURCES = {
 };
 const CAPS = ['calme', 'energique', 'dansant', 'pose', 'connu', 'confidentiel', 'cote'];
 const nomCap = d => d === 'connu' ? 'Plus mainstream' : d === 'pose' ? 'Moins groovy' : d === 'dansant' ? 'Plus groovy' : (Moteur.DIRECTIONS[d] || {}).etiquette || '';
+/* la molette d'époque, façon Radioooooo : on règle la décennie, la radio pioche dedans */
+const EPOQUES = [
+  { k: 'toutes', nom: 'Toutes les époques', court: 'Tout', de: -Infinity, a: Infinity },
+  { k: 'avant', nom: 'Avant 1960', court: '<60', de: -Infinity, a: 1959 },
+  { k: '60', nom: 'Années 60', court: '60', de: 1960, a: 1969 },
+  { k: '70', nom: 'Années 70', court: '70', de: 1970, a: 1979 },
+  { k: '80', nom: 'Années 80', court: '80', de: 1980, a: 1989 },
+  { k: '9000', nom: 'Années 90 et 2000', court: '90·00', de: 1990, a: 2009 },
+  { k: '10', nom: 'Années 2010', court: '10', de: 2010, a: 2019 },
+  { k: '20', nom: 'Années 2020', court: '20', de: 2020, a: Infinity },
+];
+const epoqueDe = k => EPOQUES.find(e => e.k === k) || EPOQUES[0];
+const dansEpoque = (m, k) => { const e = epoqueDe(k); return e.k === 'toutes' || (+m.annee >= e.de && +m.annee <= e.a); };
+// la radio, ramenée à l'époque choisie (ma sélection, elle, garde tout)
+function filtreEpoque(l) {
+  if (S.source === 'selection' || S.epoque === 'toutes') return l;
+  const f = l.filter(m => dansEpoque(m, S.epoque));
+  return f.length ? f : l;
+}
+function choisirEpoque(k) {
+  if (!EPOQUES.some(e => e.k === k)) return;
+  const avant = S.epoque;
+  S.epoque = k; S.epoqueFinie = false; memoire.ecrire('md-epoque', k);
+  gresillement();
+  if (avant === k) return;
+  const cur = parId[S.joue];
+  if (cur) S.suite = construireSuite(cur);
+  rendrePupitre(); majAfficheur();
+  const p = parId[S.suite[0]];
+  toast(k === 'toutes' ? 'Toutes les époques : la radio pioche partout.' : `${epoqueDe(k).nom}${p ? ` : ensuite, ${p.affiche}, ${p.annee}` : ''}.`, 3200);
+}
+// le petit souffle de la radio qu'on règle
+function gresillement() {
+  if (S.fidget && S.fidget.bip === false) return;
+  const c = audioCtx(); if (!c) return;
+  try {
+    const n = Math.floor(c.sampleRate * 0.22), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1800 + Math.random() * 1200; f.Q.value = 0.9; g.gain.value = 0.06;
+    src.connect(f).connect(g).connect(c.destination); src.start();
+  } catch (e) {}
+}
 function poolSource() {
   let p;
   if (S.source === 'selection') p = S.gardes.map(id => parId[id]).filter(Boolean);
@@ -835,8 +879,12 @@ function construireSuite(depuis, n = 6) {
     const i = depuis ? ordre.indexOf(depuis.id) : -1;
     return [...ordre.slice(i + 1), ...ordre.slice(0, Math.max(0, i))].slice(0, n);
   }
-  let pool = base.filter(m => !recents.has(m.id));
-  if (pool.length < n) pool = base;
+  const baseE = filtreEpoque(base);
+  let pool = baseE.filter(m => !recents.has(m.id));
+  // fait le tour de l'époque : on le dira, et la molette repasse sur « Tout »
+  if (!pool.length && baseE !== base && depuis) S.epoqueFinie = true;
+  // sur une époque, on épuise d'abord ce qu'on n'a pas encore entendu (quitte à prévoir une suite plus courte)
+  if (pool.length < n && (baseE === base || !pool.length)) pool = baseE;
   const suite = [];
   let cur = depuis || hasard(pool);
   if (!depuis && cur) { suite.push(cur.id); pool = pool.filter(m => m !== cur); }
@@ -852,8 +900,18 @@ function construireSuite(depuis, n = 6) {
   }
   return suite;
 }
+// tous les morceaux de l'époque sont passés : on le dit, et la molette repasse sur « Tout »
+function finTourEpoque() {
+  if (!S.epoqueFinie) return;
+  S.epoqueFinie = false;
+  const nom = epoqueDe(S.epoque).nom;
+  S.epoque = 'toutes'; memoire.ecrire('md-epoque', 'toutes');
+  S.suite = construireSuite(parId[S.joue] || null);
+  toast(`Tu as fait le tour : ${nom.charAt(0).toLowerCase() + nom.slice(1)}. La molette repasse sur toutes les époques.`, 4200);
+}
 function rafraichirSuite() {
   S.suite = construireSuite(parId[S.joue] || null);
+  finTourEpoque();
   rendrePupitre();
   majAfficheur();
 }
@@ -960,6 +1018,7 @@ function jouerRadio(id, { debut = 0 } = {}) {
   }
   S.cote = false;
   S.suite = construireSuite(m);
+  finTourEpoque();
   if (S.pente && S.pente.neuf) S.pente.vise = S.suite[0];
   rendrePupitre();
   majMachine();
@@ -1033,7 +1092,7 @@ function orienter(dir) {
     msg = `Encore ${nomCap(dir).toLowerCase()}`;
   } else S.pente = { dir, force: 1, neuf: true, vise: null, joues: 0 }, msg = nomCap(dir);
   // tout au bout de l'échelle : on le dit, et on reste au même niveau plutôt que de refuser
-  const bout = dir !== 'libre' && dir !== 'cote' && !Moteur.possible(cur, dir, poolSource().filter(x => x.id !== cur.id), val);
+  const bout = dir !== 'libre' && dir !== 'cote' && !Moteur.possible(cur, dir, filtreEpoque(poolSource().filter(x => x.id !== cur.id)), val);
   S.suite = construireSuite(cur);
   if (S.pente && S.pente.neuf) S.pente.vise = S.suite[0];
   rendrePupitre();
@@ -1085,7 +1144,7 @@ const position = (m, cle) => m ? Math.max(0, Math.min(10, +val(m, cle) || 0)) * 
 function rendrePupitre() {
   const m = parId[S.joue];
   const p = parId[S.suite[0]];
-  const pool = poolSource().filter(x => !m || x.id !== m.id);
+  const pool = filtreEpoque(poolSource().filter(x => !m || x.id !== m.id));
   // la radio ou ta sélection : seulement quand ta sélection a au moins deux morceaux
   const so = $('#sources');
   so.hidden = S.gardes.length < 2;
@@ -1105,6 +1164,18 @@ function rendrePupitre() {
       <span class="reglage-nom">Ce morceau</span>
       <button class="rail-bout rail-passer" data-action="pas-aime"${m ? '' : ' disabled'} title="On passe au suivant, et on s'éloigne de ce genre-là">${POUCE} Pas trop comme ça</button>
     </div>`;
+  const ca = $('#cadran');
+  ca.hidden = S.source === 'selection';
+  if (!ca.hidden) {
+    const radio = poolSource().filter(x => !S.aimePas.has(x.id));
+    const i = Math.max(0, EPOQUES.findIndex(e => e.k === S.epoque));
+    const nb = k => radio.filter(x => dansEpoque(x, k)).length;
+    ca.innerHTML = `<div class="cadran-tete"><span class="reglage-nom">Époque</span><span class="cadran-etat">${S.epoque === 'toutes' ? 'Toutes les époques' : `${E(epoqueDe(S.epoque).nom)} · ${nb(S.epoque)} morceau${nb(S.epoque) > 1 ? 'x' : ''}`}</span></div>
+      <div class="cadran-bande" role="radiogroup" aria-label="Époque" style="--pos:${i};--n:${EPOQUES.length}">
+        <span class="cadran-aiguille" aria-hidden="true"></span>
+        ${EPOQUES.map(e => `<button class="cadran-choix" role="radio" data-action="epoque" data-epoque="${e.k}" aria-checked="${e.k === S.epoque}" aria-label="${E(e.nom)}" title="${E(e.nom)}${e.k === 'toutes' ? '' : ` · ${nb(e.k)}`}">${E(e.court)}</button>`).join('')}
+      </div>`;
+  }
   $('#autres').innerHTML = '';
   const pe = $('#pente');
   pe.hidden = !S.pente;
@@ -1208,7 +1279,7 @@ function texteLCD(el, texte) {
   requestAnimationFrame(() => { if (el.scrollWidth > boite.clientWidth + 2) boite.classList.remove('fixe'); });
 }
 function majEtiquette(m, active) {
-  $('#etq-piste').textContent = m ? `PISTE ${deux(S.historique.length)} · ${S.source === 'selection' ? 'MA SÉLECTION' : 'LA RADIO'}` : 'PISTE --';
+  $('#etq-piste').textContent = m ? `PISTE ${deux(S.historique.length)} · ${S.source === 'selection' ? 'MA SÉLECTION' : S.epoque === 'toutes' ? 'LA RADIO' : 'LA RADIO · ' + epoqueDe(S.epoque).nom.toUpperCase()}` : 'PISTE --';
   $('#etq-titre').textContent = S.tiroirOuvert ? 'Tiroir ouvert' : m ? m.affiche : 'Appuie sur lecture';
   $('#etq-artiste').textContent = S.tiroirOuvert ? 'Appuie sur ⏏ ou sur lecture pour le refermer' : m ? m.artiste : '';
   const e = parId[S.suite[0]];
@@ -1411,7 +1482,7 @@ function allumer() {
   // pris parmi ceux que tu n'as encore jamais entendus (puis les moins récents)
   let m = null;
   if (S.source === 'radio') {
-    const pool = poolSource();
+    const pool = filtreEpoque(poolSource());
     const vus = new Set(S.croises);
     const jamais = pool.filter(x => !vus.has(x.id) && !S.aimePas.has(x.id));
     m = jamais.length ? hasard(jamais) : hasard(pool.filter(x => !S.historique.slice(-40).includes(x.id)));
@@ -1440,6 +1511,7 @@ const ACTIONS = {
   'aime': () => aimer(S.joue),
   'pas-aime': () => pasAime(S.joue),
   'cap': b => orienter(b.dataset.dir),
+  'epoque': b => choisirEpoque(b.dataset.epoque),
   'fidget': b => bidouiller(b),
   'trappe': b => { const p = $('#trappe-panneau'); const ouvre = p.hidden; p.hidden = !ouvre; b.setAttribute('aria-expanded', ouvre); $('#trappe').classList.toggle('ouverte', ouvre); clic(ouvre ? 520 : 380, 0.08, 0.06); },
   'source-chaine': b => choisirSource(b.dataset.source),
@@ -1599,5 +1671,14 @@ if (S.gardes.length || S.croises.length) {
   pi.addEventListener('pointerup', lacher); pi.addEventListener('pointercancel', lacher);
   pi.addEventListener('dblclick', () => { pi.style.setProperty('--dx', '0px'); pi.style.setProperty('--dy', '0px'); });
 })();
+// la molette au clavier : flèches gauche et droite
+document.addEventListener('keydown', e => {
+  if (!e.target.closest || !e.target.closest('.cadran-bande') || !['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+  e.preventDefault();
+  const i = EPOQUES.findIndex(x => x.k === S.epoque) + (e.key === 'ArrowRight' ? 1 : -1);
+  if (i < 0 || i >= EPOQUES.length) return;
+  choisirEpoque(EPOQUES[i].k);
+  const b = $(`.cadran-choix[data-epoque="${EPOQUES[i].k}"]`); if (b) b.focus();
+});
 aller('allumage');
 })();
