@@ -1746,3 +1746,12 @@ body.sans-selection .bouton-trouvailles { display: none; }
 @media (max-width: 380px) { .reglage-paire .rail-bout { white-space: normal; } }
 .rail-passer { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; }
 .autres:empty { display: none; }
+
+/* « Des pubs ? » : une note discrète sous le poste, plus une carte qui pousse les réglages */
+.avis-pub { max-width: min(640px, 100%); padding: 10px 14px; gap: 6px 12px; font-size: 14px; box-shadow: none; background: transparent; border: 1px dashed var(--trait); border-radius: 12px; }
+.avis-pub .avis-titre { font-family: var(--texte); font-weight: 700; font-size: 14px; display: inline; }
+.avis-pub p { margin: 0; line-height: 1.45; }
+.avis-pub .avis-titre + p { display: inline; margin-left: 6px; }
+.avis-pub .avis-actions { margin-top: 2px; gap: 6px 16px; }
+.avis-pub .gros-bouton { min-height: 32px; padding: 0 14px; font-size: 13px; box-shadow: none; }
+.avis-pub .lien-bouton { font-size: 13px; }
